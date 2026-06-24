@@ -77,4 +77,16 @@ describe('WorkoutSession', () => {
     const changes = events.filter((e) => e.type === 'segmentChanged');
     expect(changes.length).toBeGreaterThanOrEqual(2);
   });
+
+  it('startAt resumes a segment without replaying its already-passed cues', () => {
+    const clock = new FakeClock();
+    const fired: number[] = [];
+    const session = new WorkoutSession(makeWorkout(), clock, (e) => { if (e.type === 'cue') fired.push(e.cue.atSec); });
+    session.startAt(0, 6); // first work segment is dur 10 with cues at 0 and 5 — both already passed
+    expect(session.getState().segmentIndex).toBe(0);
+    expect(session.getState().segmentRemainingSec).toBe(4); // 10 - 6
+    expect(fired).toEqual([]); // nothing replayed
+    for (let i = 0; i < 60; i++) clock.tick(0.1); // ~6s forward → past segment 0
+    expect(session.getState().segmentIndex).toBeGreaterThan(0);
+  });
 });

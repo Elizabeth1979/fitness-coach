@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore } from './store';
+import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore, saveCheckpoint, getCheckpoint, clearCheckpoint } from './store';
 
 const makeMemStorage = (): Storage => {
   const store: Record<string, string> = {};
@@ -31,5 +31,14 @@ describe('store', () => {
     setPrefs({ voiceURI: 'abc', equipment: ['bodyweight'] });
     expect(getPrefs().voiceURI).toBe('abc');
     expect(getPrefs().equipment).toEqual(['bodyweight']);
+  });
+
+  it('saves, reads, and clears a checkpoint', () => {
+    const w = { id: 'x', kind: '10min', focus: 'movement', segments: [] } as unknown as import('../domain/types').Workout;
+    expect(getCheckpoint()).toBeNull();
+    saveCheckpoint({ workout: w, segmentIndex: 3, elapsedSec: 0 });
+    expect(getCheckpoint()?.segmentIndex).toBe(3);
+    clearCheckpoint();
+    expect(getCheckpoint()).toBeNull();
   });
 });

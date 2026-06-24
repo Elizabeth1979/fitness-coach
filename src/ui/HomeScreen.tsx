@@ -5,10 +5,10 @@ import { getPrefs, setPrefs } from '../storage/store';
 import { useVoices } from './useVoices';
 import { VoicePicker } from './VoicePicker';
 
-interface Props { streak: number; onStart: (kind: WorkoutKind) => void; }
+interface Props { streak: number; onStart: (kind: WorkoutKind) => void; canResume?: boolean; onResume?: () => void; }
 const KINDS: WorkoutKind[] = ['10min', '20min', '30min'];
 
-export function HomeScreen({ streak, onStart }: Props) {
+export function HomeScreen({ streak, onStart, canResume, onResume }: Props) {
   const [kind, setKind] = useState<WorkoutKind>('20min');
   const voices = useVoices();
   const [voiceURI, setVoiceURI] = useState<string | undefined>(() => getPrefs().voiceURI);
@@ -47,13 +47,23 @@ export function HomeScreen({ streak, onStart }: Props) {
         ))}
       </div>
 
-      <button
-        onClick={() => onStart(kind)}
-        className="w-full max-w-sm py-10 rounded-3xl bg-emerald-500 text-black text-4xl font-bold active:scale-[0.98] transition"
-        aria-label={`Start ${kind} workout`}
-      >
-        ▶ Start
-      </button>
+      <div className="flex flex-col items-center gap-3 w-full max-w-sm">
+        {canResume && onResume && (
+          <button
+            onClick={onResume}
+            className="w-full max-w-sm py-4 rounded-2xl bg-amber-500 text-black text-xl font-semibold"
+          >
+            ↻ Resume workout
+          </button>
+        )}
+        <button
+          onClick={() => onStart(kind)}
+          className="w-full max-w-sm py-10 rounded-3xl bg-emerald-500 text-black text-4xl font-bold active:scale-[0.98] transition"
+          aria-label={`Start ${kind} workout`}
+        >
+          ▶ Start
+        </button>
+      </div>
       <VoicePicker voices={voices} value={voiceURI} onChange={handleVoiceChange} />
     </main>
   );

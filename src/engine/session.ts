@@ -50,6 +50,13 @@ export class WorkoutSession {
     this.enterSegment(0);
   }
 
+  startAt(index: number, elapsedSec: number): void {
+    if (this.status !== 'idle') return;
+    this.status = 'running';
+    this.clock.start();
+    this.enterSegmentResumed(index, elapsedSec);
+  }
+
   pause(): void { if (this.status === 'running') this.status = 'paused'; }
   resume(): void { if (this.status === 'paused') this.status = 'running'; }
 
@@ -65,14 +72,27 @@ export class WorkoutSession {
     this.onEvent({ type: 'finished', completed });
   }
 
-  private enterSegment(i: number): void {
+  private beginSegment(i: number, elapsedSec: number): void {
     this.index = i;
-    this.elapsedInSeg = 0;
+    this.elapsedInSeg = elapsedSec;
     this.cueCursor = 0;
     const segment = this.workout.segments[i];
     this.sortedCues = [...segment.cues].sort((a, b) => a.atSec - b.atSec);
     this.onEvent({ type: 'segmentChanged', index: i, segment });
+  }
+
+  private enterSegment(i: number): void {
+    this.beginSegment(i, 0);
     this.fireDueCues();
+    this.onEvent({ type: 'tick', state: this.getState() });
+  }
+
+  private enterSegmentResumed(i: number, elapsedSec: number): void {
+    this.beginSegment(i, elapsedSec);
+    // Suppress cues that already played before the resume point (do not replay them).
+    while (this.cueCursor < this.sortedCues.length && this.sortedCues[this.cueCursor].atSec <= elapsedSec) {
+      this.cueCursor++;
+    }
     this.onEvent({ type: 'tick', state: this.getState() });
   }
 

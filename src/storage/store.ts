@@ -1,4 +1,4 @@
-import type { Equipment } from '../domain/types';
+import type { Equipment, Workout } from '../domain/types';
 import { computeStreak } from './streak';
 
 export interface Completion {
@@ -14,10 +14,17 @@ export interface Prefs {
   equipment: Equipment[];
 }
 
+export interface Checkpoint {
+  workout: Workout;
+  segmentIndex: number;
+  elapsedSec: number;
+}
+
 export interface Store {
   version: 1;
   completions: Completion[];
   prefs: Prefs;
+  checkpoint?: Checkpoint;
 }
 
 const KEY = 'mwe.store.v1';
@@ -58,4 +65,20 @@ export function setPrefs(p: Prefs): void {
 
 export function currentStreak(today: string): number {
   return computeStreak(loadStore().completions.map((c) => c.date), today);
+}
+
+export function saveCheckpoint(c: Checkpoint): void {
+  const s = loadStore();
+  s.checkpoint = c;
+  saveStore(s);
+}
+
+export function getCheckpoint(): Checkpoint | null {
+  return loadStore().checkpoint ?? null;
+}
+
+export function clearCheckpoint(): void {
+  const s = loadStore();
+  delete s.checkpoint;
+  saveStore(s);
 }
