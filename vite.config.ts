@@ -2,10 +2,33 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   base: '/fitness-coach/',
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['icons/icon-192.png', 'icons/icon-512.png'],
+      manifest: {
+        name: 'Move With Elli',
+        short_name: 'Move',
+        description: 'Press Play. Don\'t Think. Move.',
+        theme_color: '#0b0f14',
+        background_color: '#0b0f14',
+        display: 'standalone',
+        scope: '/fitness-coach/',
+        start_url: '/fitness-coach/',
+        icons: [
+          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+        ],
+      },
+      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
+    }),
+  ],
   test: {
     environment: 'jsdom',
     globals: true,
