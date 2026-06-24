@@ -5,6 +5,7 @@ import { RafClock } from '../engine/clock';
 import { createCoach } from '../coach/coach';
 import { createFeedback } from '../feedback/feedback';
 import { requestWakeLock, releaseWakeLock } from '../pwa/wakeLock';
+import { getPrefs } from '../storage/store';
 
 const IDLE: SessionState = { status: 'idle', segmentIndex: 0, segment: null, segmentRemainingSec: 0 };
 
@@ -37,6 +38,8 @@ export function useWorkoutSession(workout: Workout | null) {
   }, [workout, coach, feedback]);
 
   const start = useCallback(() => {
+    const v = getPrefs().voiceURI;
+    if (v) coach.setVoiceURI(v);
     coach.prime();
     void requestWakeLock();
     sessionRef.current?.start();
