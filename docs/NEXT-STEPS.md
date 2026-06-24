@@ -44,6 +44,15 @@ Every push to `main` then runs tests, builds, and deploys to `https://<you>.gith
 - Mid-segment resume: today "Resume" restarts the current exercise from its start (the engine already supports finer resume — just store live elapsed seconds in the checkpoint).
 - Consolidate the test-only localStorage shim via a jsdom URL in `vite.config.ts`.
 
+## Next feature (designed, ready to build)
+
+- **Themed warm-ups & the Mobility Lottery** — replace the single daily warm-up with a
+  named, never-repeating themed *flow* (Hip Flow, Shoulder Flow, Animal Flow, Dance Flow —
+  including a 2-minute free-dance), chosen to prep the day's work and announced by the
+  coach ("Today's warm-up: Dance Flow"). Optional bigger change: make Push/Pull/Legs/Hinge
+  the non-negotiables and rotate Warm-up/Mobility/Crawl/Carry/Balance. Full design +
+  code-mapping: [docs/superpowers/specs/2026-06-24-themed-warmups-and-rotation-design.md](docs/superpowers/specs/2026-06-24-themed-warmups-and-rotation-design.md).
+
 ## Future phases (from the design spec, §17)
 
 - **Phase 2 — accounts & sync:** Supabase auth + cloud workout history.
