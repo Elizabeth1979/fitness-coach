@@ -1,5 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { WebFeedback, HAPTIC_PATTERNS } from './feedback';
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('WebFeedback', () => {
   it('uses navigator.vibrate with the kind\'s pattern when available', () => {

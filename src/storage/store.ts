@@ -32,7 +32,7 @@ export function loadStore(): Store {
     const raw = localStorage.getItem(KEY);
     if (!raw) return structuredClone(DEFAULT);
     const parsed = JSON.parse(raw) as Store;
-    return { ...structuredClone(DEFAULT), ...parsed, prefs: { ...DEFAULT.prefs, ...parsed.prefs } };
+    return { ...structuredClone(DEFAULT), ...parsed, prefs: { ...DEFAULT.prefs, ...parsed.prefs }, completions: Array.isArray(parsed.completions) ? parsed.completions : [] };
   } catch {
     return structuredClone(DEFAULT);
   }

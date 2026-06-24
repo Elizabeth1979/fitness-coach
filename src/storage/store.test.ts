@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore } from './store';
 
 const makeMemStorage = (): Storage => {
@@ -16,6 +16,8 @@ const makeMemStorage = (): Storage => {
 beforeEach(() => {
   vi.stubGlobal('localStorage', makeMemStorage());
 });
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('store', () => {
   it('records completions and computes the streak', () => {

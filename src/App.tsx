@@ -13,7 +13,7 @@ export default function App() {
   const [phase, setPhase] = useState<'home' | 'active' | 'done'>('home');
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [streak, setStreak] = useState(0);
-  const { state, start, pause, resume, skip, end } = useWorkoutSession(workout);
+  const { state, completed, start, pause, resume, skip, end } = useWorkoutSession(workout);
 
   useEffect(() => { setStreak(currentStreak(todayStr())); }, [phase]);
 
@@ -36,14 +36,19 @@ export default function App() {
   // When the engine finishes, record + go to done.
   useEffect(() => {
     if (phase === 'active' && state.status === 'done' && workout) {
-      recordCompletion({
-        date: todayStr(), kind: workout.kind, focus: workout.focus,
-        exerciseIds: workout.segments.flatMap((s) => (s.exercise ? [s.exercise.id] : [])),
-        durationSec: workout.segments.reduce((a, s) => a + s.durationSec, 0),
-      });
-      setPhase('done');
+      if (completed) {
+        recordCompletion({
+          date: todayStr(), kind: workout.kind, focus: workout.focus,
+          exerciseIds: [...new Set(workout.segments.flatMap((s) => (s.exercise ? [s.exercise.id] : [])))],
+          durationSec: workout.segments.reduce((a, s) => a + s.durationSec, 0),
+        });
+        setPhase('done');
+      } else {
+        setWorkout(null);
+        setPhase('home');
+      }
     }
-  }, [phase, state.status, workout]);
+  }, [phase, state.status, completed, workout]);
 
   if (phase === 'home') return <HomeScreen streak={streak} onStart={handleStart} />;
   if (phase === 'done') return <DoneScreen categories={categories} streak={streak} onHome={() => { setWorkout(null); setPhase('home'); }} />;

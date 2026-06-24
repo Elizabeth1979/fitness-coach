@@ -14,7 +14,7 @@ describe('phrases', () => {
       phrases.celebrate(['push', 'pull', 'hinge', 'carry', 'mobility']),
       phrases.encourage(() => 0),
     ];
-    const banned = /calorie|weight loss|burn|fat|harder|no excuses/i;
+    const banned = /calorie|weight loss|burn|fat|harder|no excuses|guilt/i;
     for (const l of lines) expect(l).not.toMatch(banned);
   });
 

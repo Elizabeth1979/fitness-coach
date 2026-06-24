@@ -53,6 +53,6 @@ export class NullFeedback implements Feedback {
 }
 
 export function createFeedback(): Feedback {
-  return typeof navigator !== 'undefined' || typeof window !== 'undefined'
+  return typeof navigator !== 'undefined' && typeof window !== 'undefined'
     ? new WebFeedback() : new NullFeedback();
 }

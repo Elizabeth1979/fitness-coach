@@ -13,9 +13,11 @@ export function useWorkoutSession(workout: Workout | null) {
   const feedback = useMemo(() => createFeedback(), []);
   const sessionRef = useRef<WorkoutSession | null>(null);
   const [state, setState] = useState<SessionState>(IDLE);
+  const [completed, setCompleted] = useState(false);
 
   useEffect(() => {
     if (!workout) return;
+    setCompleted(false);
     const clock = new RafClock();
     const session = new WorkoutSession(workout, clock, (e) => {
       if (e.type === 'tick' || e.type === 'segmentChanged') {
@@ -25,6 +27,7 @@ export function useWorkoutSession(workout: Workout | null) {
         if (e.cue.haptic) feedback.fire(e.cue.haptic);
       } else if (e.type === 'finished') {
         setState(session.getState());
+        setCompleted(e.completed);
         void releaseWakeLock();
       }
     });
@@ -46,5 +49,5 @@ export function useWorkoutSession(workout: Workout | null) {
     void releaseWakeLock();
   }, []);
 
-  return { state, start, pause, resume, skip, end };
+  return { state, completed, start, pause, resume, skip, end };
 }

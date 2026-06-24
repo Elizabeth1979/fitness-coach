@@ -14,7 +14,7 @@ export type SessionEvent =
   | { type: 'tick'; state: SessionState }
   | { type: 'segmentChanged'; index: number; segment: Segment }
   | { type: 'cue'; cue: Cue }
-  | { type: 'finished' };
+  | { type: 'finished'; completed: boolean };
 
 export class WorkoutSession {
   private index = 0;
@@ -57,10 +57,12 @@ export class WorkoutSession {
     if (this.status === 'running' || this.status === 'paused') this.advance();
   }
 
-  end(): void {
+  end(): void { this.finish(false); }
+
+  private finish(completed: boolean): void {
     this.status = 'done';
     this.clock.stop();
-    this.onEvent({ type: 'finished' });
+    this.onEvent({ type: 'finished', completed });
   }
 
   private enterSegment(i: number): void {
@@ -76,7 +78,7 @@ export class WorkoutSession {
 
   private advance(): void {
     const next = this.index + 1;
-    if (next >= this.workout.segments.length) { this.end(); return; }
+    if (next >= this.workout.segments.length) { this.finish(true); return; }
     this.enterSegment(next);
   }
 

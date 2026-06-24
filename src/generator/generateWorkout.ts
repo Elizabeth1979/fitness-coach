@@ -134,7 +134,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
 
   segments.push({
     kind: 'celebrate', durationSec: CELEBRATE_SEC,
-    cues: [{ atSec: 0, say: phrases.celebrate(items.map((e) => e.category)) }],
+    cues: [{ atSec: 0, say: phrases.celebrate(items.filter((e) => e.category !== 'warmup').map((e) => e.category)) }],
   });
 
   return { id: `w-${seed}-${opts.kind}`, kind: opts.kind, focus, segments };

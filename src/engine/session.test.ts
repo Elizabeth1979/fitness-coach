@@ -51,6 +51,7 @@ describe('WorkoutSession', () => {
     session.start();
     for (let i = 0; i < 200; i++) clock.tick(0.1);
     expect(events.some((e) => e.type === 'finished')).toBe(true);
+    expect(events.some((e) => e.type === 'finished' && e.completed === true)).toBe(true);
     expect(session.getState().status).toBe('done');
   });
 
