@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore, saveCheckpoint, getCheckpoint, clearCheckpoint } from './store';
+import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore, saveCheckpoint, getCheckpoint, clearCheckpoint, getRecentThemes, pushRecentTheme } from './store';
 
 const makeMemStorage = (): Storage => {
   const store: Record<string, string> = {};
@@ -40,5 +40,17 @@ describe('store', () => {
     expect(getCheckpoint()?.segmentIndex).toBe(3);
     clearCheckpoint();
     expect(getCheckpoint()).toBeNull();
+  });
+
+  it('tracks recent warm-up themes — newest last, de-duped, capped', () => {
+    expect(getRecentThemes()).toEqual([]);
+    pushRecentTheme('hip-flow');
+    pushRecentTheme('shoulder-flow');
+    pushRecentTheme('hip-flow'); // re-selecting moves it to newest, no dupes
+    expect(getRecentThemes()).toEqual(['shoulder-flow', 'hip-flow']);
+    pushRecentTheme('a');
+    pushRecentTheme('b');
+    pushRecentTheme('c'); // capped at 3
+    expect(getRecentThemes()).toEqual(['a', 'b', 'c']);
   });
 });

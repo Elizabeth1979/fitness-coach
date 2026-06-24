@@ -5,7 +5,7 @@ import { useWorkoutSession } from './ui/useWorkoutSession';
 import { HomeScreen } from './ui/HomeScreen';
 import { ActiveScreen } from './ui/ActiveScreen';
 import { DoneScreen } from './ui/DoneScreen';
-import { recordCompletion, currentStreak, getPrefs, getCheckpoint } from './storage/store';
+import { recordCompletion, currentStreak, getPrefs, getCheckpoint, getRecentThemes, pushRecentTheme } from './storage/store';
 import type { Checkpoint } from './storage/store';
 
 function todayStr(): string { return new Date().toISOString().slice(0, 10); }
@@ -29,7 +29,8 @@ export default function App() {
   );
 
   function handleStart(kind: WorkoutKind) {
-    const w = generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment });
+    const w = generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes() });
+    if (w.warmupThemeId) pushRecentTheme(w.warmupThemeId);
     setResumeFrom(null);
     setWorkout(w);
     setPhase('active');

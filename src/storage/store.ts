@@ -25,6 +25,7 @@ export interface Store {
   completions: Completion[];
   prefs: Prefs;
   checkpoint?: Checkpoint;
+  recentThemes?: string[];
 }
 
 const KEY = 'mwe.store.v1';
@@ -80,5 +81,18 @@ export function getCheckpoint(): Checkpoint | null {
 export function clearCheckpoint(): void {
   const s = loadStore();
   delete s.checkpoint;
+  saveStore(s);
+}
+
+export function getRecentThemes(): string[] {
+  const r = loadStore().recentThemes;
+  return Array.isArray(r) ? r : [];
+}
+
+export function pushRecentTheme(id: string, keep = 3): void {
+  const s = loadStore();
+  const list = (Array.isArray(s.recentThemes) ? s.recentThemes : []).filter((t) => t !== id);
+  list.push(id);
+  s.recentThemes = list.slice(-keep);
   saveStore(s);
 }
