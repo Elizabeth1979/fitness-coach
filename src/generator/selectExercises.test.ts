@@ -6,15 +6,28 @@ import type { Equipment } from '../domain/types';
 const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 
 describe('selectExercises', () => {
-  it('with warmup: returns warmup first, then one exercise per slot', () => {
+  // The 'carry' slot intentionally draws from carry OR crawl (bear/crab/leopard),
+  // so that position may be either category — assert per-slot, not strict equality.
+  it('with warmup: returns warmup first, then one exercise per slot (carry slot may be a crawl)', () => {
     const out = selectExercises({ equipment: ALL, recentExerciseIds: [], rng: createRng(1), includeWarmup: true });
     expect(out[0].category).toBe('warmup');
-    expect(out.slice(1).map((e) => e.category)).toEqual(SLOTS);
+    const cats = out.slice(1).map((e) => e.category);
+    expect(cats).toHaveLength(SLOTS.length);
+    SLOTS.forEach((slot, i) => {
+      if (slot === 'carry') expect(['carry', 'crawl']).toContain(cats[i]);
+      else expect(cats[i]).toBe(slot);
+    });
   });
 
   it('without warmup: returns one exercise per slot and no warmup', () => {
     const out = selectExercises({ equipment: ALL, recentExerciseIds: [], rng: createRng(1), includeWarmup: false });
-    expect(out.map((e) => e.category)).toEqual(SLOTS);
+    const cats = out.map((e) => e.category);
+    expect(cats).toHaveLength(SLOTS.length);
+    SLOTS.forEach((slot, i) => {
+      if (slot === 'carry') expect(['carry', 'crawl']).toContain(cats[i]);
+      else expect(cats[i]).toBe(slot);
+    });
+    expect(cats).not.toContain('warmup');
   });
 
   it('only picks exercises whose equipment is all available', () => {

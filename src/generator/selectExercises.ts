@@ -10,12 +10,8 @@ function hasEquipment(ex: Exercise, available: Equipment[]): boolean {
 }
 
 function candidatesFor(category: Category, available: Equipment[]): Exercise[] {
-  if (category === 'carry') {
-    const carry = EXERCISES.filter((e) => e.category === 'carry' && hasEquipment(e, available));
-    if (carry.length > 0) return carry;
-    return EXERCISES.filter((e) => e.category === 'crawl' && hasEquipment(e, available));
-  }
-  return EXERCISES.filter((e) => e.category === category && hasEquipment(e, available));
+  const cats: Category[] = category === 'carry' ? ['carry', 'crawl'] : [category];
+  return EXERCISES.filter((e) => cats.includes(e.category) && hasEquipment(e, available));
 }
 
 function choose(
