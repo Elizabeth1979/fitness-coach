@@ -1,122 +1,51 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect, useMemo, useState } from 'react';
+import type { Category, Workout, WorkoutKind } from './domain/types';
+import { generateWorkout } from './generator/generateWorkout';
+import { useWorkoutSession } from './ui/useWorkoutSession';
+import { HomeScreen } from './ui/HomeScreen';
+import { ActiveScreen } from './ui/ActiveScreen';
+import { DoneScreen } from './ui/DoneScreen';
+import { recordCompletion, currentStreak, getPrefs } from './storage/store';
 
-function App() {
-  const [count, setCount] = useState(0)
+function todayStr(): string { return new Date().toISOString().slice(0, 10); }
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+export default function App() {
+  const [phase, setPhase] = useState<'home' | 'active' | 'done'>('home');
+  const [workout, setWorkout] = useState<Workout | null>(null);
+  const [streak, setStreak] = useState(0);
+  const { state, start, pause, resume, skip, end } = useWorkoutSession(workout);
 
-      <div className="ticks"></div>
+  useEffect(() => { setStreak(currentStreak(todayStr())); }, [phase]);
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+  const categories = useMemo<Category[]>(
+    () => (workout?.segments.map((s) => s.exercise?.category).filter(Boolean) as Category[]) ?? [],
+    [workout],
+  );
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+  function handleStart(kind: WorkoutKind) {
+    const w = generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment });
+    setWorkout(w);
+    setPhase('active');
+  }
+
+  // Start the session once the workout-bound hook has mounted.
+  useEffect(() => {
+    if (phase === 'active' && state.status === 'idle' && workout) start();
+  }, [phase, state.status, workout, start]);
+
+  // When the engine finishes, record + go to done.
+  useEffect(() => {
+    if (phase === 'active' && state.status === 'done' && workout) {
+      recordCompletion({
+        date: todayStr(), kind: workout.kind, focus: workout.focus,
+        exerciseIds: workout.segments.flatMap((s) => (s.exercise ? [s.exercise.id] : [])),
+        durationSec: workout.segments.reduce((a, s) => a + s.durationSec, 0),
+      });
+      setPhase('done');
+    }
+  }, [phase, state.status, workout]);
+
+  if (phase === 'home') return <HomeScreen streak={streak} onStart={handleStart} />;
+  if (phase === 'done') return <DoneScreen categories={categories} streak={streak} onHome={() => { setWorkout(null); setPhase('home'); }} />;
+  return <ActiveScreen state={state} onPause={pause} onResume={resume} onSkip={skip} onEnd={end} />;
 }
-
-export default App

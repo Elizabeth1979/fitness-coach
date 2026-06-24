@@ -38,11 +38,11 @@ export class SpeechCoach implements Coach {
 }
 
 export class NullCoach implements Coach {
-  speak(): void {}
+  speak(_text: string): void {}
   cancel(): void {}
   prime(): void {}
   getVoices(): SpeechSynthesisVoice[] { return []; }
-  setVoiceURI(): void {}
+  setVoiceURI(_uri: string): void {}
 }
 
 export function createCoach(): Coach {

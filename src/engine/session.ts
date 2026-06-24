@@ -22,12 +22,14 @@ export class WorkoutSession {
   private cueCursor = 0;
   private sortedCues: Cue[] = [];
   private status: SessionStatus = 'idle';
+  private readonly workout: Workout;
+  private readonly clock: Clock;
+  private readonly onEvent: (e: SessionEvent) => void;
 
-  constructor(
-    private readonly workout: Workout,
-    private readonly clock: Clock,
-    private readonly onEvent: (e: SessionEvent) => void,
-  ) {
+  constructor(workout: Workout, clock: Clock, onEvent: (e: SessionEvent) => void) {
+    this.workout = workout;
+    this.clock = clock;
+    this.onEvent = onEvent;
     this.clock.onTick((dt) => this.handleTick(dt));
   }
 
