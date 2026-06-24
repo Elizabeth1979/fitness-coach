@@ -46,5 +46,6 @@ export interface Workout {
   id: string;
   kind: WorkoutKind;
   focus: Focus;
+  warmupThemeId?: string;
   segments: Segment[];
 }

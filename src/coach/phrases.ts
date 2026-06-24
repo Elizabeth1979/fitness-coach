@@ -28,6 +28,7 @@ export const phrases = {
   begin: (): string => 'Begin.',
   rest: (): string => 'Rest. Take a deep breath.',
   next: (name: string): string => `Next exercise. ${name}.`,
+  warmupAnnounce: (flowName: string): string => `Today's warm-up: ${flowName}.`,
   count: (n: number): string => NUMBER_WORDS[n] ?? String(n),
   encourage: (rng: () => number): string =>
     ENCOURAGEMENTS[Math.floor(rng() * ENCOURAGEMENTS.length)],

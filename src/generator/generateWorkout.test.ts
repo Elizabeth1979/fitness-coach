@@ -56,4 +56,26 @@ describe('generateWorkout', () => {
       expect(sides[i + 1]).toBe('right');
     }
   });
+
+  it('starts with a themed warm-up flow announced by the coach', () => {
+    const w = generateWorkout({ kind: '10min', date: WED, equipment: ALL, seed: 4 });
+    expect(w.warmupThemeId).toBeTruthy();
+    const first = w.segments[0];
+    expect(first.kind).toBe('work');
+    expect(first.exercise?.category).toBe('warmup');
+    expect(first.cues[0].say?.toLowerCase()).toContain("today's warm-up:");
+  });
+
+  it('keeps warm-up segments short (not stretched by the time budget)', () => {
+    const w = generateWorkout({ kind: '30min', date: WED, equipment: ALL, seed: 4 });
+    const warmup = w.segments.filter((s) => s.exercise?.category === 'warmup');
+    expect(warmup.length).toBeGreaterThan(0);
+    for (const s of warmup) expect([30, 120]).toContain(s.durationSec);
+  });
+
+  it('avoids a recent warm-up theme', () => {
+    const themed = generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 4 });
+    const avoided = generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 4, recentThemeIds: [themed.warmupThemeId!] });
+    expect(avoided.warmupThemeId).not.toBe(themed.warmupThemeId);
+  });
 });
