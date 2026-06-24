@@ -31,13 +31,19 @@
 - Consumes: nothing.
 - Produces: a runnable Vite app + working Vitest. Later tasks rely on `npm run dev`, `npm run build`, and `npx vitest run <path>`.
 
-- [ ] **Step 1: Scaffold Vite React-TS app into the current directory**
+- [ ] **Step 1: Scaffold Vite React-TS app into the current directory (non-interactive)**
+
+The directory already holds `docs/`, `.git/`, and a placeholder `.gitignore`, so `npm create vite .` would stop on an interactive "directory not empty" prompt a subagent cannot answer. Scaffold into a temp subfolder, then move the files up:
 
 ```bash
-npm create vite@latest . -- --template react-ts
+npm create vite@latest mwe-scaffold -- --template react-ts
+shopt -s dotglob
+mv -f mwe-scaffold/* .
+shopt -u dotglob
+rmdir mwe-scaffold
 npm install
 ```
-If prompted that the directory is not empty, choose to **ignore/continue** (keeps `docs/` and `.git/`).
+This overwrites the placeholder `.gitignore` with Vite's fuller one (fine). If a previous attempt left a `package.json` in the root, delete it before re-running.
 
 - [ ] **Step 2: Add Tailwind v4, Vitest, Testing Library, PWA plugin**
 
@@ -463,7 +469,7 @@ git commit -m "feat: add seeded rng and weekday focus schedule"
 - Consumes: `EXERCISES`, `exercisesByCategory`, `Exercise`, `Equipment`, `createRng`, `pick`.
 - Produces:
   - `SLOTS: Category[]` (the fixed template order).
-  - `selectExercises(opts: { equipment: Equipment[]; recentExerciseIds: string[]; rng: () => number; includeExtras: number }): Exercise[]` — returns warmup first, then one exercise per required slot, then `includeExtras` optional (core/balance/mobility) exercises. Every returned exercise's `equipment ⊆ available`. Avoids `recentExerciseIds` when an alternative exists.
+  - `selectExercises(opts: { equipment: Equipment[]; recentExerciseIds: string[]; rng: () => number; includeWarmup: boolean }): Exercise[]` — returns a warmup (when `includeWarmup`) then one exercise per required slot. Every returned exercise's `equipment ⊆ available`. Avoids `recentExerciseIds` when an alternative exists. (The generator calls this once per circuit round; warmup only on round 1.)
 
 - [ ] **Step 1: Write the failing test**
 
@@ -478,16 +484,20 @@ import type { Equipment } from '../domain/types';
 const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 
 describe('selectExercises', () => {
-  it('returns warmup first, then exactly one exercise per required slot', () => {
-    const out = selectExercises({ equipment: ALL, recentExerciseIds: [], rng: createRng(1), includeExtras: 0 });
+  it('with warmup: returns warmup first, then one exercise per slot', () => {
+    const out = selectExercises({ equipment: ALL, recentExerciseIds: [], rng: createRng(1), includeWarmup: true });
     expect(out[0].category).toBe('warmup');
-    const main = out.slice(1);
-    expect(main.map((e) => e.category)).toEqual(SLOTS);
+    expect(out.slice(1).map((e) => e.category)).toEqual(SLOTS);
+  });
+
+  it('without warmup: returns one exercise per slot and no warmup', () => {
+    const out = selectExercises({ equipment: ALL, recentExerciseIds: [], rng: createRng(1), includeWarmup: false });
+    expect(out.map((e) => e.category)).toEqual(SLOTS);
   });
 
   it('only picks exercises whose equipment is all available', () => {
     const bodyOnly: Equipment[] = ['bodyweight'];
-    const out = selectExercises({ equipment: bodyOnly, recentExerciseIds: [], rng: createRng(3), includeExtras: 2 });
+    const out = selectExercises({ equipment: bodyOnly, recentExerciseIds: [], rng: createRng(3), includeWarmup: true });
     for (const ex of out) {
       for (const eq of ex.equipment) expect(bodyOnly).toContain(eq);
     }
@@ -495,16 +505,9 @@ describe('selectExercises', () => {
 
   it('avoids recent exercises when an alternative exists', () => {
     // Pull slot has several options; force avoidance of dead-hang.
-    const out = selectExercises({ equipment: ALL, recentExerciseIds: ['dead-hang'], rng: createRng(5), includeExtras: 0 });
+    const out = selectExercises({ equipment: ALL, recentExerciseIds: ['dead-hang'], rng: createRng(5), includeWarmup: true });
     const pull = out.find((e) => e.category === 'pull');
     expect(pull?.id).not.toBe('dead-hang');
-  });
-
-  it('appends the requested number of extra exercises from core/balance/mobility', () => {
-    const out = selectExercises({ equipment: ALL, recentExerciseIds: [], rng: createRng(2), includeExtras: 2 });
-    const extras = out.slice(1 + SLOTS.length);
-    expect(extras.length).toBe(2);
-    for (const ex of extras) expect(['core', 'balance', 'mobility']).toContain(ex.category);
   });
 });
 ```
@@ -527,7 +530,6 @@ import { pick } from './rng';
 
 // Fixed template (after warmup). "carry" slot may also draw from "crawl".
 export const SLOTS: Category[] = ['push', 'pull', 'legs', 'hinge', 'carry', 'mobility'];
-const EXTRA_CATEGORIES: Category[] = ['core', 'balance', 'mobility'];
 
 function hasEquipment(ex: Exercise, available: Equipment[]): boolean {
   return ex.equipment.every((eq) => available.includes(eq));
@@ -554,29 +556,25 @@ export interface SelectOptions {
   equipment: Equipment[];
   recentExerciseIds: string[];
   rng: () => number;
-  includeExtras: number;
+  includeWarmup: boolean;
 }
 
 export function selectExercises(opts: SelectOptions): Exercise[] {
-  const { equipment, recentExerciseIds, rng, includeExtras } = opts;
+  const { equipment, recentExerciseIds, rng, includeWarmup } = opts;
   const used = new Set<string>();
   const out: Exercise[] = [];
 
-  const warmup = choose(
-    exercisesByCategory('warmup').filter((e) => hasEquipment(e, equipment)),
-    recentExerciseIds, used, rng,
-  );
-  if (warmup) { out.push(warmup); used.add(warmup.id); }
+  if (includeWarmup) {
+    const warmup = choose(
+      exercisesByCategory('warmup').filter((e) => hasEquipment(e, equipment)),
+      recentExerciseIds, used, rng,
+    );
+    if (warmup) { out.push(warmup); used.add(warmup.id); }
+  }
 
   for (const slot of SLOTS) {
     const chosen = choose(candidatesFor(slot, equipment), recentExerciseIds, used, rng);
     if (chosen) { out.push(chosen); used.add(chosen.id); }
-  }
-
-  for (let i = 0; i < includeExtras; i++) {
-    const pool = EXTRA_CATEGORIES.flatMap((c) => exercisesByCategory(c)).filter((e) => hasEquipment(e, equipment));
-    const extra = choose(pool, recentExerciseIds, used, rng);
-    if (extra) { out.push(extra); used.add(extra.id); }
   }
 
   return out;
@@ -788,45 +786,77 @@ export const TARGET_SECONDS: Record<Exclude<WorkoutKind, 'free'>, number> = {
   '10min': 600, '20min': 1200, '30min': 1800,
 };
 
+// How many circuit rounds each length runs. Longer workouts repeat the
+// template rather than inventing ever more exercises.
+const ROUNDS: Record<WorkoutKind, number> = { '10min': 1, '20min': 2, '30min': 3, free: 2 };
+
 const CELEBRATE_SEC = 18;
 const PREPARE_SEC = 4;
+const MIN_WORK_SEC = 15;
+const MAX_WORK_SEC = 120;
 
 function targetFor(kind: WorkoutKind): number {
-  return kind === 'free' ? 1200 : TARGET_SECONDS[kind];
+  return kind === 'free' ? TARGET_SECONDS['20min'] : TARGET_SECONDS[kind];
 }
 
-// Per-exercise work + rest durations, biased by focus.
-function workSec(ex: Exercise, focus: Focus): number {
+function baseWorkSec(ex: Exercise, focus: Focus): number {
   if (ex.measure === 'time') return ex.defaultDurationSec ?? 30;
   const perRep = focus === 'strength' ? 3.5 : 3;
   return Math.round((ex.defaultReps ?? 8) * perRep);
 }
+
 function restSec(focus: Focus): number {
   return focus === 'strength' ? 30 : 20;
 }
 
-// Rough cost of one exercise (both sides if unilateral) including prepare + rest.
-function exerciseCost(ex: Exercise, focus: Focus): number {
-  const sides = ex.unilateral ? 2 : 1;
-  return PREPARE_SEC + sides * workSec(ex, focus) + restSec(focus);
+const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v));
+
+// One bout of work: a whole exercise, or one side of a unilateral one.
+interface Unit { ex: Exercise; side?: 'left' | 'right'; dur: number; }
+
+function buildUnits(items: Exercise[], focus: Focus): Unit[] {
+  const units: Unit[] = [];
+  for (const ex of items) {
+    const d = baseWorkSec(ex, focus);
+    if (ex.unilateral) {
+      units.push({ ex, side: 'left', dur: d });
+      units.push({ ex, side: 'right', dur: d });
+    } else {
+      units.push({ ex, dur: d });
+    }
+  }
+  return units;
 }
 
-function prepareSegment(ex: Exercise, announceNext: boolean, rng: () => number, isFirst: boolean, focus: Focus): Segment {
-  const cues: Cue[] = [];
-  const lead = isFirst ? `${phrases.welcome(focus)} ${phrases.exercise(ex.name)}` : phrases.next(ex.name);
-  cues.push({ atSec: 0, say: lead, haptic: 'next' });
-  cues.push({ atSec: 1, say: phrases.count(3) });
-  cues.push({ atSec: 2, say: phrases.count(2) });
-  cues.push({ atSec: 3, say: phrases.count(1) });
-  void announceNext; void rng;
+// Spread `drift` seconds across all work bouts (integer shares summing to
+// ~drift) so the workout hits its target — never dumped into one giant rest.
+function spreadDrift(units: Unit[], drift: number): void {
+  if (units.length === 0) return;
+  const per = drift / units.length;
+  units.forEach((u, i) => {
+    const share = Math.round(per * (i + 1)) - Math.round(per * i);
+    u.dur = clamp(u.dur + share, MIN_WORK_SEC, MAX_WORK_SEC);
+  });
+}
+
+function prepareSegment(ex: Exercise, isFirst: boolean, focus: Focus): Segment {
+  const lead = isFirst
+    ? `${phrases.welcome(focus)} ${phrases.exercise(ex.name)}`
+    : phrases.next(ex.name);
+  const cues: Cue[] = [
+    { atSec: 0, say: lead, haptic: 'next' },
+    { atSec: 1, say: phrases.count(3) },
+    { atSec: 2, say: phrases.count(2) },
+    { atSec: 3, say: phrases.count(1) },
+  ];
   return { kind: 'prepare', exercise: ex, durationSec: PREPARE_SEC, cues };
 }
 
-function workSegment(ex: Exercise, dur: number, side: 'left' | 'right' | undefined, rng: () => number): Segment {
+function workSegment(u: Unit, rng: () => number): Segment {
   const cues: Cue[] = [{ atSec: 0, say: phrases.begin(), haptic: 'start' }];
-  if (dur >= 25) cues.push({ atSec: Math.floor(dur / 2), say: phrases.encourage(rng) });
-  cues.push({ atSec: Math.max(1, dur - 5), haptic: 'countdown' });
-  return { kind: 'work', exercise: ex, side, durationSec: dur, cues };
+  if (u.dur >= 25) cues.push({ atSec: Math.floor(u.dur / 2), say: phrases.encourage(rng) });
+  cues.push({ atSec: Math.max(1, u.dur - 5), haptic: 'countdown' });
+  return { kind: 'work', exercise: u.ex, side: u.side, durationSec: u.dur, cues };
 }
 
 function restSegment(dur: number): Segment {
@@ -839,39 +869,41 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   const rng = createRng(seed);
   const recent = opts.recentExerciseIds ?? [];
   const target = targetFor(opts.kind);
+  const rounds = ROUNDS[opts.kind];
+  const rest = restSec(focus);
 
-  // Decide how many optional extras fit: start with template-only, add extras greedily.
-  const base = selectExercises({ equipment: opts.equipment, recentExerciseIds: recent, rng: createRng(seed), includeExtras: 0 });
-  let budget = base.reduce((s, ex) => s + exerciseCost(ex, focus), 0) + CELEBRATE_SEC;
-  let extras = 0;
-  const avgExtraCost = PREPARE_SEC + 35 + restSec(focus);
-  while (budget + avgExtraCost <= target && extras < 4) { budget += avgExtraCost; extras++; }
+  // Assemble the exercise list: warmup once, then `rounds` circuits of the
+  // template. Thread recent picks so later rounds vary.
+  const items: Exercise[] = [];
+  let recentAcc = [...recent];
+  for (let r = 0; r < rounds; r++) {
+    const sel = selectExercises({
+      equipment: opts.equipment, recentExerciseIds: recentAcc, rng, includeWarmup: r === 0,
+    });
+    items.push(...sel);
+    recentAcc = [...recentAcc, ...sel.map((e) => e.id)].slice(-12);
+  }
 
-  const exercises = selectExercises({ equipment: opts.equipment, recentExerciseIds: recent, rng, includeExtras: extras });
+  // Size each work bout so the whole workout lands on target.
+  const units = buildUnits(items, focus);
+  const fixed = items.length * PREPARE_SEC + items.length * rest + CELEBRATE_SEC;
+  const baseWork = units.reduce((s, u) => s + u.dur, 0);
+  spreadDrift(units, target - fixed - baseWork);
 
+  // Lay out segments: prepare → work (×sides) → rest, per item.
   const segments: Segment[] = [];
-  exercises.forEach((ex, i) => {
-    segments.push(prepareSegment(ex, true, rng, i === 0, focus));
-    const dur = workSec(ex, focus);
-    if (ex.unilateral) {
-      segments.push(workSegment(ex, dur, 'left', rng));
-      segments.push(workSegment(ex, dur, 'right', rng));
-    } else {
-      segments.push(workSegment(ex, dur, undefined, rng));
-    }
-    segments.push(restSegment(restSec(focus)));
+  let cursor = 0;
+  items.forEach((ex, i) => {
+    segments.push(prepareSegment(ex, i === 0, focus));
+    const sides = ex.unilateral ? 2 : 1;
+    for (let s = 0; s < sides; s++) segments.push(workSegment(units[cursor++], rng));
+    segments.push(restSegment(rest));
   });
 
-  // Trim or pad the final rest so total lands near target.
-  const celebrate: Segment = {
+  segments.push({
     kind: 'celebrate', durationSec: CELEBRATE_SEC,
-    cues: [{ atSec: 0, say: phrases.celebrate(exercises.map((e) => e.category)) }],
-  };
-  const running = segments.reduce((s, seg) => s + seg.durationSec, 0) + CELEBRATE_SEC;
-  const drift = target - running;
-  const lastRest = [...segments].reverse().find((s) => s.kind === 'rest');
-  if (lastRest) lastRest.durationSec = Math.max(5, lastRest.durationSec + drift);
-  segments.push(celebrate);
+    cues: [{ atSec: 0, say: phrases.celebrate(items.map((e) => e.category)) }],
+  });
 
   return { id: `w-${seed}-${opts.kind}`, kind: opts.kind, focus, segments };
 }
@@ -882,7 +914,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
 ```bash
 npx vitest run src/coach/phrases.test.ts src/generator/generateWorkout.test.ts
 ```
-Expected: PASS. If the duration test is off, adjust `avgExtraCost`/durations — do not loosen the tolerance below 45s without cause.
+Expected: PASS. `spreadDrift` distributes the target/total difference across every work bout, so the total should land within a second or two of target. If the duration test is off, adjust `ROUNDS` or the base durations (`baseWorkSec`/`restSec`) — do not loosen the tolerance below 45s without cause.
 
 - [ ] **Step 6: Commit**
 
@@ -1017,7 +1049,7 @@ git commit -m "feat: add Clock abstraction with FakeClock and RafClock"
 Create `src/engine/session.test.ts`:
 
 ```ts
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { WorkoutSession, type SessionEvent } from './session';
 import { FakeClock } from './clock';
 import type { Workout } from '../domain/types';
@@ -1053,19 +1085,16 @@ describe('WorkoutSession', () => {
   });
 
   it('fires each cue exactly once', () => {
-    const { clock, session } = run();
-    const cueFn = vi.fn();
+    const clock = new FakeClock();
+    const fired: number[] = [];
+    const session = new WorkoutSession(makeWorkout(), clock, (e) => {
+      if (e.type === 'cue') fired.push(e.cue.atSec);
+    });
     session.start();
     for (let i = 0; i < 200; i++) clock.tick(0.1); // 20s, past the whole workout
-    // re-run counting via fresh capture:
-    const clock2 = new FakeClock();
-    const seen: number[] = [];
-    const s2 = new WorkoutSession(makeWorkout(), clock2, (e) => { if (e.type === 'cue') seen.push(e.cue.atSec); });
-    s2.start();
-    for (let i = 0; i < 200; i++) clock2.tick(0.1);
-    // first work segment has cues at 0 and 5 → both once
-    expect(seen.filter((s) => s === 5).length).toBe(1);
-    void cueFn;
+    // cues: work(0,5) + rest(0) + celebrate(0) = 4 firings, none repeated
+    expect(fired.filter((s) => s === 5).length).toBe(1);
+    expect(fired.length).toBe(4);
   });
 
   it('advances segments and emits finished at the end', () => {
@@ -2145,4 +2174,4 @@ Create a GitHub repo named `fitness-coach`, push `main`, then in repo Settings �
 
 **Type consistency:** `HapticKind` ('start'|'rest'|'next'|'countdown') is consistent across `types.ts`, `phrases`/generator cues, `HAPTIC_PATTERNS`, and the hook. `SessionState`/`SessionEvent` names match between `session.ts`, the hook, and `ActiveScreen`. `generateWorkout` options match call sites in `App.tsx`. `Completion`/`Prefs` shapes match between `store.ts` and `App.tsx`.
 
-> One known soft spot to watch during execution: the generator's time-budget constants (`workSec`/`restSec`/`avgExtraCost`) are tuned to land within 45s of target. If Task 5's duration test fails, adjust those constants rather than the tolerance.
+> One known soft spot to watch during execution: the generator's time-budget model (`ROUNDS` + `spreadDrift`). `spreadDrift` distributes the target/total difference across all work bouts, so the total should land within a second or two of target. If Task 5's duration test fails, adjust `ROUNDS` or the base durations rather than the tolerance.
