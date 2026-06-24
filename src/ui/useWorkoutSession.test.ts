@@ -11,4 +11,15 @@ describe('useWorkoutSession', () => {
     act(() => result.current.start());
     expect(result.current.state.status).toBe('running');
   });
+
+  it('resets to idle when the workout changes (no stale state across workouts)', () => {
+    const date = new Date('2026-06-24T08:00:00');
+    const w1 = generateWorkout({ kind: '10min', date, equipment: ['bodyweight'], seed: 1 });
+    const w2 = generateWorkout({ kind: '20min', date, equipment: ['bodyweight'], seed: 2 });
+    const { result, rerender } = renderHook(({ w }) => useWorkoutSession(w), { initialProps: { w: w1 } });
+    act(() => result.current.start());
+    expect(result.current.state.status).toBe('running');
+    rerender({ w: w2 });
+    expect(result.current.state.status).toBe('idle');
+  });
 });

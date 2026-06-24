@@ -16,6 +16,16 @@ export function useWorkoutSession(workout: Workout | null) {
   const [state, setState] = useState<SessionState>(IDLE);
   const [completed, setCompleted] = useState(false);
 
+  // Reset synchronously when the workout changes, so a finished workout never
+  // leaks its 'done'/'completed' state into the next one (the finish effect in
+  // App keys on state.status === 'done').
+  const prevWorkout = useRef<Workout | null>(workout);
+  if (prevWorkout.current !== workout) {
+    prevWorkout.current = workout;
+    setState(IDLE);
+    setCompleted(false);
+  }
+
   useEffect(() => {
     if (!workout) return;
     setCompleted(false);

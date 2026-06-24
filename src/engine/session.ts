@@ -52,6 +52,7 @@ export class WorkoutSession {
 
   startAt(index: number, elapsedSec: number): void {
     if (this.status !== 'idle') return;
+    if (index < 0 || index >= this.workout.segments.length) { this.finish(false); return; }
     this.status = 'running';
     this.clock.start();
     this.enterSegmentResumed(index, elapsedSec);
