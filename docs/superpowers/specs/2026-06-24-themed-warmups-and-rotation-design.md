@@ -1,7 +1,7 @@
 # Themed Warm-Ups & the Mobility Lottery — Feature Design
 
 - **Date:** 2026-06-24
-- **Status:** Planned (post-v1). Not yet implemented.
+- **Status:** Shipped to `main` (warm-up flows + Mobility Lottery). The optional main-template rotation (see "Optional: rotate the workout template too") remains a separable follow-up.
 - **Owner:** Elli
 
 ## Why

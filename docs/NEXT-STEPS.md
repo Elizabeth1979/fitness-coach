@@ -44,14 +44,14 @@ Every push to `main` then runs tests, builds, and deploys to `https://<you>.gith
 - Mid-segment resume: today "Resume" restarts the current exercise from its start (the engine already supports finer resume — just store live elapsed seconds in the checkpoint).
 - Consolidate the test-only localStorage shim via a jsdom URL in `vite.config.ts`.
 
-## Next feature (designed, ready to build)
+## Shipped since v1
 
-- **Themed warm-ups & the Mobility Lottery** — replace the single daily warm-up with a
-  named, never-repeating themed *flow* (Hip Flow, Shoulder Flow, Animal Flow, Dance Flow —
-  including a 2-minute free-dance), chosen to prep the day's work and announced by the
-  coach ("Today's warm-up: Dance Flow"). Optional bigger change: make Push/Pull/Legs/Hinge
-  the non-negotiables and rotate Warm-up/Mobility/Crawl/Carry/Balance. Full design +
-  code-mapping: [docs/superpowers/specs/2026-06-24-themed-warmups-and-rotation-design.md](docs/superpowers/specs/2026-06-24-themed-warmups-and-rotation-design.md).
+- **✓ Themed warm-ups & the Mobility Lottery** — the single daily warm-up is now a named,
+  never-repeating themed *flow* (Hip / Shoulder / Animal / Dance — including a 2-minute
+  free-dance), chosen to prep the day's work and announced by the coach ("Today's warm-up:
+  Dance Flow"). On `main`. **Still a follow-up:** the optional bigger change — make
+  Push/Pull/Legs/Hinge the non-negotiables and rotate Warm-up/Mobility/Crawl/Carry/Balance.
+  Design + code-mapping: [docs/superpowers/specs/2026-06-24-themed-warmups-and-rotation-design.md](docs/superpowers/specs/2026-06-24-themed-warmups-and-rotation-design.md).
 
 ## Future phases (from the design spec, §17)
 
