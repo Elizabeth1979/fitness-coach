@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Workout } from '../domain/types';
 import { WorkoutSession, type SessionState } from '../engine/session';
 import { RafClock } from '../engine/clock';
@@ -33,12 +33,18 @@ export function useWorkoutSession(workout: Workout | null) {
     return () => { session.end(); void releaseWakeLock(); };
   }, [workout, coach, feedback]);
 
-  return {
-    state,
-    start: () => { coach.prime(); void requestWakeLock(); sessionRef.current?.start(); },
-    pause: () => sessionRef.current?.pause(),
-    resume: () => sessionRef.current?.resume(),
-    skip: () => sessionRef.current?.skip(),
-    end: () => { sessionRef.current?.end(); void releaseWakeLock(); },
-  };
+  const start = useCallback(() => {
+    coach.prime();
+    void requestWakeLock();
+    sessionRef.current?.start();
+  }, [coach]);
+  const pause = useCallback(() => sessionRef.current?.pause(), []);
+  const resume = useCallback(() => sessionRef.current?.resume(), []);
+  const skip = useCallback(() => sessionRef.current?.skip(), []);
+  const end = useCallback(() => {
+    sessionRef.current?.end();
+    void releaseWakeLock();
+  }, []);
+
+  return { state, start, pause, resume, skip, end };
 }
