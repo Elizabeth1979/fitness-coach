@@ -20,6 +20,7 @@ export class WorkoutSession {
   private index = 0;
   private elapsedInSeg = 0;
   private cueCursor = 0;
+  private sortedCues: Cue[] = [];
   private status: SessionStatus = 'idle';
 
   constructor(
@@ -65,6 +66,7 @@ export class WorkoutSession {
     this.elapsedInSeg = 0;
     this.cueCursor = 0;
     const segment = this.workout.segments[i];
+    this.sortedCues = [...segment.cues].sort((a, b) => a.atSec - b.atSec);
     this.onEvent({ type: 'segmentChanged', index: i, segment });
     this.fireDueCues();
     this.onEvent({ type: 'tick', state: this.getState() });
@@ -77,10 +79,8 @@ export class WorkoutSession {
   }
 
   private fireDueCues(): void {
-    const cues = this.workout.segments[this.index].cues;
-    const sorted = [...cues].sort((a, b) => a.atSec - b.atSec);
-    while (this.cueCursor < sorted.length && this.elapsedInSeg >= sorted[this.cueCursor].atSec) {
-      this.onEvent({ type: 'cue', cue: sorted[this.cueCursor] });
+    while (this.cueCursor < this.sortedCues.length && this.elapsedInSeg >= this.sortedCues[this.cueCursor].atSec) {
+      this.onEvent({ type: 'cue', cue: this.sortedCues[this.cueCursor] });
       this.cueCursor++;
     }
   }
