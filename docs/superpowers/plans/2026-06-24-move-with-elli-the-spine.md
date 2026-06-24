@@ -12,7 +12,7 @@
 
 - **Package manager:** `npm`. Test runner: `vitest` (commands: `npx vitest run <path>` for one-shot).
 - **TypeScript strict mode on**; no `any` in committed code.
-- **The pure core (`src/domain`, `src/generator`, `src/engine`, `src/storage/streak.ts`, `src/coach/phrases.ts`) must not import any browser API** (`window`, `navigator`, `document`, `speechSynthesis`). This keeps it testable with a fake clock.
+- **The pure logic (`src/domain`, `src/generator`, `src/engine/session.ts`, `src/storage/streak.ts`, `src/coach/phrases.ts`) must not import any browser API** (`window`, `navigator`, `document`, `speechSynthesis`). This keeps it testable with a fake clock. The one engine exception is the real-clock adapter `src/engine/clock.ts` `RafClock`, which wraps `requestAnimationFrame`/`performance.now`; the `Clock` interface and `FakeClock` in that same file stay pure.
 - **Coach tone:** calm, encouraging, present-tense. Never military/guilt/calorie/body-weight language. All spoken copy lives in `src/coach/phrases.ts`.
 - **Determinism:** generation is seeded — same `{kind, date, equipment, recentExerciseIds, seed}` ⇒ identical `Workout`.
 - **Single user name:** "Elli" (hard-coded in v1 phrases).
@@ -484,15 +484,28 @@ import type { Equipment } from '../domain/types';
 const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 
 describe('selectExercises', () => {
-  it('with warmup: returns warmup first, then one exercise per slot', () => {
+  // The 'carry' slot intentionally draws from carry OR crawl (bear/crab/leopard),
+  // so that position may be either category — assert per-slot, not strict equality.
+  it('with warmup: returns warmup first, then one exercise per slot (carry slot may be a crawl)', () => {
     const out = selectExercises({ equipment: ALL, recentExerciseIds: [], rng: createRng(1), includeWarmup: true });
     expect(out[0].category).toBe('warmup');
-    expect(out.slice(1).map((e) => e.category)).toEqual(SLOTS);
+    const cats = out.slice(1).map((e) => e.category);
+    expect(cats).toHaveLength(SLOTS.length);
+    SLOTS.forEach((slot, i) => {
+      if (slot === 'carry') expect(['carry', 'crawl']).toContain(cats[i]);
+      else expect(cats[i]).toBe(slot);
+    });
   });
 
   it('without warmup: returns one exercise per slot and no warmup', () => {
     const out = selectExercises({ equipment: ALL, recentExerciseIds: [], rng: createRng(1), includeWarmup: false });
-    expect(out.map((e) => e.category)).toEqual(SLOTS);
+    const cats = out.map((e) => e.category);
+    expect(cats).toHaveLength(SLOTS.length);
+    SLOTS.forEach((slot, i) => {
+      if (slot === 'carry') expect(['carry', 'crawl']).toContain(cats[i]);
+      else expect(cats[i]).toBe(slot);
+    });
+    expect(cats).not.toContain('warmup');
   });
 
   it('only picks exercises whose equipment is all available', () => {
