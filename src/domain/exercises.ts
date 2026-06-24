@@ -6,6 +6,28 @@ export const EXERCISES: Exercise[] = [
   { id: 'dynamic-stretch', name: 'Dynamic Stretching', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility', 'fun'], unilateral: false, measure: 'time', cue: 'Loosen up with easy swings and circles.', defaultDurationSec: 60 },
   { id: 'hip-openers', name: 'Hip Openers', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility', 'balance'], unilateral: false, measure: 'time', cue: 'Open the hips with slow controlled circles.', defaultDurationSec: 60 },
 
+  // --- Warm-up flow moves (used by warmupFlows.ts) ---
+  { id: 'hip-circles', name: 'Hip Circles', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility'], unilateral: false, measure: 'time', cue: 'Hip circles. Hands on hips, big slow circles each way.', defaultDurationSec: 30 },
+  { id: 'leg-swings', name: 'Leg Swings', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility', 'coordination'], unilateral: false, measure: 'time', cue: 'Leg swings. Hold something, swing one leg, then the other.', defaultDurationSec: 30 },
+  { id: 'wu-deep-squat', name: 'Deep Squat Hold', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility'], unilateral: false, measure: 'time', cue: 'Sink into a deep squat. Relax into it and breathe.', defaultDurationSec: 30 },
+  { id: 'cossack-shifts', name: 'Cossack Shifts', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility', 'balance'], unilateral: false, measure: 'time', cue: 'Cossack shifts. Sink side to side, stay low and easy.', defaultDurationSec: 30 },
+  { id: 'marching', name: 'Marching in Place', category: 'warmup', equipment: ['bodyweight'], goals: ['coordination', 'fun'], unilateral: false, measure: 'time', cue: 'March in place. Lift the knees, easy rhythm.', defaultDurationSec: 30 },
+  { id: 'arm-circles', name: 'Arm Circles', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility'], unilateral: false, measure: 'time', cue: 'Arm circles. Forward and back, open the shoulders.', defaultDurationSec: 30 },
+  { id: 'scapular-circles', name: 'Scapular Circles', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility'], unilateral: false, measure: 'time', cue: 'Scapular circles. Roll the shoulder blades, slow.', defaultDurationSec: 30 },
+  { id: 'cat-cow', name: 'Cat-Cow', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility'], unilateral: false, measure: 'time', cue: 'Cat-cow. Round and arch the spine with your breath.', defaultDurationSec: 30 },
+  { id: 'wall-slides', name: 'Wall Slides', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility'], unilateral: false, measure: 'time', cue: 'Wall slides. Back to the wall, slide the arms up and down.', defaultDurationSec: 30 },
+  { id: 'shoulder-cars', name: 'Shoulder Rotations', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility', 'skill'], unilateral: false, measure: 'time', cue: 'Slow shoulder rotations. Controlled, full range.', defaultDurationSec: 30 },
+  { id: 'bear-hold', name: 'Bear Hold', category: 'warmup', equipment: ['bodyweight'], goals: ['coordination', 'strength'], unilateral: false, measure: 'time', cue: 'Bear position hold. Knees an inch off the floor, steady.', defaultDurationSec: 30 },
+  { id: 'wrist-mobility', name: 'Wrist Mobility', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility'], unilateral: false, measure: 'time', cue: 'Wrist mobility. Circle and stretch the wrists gently.', defaultDurationSec: 30 },
+  { id: 'hip-shifts', name: 'Hip Shifts', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility', 'coordination'], unilateral: false, measure: 'time', cue: 'On all fours, rock the hips back and forth.', defaultDurationSec: 30 },
+  { id: 'spinal-waves', name: 'Spinal Waves', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility', 'skill'], unilateral: false, measure: 'time', cue: 'Spinal waves. Ripple through the spine, slow and smooth.', defaultDurationSec: 30 },
+  { id: 'step-touch', name: 'Step-Touch', category: 'warmup', equipment: ['bodyweight'], goals: ['coordination', 'fun'], unilateral: false, measure: 'time', cue: 'Step-touch. Side to side, let it feel like a groove.', defaultDurationSec: 30 },
+  { id: 'salsa-basic', name: 'Salsa Basic', category: 'warmup', equipment: ['bodyweight'], goals: ['coordination', 'fun'], unilateral: false, measure: 'time', cue: 'Salsa basic. Forward and back, find your rhythm.', defaultDurationSec: 30 },
+  { id: 'hip-rotations', name: 'Hip Rotations', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility', 'fun'], unilateral: false, measure: 'time', cue: 'Hip rotations. Loose circles, let the hips flow.', defaultDurationSec: 30 },
+  { id: 'arm-flow', name: 'Arm Flow', category: 'warmup', equipment: ['bodyweight'], goals: ['mobility', 'fun'], unilateral: false, measure: 'time', cue: 'Arm flow. Let the arms move freely with the music.', defaultDurationSec: 30 },
+  { id: 'light-bouncing', name: 'Light Bouncing', category: 'warmup', equipment: ['bodyweight'], goals: ['fun', 'coordination'], unilateral: false, measure: 'time', cue: 'Light bouncing. Soft knees, bounce and shake it out.', defaultDurationSec: 30 },
+  { id: 'free-dance', name: 'Free Dance', category: 'warmup', equipment: ['bodyweight'], goals: ['fun', 'coordination', 'mobility'], unilateral: false, measure: 'time', cue: 'Put on a song you love and move however feels good.', defaultDurationSec: 120 },
+
   // --- Push ---
   { id: 'pushup', name: 'Push-up', category: 'push', equipment: ['bodyweight'], goals: ['strength', 'skill'], unilateral: false, measure: 'reps', cue: 'Push-ups. Hands under shoulders, body in one line.', defaultReps: 8 },
   { id: 'pike-pushup', name: 'Pike Push-up', category: 'push', equipment: ['bodyweight'], goals: ['strength', 'skill'], unilateral: false, measure: 'reps', cue: 'Pike Push-ups. Hips high, lower the crown of your head.', defaultReps: 6 },
@@ -51,4 +73,8 @@ export const EXERCISES: Exercise[] = [
 
 export function exercisesByCategory(category: Category): Exercise[] {
   return EXERCISES.filter((e) => e.category === category);
+}
+
+export function exerciseById(id: string): Exercise | undefined {
+  return EXERCISES.find((e) => e.id === id);
 }
