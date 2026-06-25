@@ -8,7 +8,7 @@ practiced and saves your streak. Offline-capable PWA. 47 tests, clean strict bui
 
 ```bash
 npm install
-npm run dev      # open the printed http://localhost:5173/fitness-coach/ URL
+npm run dev      # open the printed http://localhost:5173/ URL
 ```
 
 - Tap **Start** (the screen needs one tap to unlock audio — that's a browser rule).
@@ -17,20 +17,17 @@ npm run dev      # open the printed http://localhost:5173/fitness-coach/ URL
 
 Other commands: `npm run build` (production build + service worker), `npm run test:run` (tests).
 
-## Deploy to GitHub Pages
+## Deploy (Vercel)
 
-The app is wired to deploy automatically. One-time setup:
+The app deploys on **Vercel** via Git integration. One-time setup:
 
-1. Create a GitHub repo named **`fitness-coach`** (the name matters — the app's base path is `/fitness-coach/`).
-2. Push this code:
-   ```bash
-   git remote add origin https://github.com/<you>/fitness-coach.git
-   git push -u origin main
-   ```
-3. In the repo: **Settings → Pages → Source: GitHub Actions**.
+1. Import the repo at [vercel.com/new](https://vercel.com/new) and select `fitness-coach`.
+2. Vercel auto-detects Vite. `vercel.json` sets the build to `npm run test:run && npm run build`
+   (tests + the `tsc -b` type-check gate the deploy) and the output directory to `dist`.
+3. Deploy.
 
-Every push to `main` then runs tests, builds, and deploys to `https://<you>.github.io/fitness-coach/`.
-(If you use a different repo name, update `base` in `vite.config.ts` and `scope`/`start_url` in the PWA manifest.)
+Every push to `main` then auto-builds and deploys; branches and PRs get preview URLs. The base path
+is `/` (root) — see `base` in `vite.config.ts` and `scope`/`start_url` in the PWA manifest.
 
 ## Before sharing publicly
 

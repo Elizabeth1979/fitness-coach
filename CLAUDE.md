@@ -13,7 +13,7 @@ decision fatigue; build longevity strength/mobility/balance/skill; **never** cal
 
 ```bash
 npm install
-npm run dev          # http://localhost:5173/fitness-coach/  (note the base path)
+npm run dev          # http://localhost:5173/
 npm run build        # tsc -b && vite build — the REAL verification gate (see gotchas)
 npm run test:run     # one-shot test run (CI uses this)
 npm test             # vitest watch mode
@@ -34,8 +34,9 @@ npx oxlint           # lint (config in .oxlintrc.json; not wired to an npm scrip
   with a typed `Storage` via `vi.stubGlobal`; `src/test-setup.ts` also has a conditional polyfill.
   Don't "fix" this with an `as any` cast — keep it typed.
 - **Strict mode, no `any`** in committed code.
-- **Base path is `/fitness-coach/`** — set in `vite.config.ts` (`base`) and the PWA manifest
-  `scope`/`start_url`. It must match the GitHub repo name; changing the repo name means changing both.
+- **Base path is `/`** (root) — deployed on Vercel, which serves at the domain root. Set in
+  `vite.config.ts` (`base`) and the PWA manifest `scope`/`start_url`. (History: was `/fitness-coach/`
+  for GitHub Pages project-site hosting, which serves under `/<repo>/`.)
 
 ## Architecture: functional core / imperative shell
 
@@ -97,8 +98,9 @@ TDD is the established pattern (tests are committed alongside implementation). P
 (generator + engine + streak) is where the real coverage is; browser adapters (voice / haptics /
 wake-lock) can't be unit-tested — verify those manually in the browser.
 
-Pushing to `main` runs `.github/workflows/deploy.yml` (tests → build → deploy) and publishes to
-GitHub Pages at https://elizabeth1979.github.io/fitness-coach/.
+Vercel auto-deploys on push to `main` (Git integration); branches/PRs get preview URLs. The Vercel
+build runs `npm run test:run && npm run build` (see `vercel.json`), so the full test suite **and**
+the `tsc -b` type-check must pass before a deploy is promoted.
 
 Design specs and the TDD implementation plans live in `docs/superpowers/`; the roadmap and polish
 backlog are in `docs/NEXT-STEPS.md`.

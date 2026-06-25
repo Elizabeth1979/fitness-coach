@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: '/fitness-coach/',
+  base: '/',
   plugins: [
     react(),
     tailwindcss(),
@@ -16,11 +16,11 @@ export default defineConfig({
         name: 'Move With Elli',
         short_name: 'Move',
         description: 'Press Play. Don\'t Think. Move.',
-        theme_color: '#0b0f14',
-        background_color: '#0b0f14',
+        theme_color: '#f5f1fb',
+        background_color: '#f5f1fb',
         display: 'standalone',
-        scope: '/fitness-coach/',
-        start_url: '/fitness-coach/',
+        scope: '/',
+        start_url: '/',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
