@@ -12,6 +12,7 @@ describe('formatTarget', () => {
   it('reps each side', () => expect(formatTarget(seg({ exercise: ex('reps', { defaultReps: 6, unilateral: true }) }))).toBe('6 reps each side'));
   it('seconds', () => expect(formatTarget(seg({ durationSec: 40, exercise: ex('time', { defaultDurationSec: 40 }) }))).toBe('40 seconds'));
   it('minutes', () => expect(formatTarget(seg({ durationSec: 120, exercise: ex('time', { defaultDurationSec: 120 }) }))).toBe('2 minutes'));
+  it('rounds non-integer minutes', () => expect(formatTarget(seg({ durationSec: 90, exercise: ex('time', { defaultDurationSec: 90 }) }))).toBe('2 minutes'));
 });
 
 describe('sessionMoves', () => {
@@ -23,10 +24,15 @@ describe('sessionMoves', () => {
     expect(main.map((m) => m.category)).toEqual(['push', 'pull', 'legs', 'hinge', 'carry', 'mobility'].filter((c) => main.some((m) => m.category === c)));
     expect(main.length).toBe(6);
   });
-  it('collapses a unilateral exercise into one move with "each side"', () => {
-    const moves = sessionMoves(w);
-    const uni = moves.find((m) => m.exercise.unilateral);
-    if (uni) expect(uni.target).toContain('each side');
+  it('collapses a unilateral exercise (left then right) into one "each side" move', () => {
+    const u = { id: 'u', name: 'Uni', category: 'legs', equipment: ['bodyweight'], goals: ['strength'], unilateral: true, measure: 'reps', defaultReps: 6, cue: '' };
+    const synthetic = { id: 't', kind: '10min', focus: 'movement', segments: [
+      { kind: 'work', exercise: u, side: 'left', durationSec: 20, cues: [] },
+      { kind: 'work', exercise: u, side: 'right', durationSec: 20, cues: [] },
+    ] } as unknown as import('../domain/types').Workout;
+    const moves = sessionMoves(synthetic);
+    expect(moves.length).toBe(1);
+    expect(moves[0].target).toBe('6 reps each side');
   });
   it('firstSegment is strictly increasing', () => {
     const f = sessionMoves(w).map((m) => m.firstSegment);
