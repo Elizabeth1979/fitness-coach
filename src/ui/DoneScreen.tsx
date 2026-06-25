@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { Category, Workout } from '../domain/types';
 import { loadStore } from '../storage/store';
 import { WeekView } from './WeekView';
@@ -10,7 +11,7 @@ interface Props { categories: Category[]; streak: number; workout: Workout | nul
 export function DoneScreen({ categories, streak, workout, onHome }: Props) {
   const practiced = Array.from(new Set(categories.map((c) => LABELS[c]).filter(Boolean))) as string[];
   const mins = workout ? Math.round(workout.segments.reduce((a, s) => a + s.durationSec, 0) / 60) : 0;
-  const dates = loadStore().completions.map((c) => c.date);
+  const dates = useMemo(() => loadStore().completions.map((c) => c.date), []);
   return (
     <main className="screen">
       <div style={{ textAlign: 'center', padding: '10px 0 16px' }}>

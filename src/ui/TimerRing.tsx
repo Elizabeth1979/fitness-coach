@@ -5,7 +5,7 @@ export function TimerRing({ remaining, total }: Props) {
   const mm = Math.floor(remaining / 60), ss = Math.floor(remaining % 60).toString().padStart(2, '0');
   return (
     <div style={{ position: 'relative', width: 200, height: 200 }}>
-      <svg width="200" height="200" viewBox="0 0 200 200" role="img" aria-label={`${Math.ceil(remaining)} seconds remaining`}>
+      <svg width="200" height="200" viewBox="0 0 200 200" role="img" aria-label={`${Math.round(remaining)} seconds remaining`}>
         <circle cx="100" cy="100" r={r} fill="#fff" stroke="#ece4f5" strokeWidth="14" />
         <circle cx="100" cy="100" r={r} fill="none" stroke="#5b2a86" strokeWidth="14" strokeLinecap="round"
           strokeDasharray={c} strokeDashoffset={c * (1 - frac)} transform="rotate(-90 100 100)" />

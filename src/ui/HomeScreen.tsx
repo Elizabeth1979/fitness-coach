@@ -84,6 +84,10 @@ export function HomeScreen(p: Props) {
 
         <WorkoutPreview workout={p.workout} detailed={detailed} onOpenMove={p.onOpenMove} />
 
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 12, borderTop: '1px solid #f1ebf7', fontSize: 12, color: 'var(--text-muted)' }}>
+          <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 15 }} />About {total(p.workout)} minutes · short rests between moves
+        </div>
+
         <button className="btn btn-soft" onClick={p.onReroll} style={{ width: '100%', marginTop: 12, fontSize: 14, padding: '10px' }}>
           <i className="ti ti-refresh" aria-hidden="true" />Different mix
         </button>

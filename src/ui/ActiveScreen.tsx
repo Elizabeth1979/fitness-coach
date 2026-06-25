@@ -13,11 +13,13 @@ interface Props {
 export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd }: Props) {
   const seg = state.segment;
   const isRest = seg?.kind === 'rest';
+  const isPrepare = seg?.kind === 'prepare';
+  const isCelebrate = seg?.kind === 'celebrate';
   const moves = sessionMoves(workout);
-  const mi = currentMoveIndex(moves, state.segmentIndex);
+  const mi = currentMoveIndex(moves, isPrepare ? state.segmentIndex + 1 : state.segmentIndex);
   const move = moves[mi];
   const next = moves[mi + 1];
-  const title = isRest ? 'Rest' : seg?.exercise?.name ?? 'Get ready';
+  const title = isRest ? 'Rest' : isCelebrate ? 'Well done!' : (seg?.exercise?.name ?? 'Get ready');
 
   return (
     <main className="screen" style={{ display: 'flex', flexDirection: 'column', background: isRest ? '#eef3fb' : 'var(--bg)' }}>
@@ -25,16 +27,16 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
         <div style={{ flex: 1, height: 7, background: '#e7def2', borderRadius: 99, overflow: 'hidden' }}>
-          <div style={{ width: `${Math.round(((mi + 1) / moves.length) * 100)}%`, height: '100%', background: 'var(--accent)', borderRadius: 99 }} />
+          <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: 'var(--accent)', borderRadius: 99 }} />
         </div>
         <div style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Move {mi + 1} of {moves.length}</div>
       </div>
 
       <div style={{ textAlign: 'center', marginBottom: 7 }}>
-        {!isRest && seg?.exercise && <span className="pill">{CAT[seg.exercise.category] ?? seg.exercise.category}</span>}
+        {!isRest && !isCelebrate && seg?.exercise && <span className="pill">{CAT[seg.exercise.category] ?? seg.exercise.category}</span>}
       </div>
       <div style={{ textAlign: 'center', fontSize: 27, fontWeight: 500, letterSpacing: '-.3px', marginBottom: 7 }}>{title}</div>
-      {!isRest && move && (
+      {!isRest && !isCelebrate && move && (
         <div style={{ textAlign: 'center', fontSize: 14, color: 'var(--text-muted)', marginBottom: 16 }}>{move.target}</div>
       )}
 

@@ -12,8 +12,8 @@ export function MoveDetail({ workout, prepareIndex, onSwap, onClose }: Props) {
   if (!ex) return null;
   const target = work ? formatTarget(work) : '';
   return (
-    <div onClick={onClose} style={{ minHeight: '100vh', position: 'absolute', inset: 0, background: 'rgba(31,20,48,.45)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-label={ex.name}
+    <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(31,20,48,.45)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={ex.name}
         style={{ width: '100%', maxWidth: 460, background: 'var(--surface)', borderRadius: '24px 24px 0 0', padding: '20px 20px 28px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <span className="cat">{CAT[ex.category] ?? ex.category}</span>
