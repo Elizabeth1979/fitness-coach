@@ -56,14 +56,20 @@ The engine knows nothing about exercises or coaching — this one-way boundary i
 `generateWorkout()` (pure, seeded) → `WorkoutSession` state machine driven by a `Clock` (pure;
 `FakeClock` in tests, `RafClock` in the app) → `useWorkoutSession` hook bridges engine events to
 React state, speaks cues via `Coach`, fires haptics via `Feedback`, holds a Screen Wake Lock →
-`App.tsx` phase machine (`home → active → done`) generates the workout, records completions, shows
-the capability checklist.
+`App.tsx` phase machine (`home → active → done`). **Generate-on-Home:** App generates a `preview`
+workout when Home opens (keyed on `kind`+`seed`) so the workout can be *shown* as a list before you
+start; **Start runs that exact preview** (no second `generateWorkout`); re-roll re-seeds; the
+move-detail sheet swaps one move via `swapMove`. App records completions (only when `completed`) and
+shows the capability checklist.
 
 **Module map** (`src/`): `domain/` types + exercise library · `generator/` `generateWorkout`,
 `selectExercises`, `warmupFlows` (themed flows + Mobility Lottery), `rng` (seeded mulberry32),
 `schedule` (weekday→focus) · `engine/` `clock`, `session` · `coach/` `phrases` (all spoken copy),
 `coach` (SpeechSynthesis adapter) · `feedback/` vibrate + Web-Audio earcon fallback · `storage/`
-`store` (localStorage repo), `streak` (pure) · `ui/` hook + screens + `VoicePicker` · `pwa/` wakeLock.
+`store` (localStorage repo), `streak`, `week` (pure) · `generator/swapMove` (swap one move) · `ui/`
+hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekView` + `format`
+(pure: `formatTarget`/`sessionMoves`) · `pwa/` wakeLock. The warm light theme + reusable classes
+(`.card`/`.btn`/`.pill`/…) live in `src/index.css`; icons are the bundled Tabler webfont.
 
 ## Conventions & invariants
 

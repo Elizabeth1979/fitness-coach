@@ -44,6 +44,12 @@ Every push to `main` then runs tests, builds, and deploys to `https://<you>.gith
 - Mid-segment resume: today "Resume" restarts the current exercise from its start (the engine already supports finer resume — just store live elapsed seconds in the checkpoint).
 - Consolidate the test-only localStorage shim via a jsdom URL in `vite.config.ts`.
 
+**Visual-redesign follow-ups:**
+- Trim the icon font: only the 457 KB `woff2` is precached, but `.woff`/`.ttf` (~3.6 MB) ship in `dist` unused — drop them, or replace the ~15 icons used with inline SVGs (precache is ~900 KB now).
+- Tokenize the few remaining inline hexes (`.btn-ghost` `#f3edfa`, WeekView empty-cell) into `:root` variables.
+- MoveDetail: trap focus + auto-focus on open (`aria-modal` is already set).
+- Home Compact view could show the target inline (it hides it now; Detailed is the default); make the warm-up banner icon theme-appropriate (always a music note today).
+
 ## Shipped since v1
 
 - **✓ Themed warm-ups & the Mobility Lottery** — the single daily warm-up is now a named,
@@ -52,6 +58,13 @@ Every push to `main` then runs tests, builds, and deploys to `https://<you>.gith
   Dance Flow"). On `main`. **Still a follow-up:** the optional bigger change — make
   Push/Pull/Legs/Hinge the non-negotiables and rotate Warm-up/Mobility/Crawl/Carry/Balance.
   Design + code-mapping: [docs/superpowers/specs/2026-06-24-themed-warmups-and-rotation-design.md](docs/superpowers/specs/2026-06-24-themed-warmups-and-rotation-design.md).
+
+- **✓ Visual redesign — "see the program"** — a warm, card-based UI that *shows* today's generated
+  workout (full targets + a Compact/Detailed toggle), tap-a-move detail + per-move swap, a re-roll,
+  an Active screen with progress + timer ring + next-up, and a Finish screen with capability chips +
+  a week strip. Generate-on-Home: the workout is generated when Home opens so it can be shown; Start
+  runs that exact one. On `main`, deployed.
+  Design: [docs/superpowers/specs/2026-06-24-visual-redesign-design.md](docs/superpowers/specs/2026-06-24-visual-redesign-design.md).
 
 ## Future phases (from the design spec, §17)
 
