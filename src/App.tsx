@@ -13,10 +13,12 @@ function daySeed(): number { return Math.floor(Date.now() / 86_400_000); }
 
 export default function App() {
   const [phase, setPhase] = useState<'home' | 'active' | 'done'>('home');
-  const [kind, setKind] = useState<WorkoutKind>('20min');
-  const [seed, setSeed] = useState<number>(daySeed());
+  const initialKind: WorkoutKind = '20min';
+  const initialSeed = daySeed();
+  const [kind, setKind] = useState<WorkoutKind>(initialKind);
+  const [seed, setSeed] = useState<number>(initialSeed);
   const [preview, setPreview] = useState<Workout>(() =>
-    generateWorkout({ kind: '20min', date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed: daySeed() }));
+    generateWorkout({ kind: initialKind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed: initialSeed }));
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [streak, setStreak] = useState(0);
   const [resumeFrom, setResumeFrom] = useState<{ index: number; elapsedSec: number } | null>(null);
