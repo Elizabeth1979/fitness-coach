@@ -26,6 +26,10 @@ const ROUNDS: Record<WorkoutKind, number> = { '10min': 2, '20min': 3, '30min': 5
 
 const CELEBRATE_SEC = 18;
 const PREPARE_SEC = 4;
+// NOTE: the 10-min/2-round budget's worst case is every work bout at this floor.
+// It stays within the 45s tolerance only because ≤3 circuit categories are
+// unilateral today (see the "worst-case 10-min floor budget" test). Adding
+// unilateral exercises to more categories could breach it — that test will catch it.
 const MIN_WORK_SEC = 15;
 const MAX_WORK_SEC = 120;
 const WARMUP_MOVE_SEC = 30;

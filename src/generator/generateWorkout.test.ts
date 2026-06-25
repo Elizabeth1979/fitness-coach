@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { generateWorkout } from './generateWorkout';
 import type { Equipment, Segment, Workout } from '../domain/types';
+import { EXERCISES } from '../domain/exercises';
+import { SLOTS } from './selectExercises';
 
 const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 const WED = new Date('2026-06-24T08:00:00'); // movement day
@@ -118,5 +120,28 @@ describe('generateWorkout', () => {
     const themed = generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 4 });
     const avoided = generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 4, recentThemeIds: [themed.warmupThemeId!] });
     expect(avoided.warmupThemeId).not.toBe(themed.warmupThemeId);
+  });
+
+  it('worst-case 10-min floor budget stays within 45s — guards against adding unilateral exercises', () => {
+    // The 10-min / 2-round budget is tightest when every work bout is clamped to
+    // the MIN_WORK_SEC floor — which happens when circuit slots are unilateral
+    // (each unilateral slot = 2 work units). This computes that worst case from
+    // the LIBRARY: if a future change adds unilateral exercises to enough circuit
+    // categories, `worstTotal` rises and this assertion fails before a real breach.
+    // Constants mirror generateWorkout.ts (10-min, strength = the larger round-rest,
+    // warm-up capped at 90s at 10 min).
+    const MIN_WORK_SEC = 15, PREPARE = 4, SHORT_REST = 12, ROUND_REST_STRENGTH = 35, CELEBRATE = 18, WARMUP_MAX_10MIN = 90;
+    const rounds = 2;
+    const items = SLOTS.length; // circuit width (6)
+    const maxUnilateralSlots = SLOTS.filter((cat) => {
+      const cats = cat === 'carry' ? ['carry', 'crawl'] : [cat];
+      return EXERCISES.some((e) => cats.includes(e.category) && e.unilateral);
+    }).length;
+    const units = items + maxUnilateralSlots; // each unilateral slot adds a 2nd work unit
+    const floorWork = rounds * units * MIN_WORK_SEC;
+    const fixed = WARMUP_MAX_10MIN + CELEBRATE + (rounds - 1) * ROUND_REST_STRENGTH
+      + rounds * (items * PREPARE + items * SHORT_REST);
+    const worstTotal = floorWork + fixed;
+    expect(worstTotal - 600).toBeLessThanOrEqual(45);
   });
 });
