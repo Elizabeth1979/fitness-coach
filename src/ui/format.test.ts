@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatTarget, sessionMoves, currentMoveIndex } from './format';
+import { formatTarget, sessionMoves, currentMoveIndex, circuitMoves, roundInfo } from './format';
 import { generateWorkout } from '../generator/generateWorkout';
 import type { Segment } from '../domain/types';
 
@@ -17,12 +17,10 @@ describe('formatTarget', () => {
 
 describe('sessionMoves', () => {
   const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'], seed: 4 });
-  it('returns warm-up move(s) then 6 main moves, in order', () => {
+  it('returns warm-up move(s) then the circuit repeated each round', () => {
     const moves = sessionMoves(w);
     expect(moves.some((m) => m.isWarmup)).toBe(true);
-    const main = moves.filter((m) => !m.isWarmup);
-    expect(main.map((m) => m.category)).toEqual(['push', 'pull', 'legs', 'hinge', 'carry', 'mobility'].filter((c) => main.some((m) => m.category === c)));
-    expect(main.length).toBe(6);
+    expect(moves.filter((m) => !m.isWarmup).length).toBe(6 * w.rounds);
   });
   it('collapses a unilateral exercise (left then right) into one "each side" move', () => {
     const u = { id: 'u', name: 'Uni', category: 'legs', equipment: ['bodyweight'], goals: ['strength'], unilateral: true, measure: 'reps', defaultReps: 6, cue: '' };
@@ -46,5 +44,44 @@ describe('currentMoveIndex', () => {
     const moves = sessionMoves(w);
     expect(currentMoveIndex(moves, moves[0].firstSegment)).toBe(0);
     expect(currentMoveIndex(moves, moves[2].firstSegment + 1)).toBe(2);
+  });
+});
+
+describe('circuitMoves', () => {
+  const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'], seed: 4 });
+  it('returns the circuit once (round 1) — same as the first 6 main moves', () => {
+    const c = circuitMoves(w);
+    expect(c.length).toBe(6);
+    const firstSix = sessionMoves(w).filter((m) => !m.isWarmup).slice(0, 6).map((m) => m.exercise.id);
+    expect(c.map((m) => m.exercise.id)).toEqual(firstSix);
+  });
+});
+
+describe('roundInfo', () => {
+  const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'], seed: 4 });
+  const prepsInRound = (round: number) =>
+    w.segments.map((s, i) => ({ s, i })).filter(({ s }) => s.kind === 'prepare' && s.round === round).map(({ i }) => i);
+
+  it('reports total rounds, moves per round, and the first move of round 1', () => {
+    const ri = roundInfo(w, prepsInRound(1)[0]);
+    expect(ri.totalRounds).toBe(w.rounds); // 2
+    expect(ri.movesPerRound).toBe(6);
+    expect(ri.round).toBe(1);
+    expect(ri.moveInRound).toBe(1);
+  });
+
+  it('counts the move within the current round', () => {
+    expect(roundInfo(w, prepsInRound(1)[1]).moveInRound).toBe(2);
+  });
+
+  it('tracks the round number into round 2', () => {
+    const ri = roundInfo(w, prepsInRound(2)[0]);
+    expect(ri.round).toBe(2);
+    expect(ri.moveInRound).toBe(1);
+  });
+
+  it('returns round 0 during the warm-up', () => {
+    const warm = w.segments.findIndex((s) => s.exercise?.category === 'warmup');
+    expect(roundInfo(w, warm).round).toBe(0);
   });
 });

@@ -56,3 +56,34 @@ export function currentMoveIndex(moves: SessionMove[], segmentIndex: number): nu
   }
   return idx;
 }
+
+// The circuit shown once on Home: the main moves of round 1 (identical every round).
+export function circuitMoves(workout: Workout): SessionMove[] {
+  return sessionMoves(workout).filter(
+    (m) => !m.isWarmup && workout.segments[m.firstSegment].round === 1,
+  );
+}
+
+export interface RoundInfo {
+  round: number;        // 1..rounds inside a circuit; 0 during warm-up / celebrate
+  totalRounds: number;
+  moveInRound: number;  // 1-based circuit slot within the round; 0 outside a round
+  movesPerRound: number;
+}
+
+export function roundInfo(workout: Workout, segmentIndex: number): RoundInfo {
+  const totalRounds = workout.rounds;
+  const movesPerRound = workout.segments.filter(
+    (s) => s.kind === 'prepare' && s.round === 1,
+  ).length;
+  const seg = workout.segments[segmentIndex];
+  const round = seg?.round ?? 0;
+  let moveInRound = 0;
+  if (round > 0) {
+    for (let i = 0; i <= segmentIndex && i < workout.segments.length; i++) {
+      const s = workout.segments[i];
+      if (s.kind === 'prepare' && s.round === round) moveInRound++;
+    }
+  }
+  return { round, totalRounds, moveInRound, movesPerRound };
+}
