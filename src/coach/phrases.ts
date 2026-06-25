@@ -36,4 +36,7 @@ export const phrases = {
     const labels = Array.from(new Set(categories.map((c) => CATEGORY_LABEL[c] ?? c)));
     return `Great job, Elli. Today you practiced ${labels.join(', ')}. You're more capable than yesterday.`;
   },
+  roundComplete: (round: number, total: number): string =>
+    `Round ${round} of ${total} complete. Rest up.`,
+  roundStart: (round: number): string => `Round ${round}. Here we go.`,
 };

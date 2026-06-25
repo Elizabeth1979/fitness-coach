@@ -23,4 +23,13 @@ describe('phrases', () => {
     expect(line.toLowerCase()).toContain('push');
     expect(line.toLowerCase()).toContain('pull');
   });
+
+  it('announces round completion and the next round, no banned language', () => {
+    expect(phrases.roundComplete(1, 3)).toContain('Round 1 of 3');
+    expect(phrases.roundStart(2)).toContain('Round 2');
+    const banned = /calorie|weight loss|burn|fat|harder|no excuses|guilt/i;
+    for (const l of [phrases.roundComplete(1, 3), phrases.roundStart(2)]) {
+      expect(l).not.toMatch(banned);
+    }
+  });
 });
