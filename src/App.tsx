@@ -5,6 +5,9 @@ import { useWorkoutSession } from './ui/useWorkoutSession';
 import { HomeScreen } from './ui/HomeScreen';
 import { ActiveScreen } from './ui/ActiveScreen';
 import { DoneScreen } from './ui/DoneScreen';
+import { MoveDetail } from './ui/MoveDetail';
+import { swapMove } from './generator/swapMove';
+import { createRng } from './generator/rng';
 import { recordCompletion, currentStreak, getPrefs, getCheckpoint, getRecentThemes, pushRecentTheme } from './storage/store';
 import type { Checkpoint } from './storage/store';
 
@@ -23,6 +26,7 @@ export default function App() {
   const [streak, setStreak] = useState(0);
   const [resumeFrom, setResumeFrom] = useState<{ index: number; elapsedSec: number } | null>(null);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(() => getCheckpoint());
+  const [openPrepare, setOpenPrepare] = useState<number | null>(null);
   const { state, completed, start, pause, resume, skip, end } = useWorkoutSession(workout);
 
   useEffect(() => {
@@ -42,6 +46,9 @@ export default function App() {
     setResumeFrom(null);
     setWorkout(preview);
     setPhase('active');
+  }
+  function handleSwap(prepareIndex: number) {
+    setPreview((w) => swapMove(w, prepareIndex, getPrefs().equipment, createRng(Math.floor(Math.random() * 1e9))));
   }
   function handleResume() {
     const cp = getCheckpoint(); if (!cp) return;
@@ -65,9 +72,15 @@ export default function App() {
   }, [phase, state.status, completed, workout]);
 
   if (phase === 'home') return (
-    <HomeScreen workout={preview} kind={kind} onKind={setKind} streak={streak}
-      canResume={!!checkpoint} onResume={handleResume} onReroll={() => setSeed((s) => s + 1)}
-      onStart={handleStart} onOpenMove={() => {}} />
+    <>
+      <HomeScreen workout={preview} kind={kind} onKind={setKind} streak={streak}
+        canResume={!!checkpoint} onResume={handleResume} onReroll={() => setSeed((s) => s + 1)}
+        onStart={handleStart} onOpenMove={setOpenPrepare} />
+      {openPrepare !== null && (
+        <MoveDetail workout={preview} prepareIndex={openPrepare}
+          onSwap={() => { handleSwap(openPrepare); setOpenPrepare(null); }} onClose={() => setOpenPrepare(null)} />
+      )}
+    </>
   );
   if (phase === 'done') return <DoneScreen categories={categories} streak={streak} onHome={() => { setWorkout(null); setPhase('home'); }} />;
   return <ActiveScreen state={state} onPause={pause} onResume={resume} onSkip={skip} onEnd={end} />;
