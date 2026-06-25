@@ -27,18 +27,19 @@ describe('swapMove', () => {
     swapMove(w, prepIdx, ALL, createRng(3));
     expect(w.segments[prepIdx].exercise!.id).toBe(before);
   });
-  it('only swaps the targeted move, not the same exercise in a later round', () => {
+  it('swaps every occurrence of the slot across rounds (circuit repeats)', () => {
     const exA = { id: 'exA', name: 'A', category: 'push', equipment: ['bodyweight'], goals: ['strength'], unilateral: false, measure: 'reps', defaultReps: 8, cue: '' };
-    const synthetic = { id: 't', kind: '20min', focus: 'movement', segments: [
-      { kind: 'prepare', exercise: exA, durationSec: 4, cues: [] },
-      { kind: 'work', exercise: exA, durationSec: 20, cues: [] },
-      { kind: 'rest', durationSec: 15, cues: [] },
-      { kind: 'prepare', exercise: exA, durationSec: 4, cues: [] },
-      { kind: 'work', exercise: exA, durationSec: 20, cues: [] },
-      { kind: 'rest', durationSec: 15, cues: [] },
+    const synthetic = { id: 't', kind: '20min', focus: 'movement', rounds: 2, segments: [
+      { kind: 'prepare', exercise: exA, durationSec: 4, cues: [], round: 1 },
+      { kind: 'work', exercise: exA, durationSec: 20, cues: [], round: 1 },
+      { kind: 'rest', durationSec: 15, cues: [], round: 1 },
+      { kind: 'prepare', exercise: exA, durationSec: 4, cues: [], round: 2 },
+      { kind: 'work', exercise: exA, durationSec: 20, cues: [], round: 2 },
+      { kind: 'rest', durationSec: 15, cues: [], round: 2 },
     ] } as unknown as import('../domain/types').Workout;
     const out = swapMove(synthetic, 0, ALL, createRng(1));
-    expect(out.segments[1].exercise!.id).not.toBe('exA'); // first move swapped
-    expect(out.segments[4].exercise!.id).toBe('exA');      // later-round occurrence untouched
+    expect(out.segments[1].exercise!.id).not.toBe('exA');                       // round 1 swapped
+    expect(out.segments[4].exercise!.id).toBe(out.segments[1].exercise!.id);    // round 2 swapped to the SAME new exercise
+    expect(out.segments[3].exercise!.id).toBe(out.segments[1].exercise!.id);    // round 2 prepare updated too
   });
 });
