@@ -52,6 +52,22 @@ Every push to `main` then runs tests, builds, and deploys to `https://<you>.gith
 
 ## Shipped since v1
 
+- **✓ Rounds — same circuit, repeated** — a workout is now one fixed circuit of ≤6 exercises
+  (Push·Pull·Legs·Hinge·Carry-or-Crawl·Mobility) repeated for **2 / 3 / 5 rounds** (10 / 20 / 30 min),
+  the *same* exercises every round (repetition builds the movement), with a longer **round-rest**
+  between rounds (coach: "Round 1 of 3 complete. Rest up." → "Round 2. Here we go."). Home shows the
+  circuit **once** with an "N rounds" badge + "The circuit · repeat N×" header; Active shows a
+  "Round R of N" chip, counts "Move m of 6" **within** the round, and has a calm round-rest screen.
+  Swapping a move now replaces it in **every** round. Determinism + the 45s time-budget invariant
+  preserved (with a guardrail test against future unilateral-exercise additions). On `main`, deployed.
+  Design: [docs/superpowers/specs/2026-06-24-rounds-design.md](docs/superpowers/specs/2026-06-24-rounds-design.md) ·
+  Plan: [docs/superpowers/plans/2026-06-24-rounds.md](docs/superpowers/plans/2026-06-24-rounds.md).
+  **Queued follow-up (next feature):** the **"customize before you start" studio** — swap a move or
+  the warm-up by *specific pick* / *by soreness ("my shoulders hurt")* / *feeling-lucky random*,
+  before Start, never mid-workout. Needs every exercise tagged with the body areas it loads. (When
+  that lands, re-check the 10-min floor budget — the guardrail test in
+  `generateWorkout.test.ts` flags it if new unilateral exercises push it past 45s.)
+
 - **✓ Themed warm-ups & the Mobility Lottery** — the single daily warm-up is now a named,
   never-repeating themed *flow* (Hip / Shoulder / Animal / Dance — including a 2-minute
   free-dance), chosen to prep the day's work and announced by the coach ("Today's warm-up:
