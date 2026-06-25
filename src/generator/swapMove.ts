@@ -12,6 +12,10 @@ export function swapMove(workout: Workout, prepareIndex: number, equipment: Equi
   if (pool.length === 0) return workout;
   const next = pick(rng, pool);
 
+  // Bound the retag to THIS move's work segments: stop at the next rest/prepare.
+  const after = workout.segments.findIndex((s, i) => i > prepareIndex && (s.kind === 'rest' || s.kind === 'prepare'));
+  const workEnd = after === -1 ? workout.segments.length : after;
+
   const segments: Segment[] = workout.segments.map((seg, i) => {
     if (i === prepareIndex) {
       const cues: Cue[] = [
@@ -22,8 +26,7 @@ export function swapMove(workout: Workout, prepareIndex: number, equipment: Equi
       ];
       return { ...seg, exercise: next, cues };
     }
-    // The work segments immediately after the prepare belong to this move.
-    if (i > prepareIndex && seg.kind === 'work' && seg.exercise?.id === current.id) {
+    if (i > prepareIndex && i < workEnd && seg.kind === 'work') {
       return { ...seg, exercise: next };
     }
     return seg;
