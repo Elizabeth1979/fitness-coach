@@ -32,7 +32,7 @@ const WARMUP_MOVE_SEC = 30;
 // Brief catch-your-breath rest between exercises within a round. The real
 // recovery is the longer round-rest; keeping this short is what lets a 10-min
 // two-round circuit fit its budget (12 short rests would otherwise dominate).
-const SHORT_REST_SEC = 15;
+const SHORT_REST_SEC = 12;
 
 const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v));
 
@@ -72,32 +72,31 @@ function buildUnits(items: Exercise[], focus: Focus): Unit[] {
   return units;
 }
 
-// Spread `drift` seconds across ONE circuit's work bouts so each round hits its budget.
-// Two-pass: first proportional, then redistribute any unabsorbed remainder to units
-// that still have room (handles the case where many units are clamped at MIN_WORK_SEC).
+// Spread `drift` seconds across ONE circuit's work bouts so each round hits its
+// budget. Repeatedly distribute the remaining drift across units that still have
+// room in the needed direction; clamping returns the unabsorbed remainder to the
+// next pass, so the distribution converges instead of stranding seconds on a
+// clamped unit. Bounded by `units.length` passes (each non-finishing pass clamps
+// at least one more unit); a no-progress pass breaks out.
 function spreadDrift(units: Unit[], drift: number): void {
   if (units.length === 0) return;
-  const per = drift / units.length;
-  let unabsorbed = 0;
-  units.forEach((u, i) => {
-    const share = Math.round(per * (i + 1)) - Math.round(per * i);
-    const before = u.dur;
-    u.dur = clamp(u.dur + share, MIN_WORK_SEC, MAX_WORK_SEC);
-    // Track how much of the intended share could not be applied due to clamping.
-    // A negative value means we still need to reduce by more; positive means add more.
-    unabsorbed += share - (u.dur - before);
-  });
-  if (Math.abs(unabsorbed) < 1) return;
-  // Redistribute the leftover to units that still have room.
-  const eligible = units.filter((u) =>
-    unabsorbed < 0 ? u.dur > MIN_WORK_SEC : u.dur < MAX_WORK_SEC,
-  );
-  if (eligible.length === 0) return;
-  const extra = unabsorbed / eligible.length;
-  eligible.forEach((u, i) => {
-    const share = Math.round(extra * (i + 1)) - Math.round(extra * i);
-    u.dur = clamp(u.dur + share, MIN_WORK_SEC, MAX_WORK_SEC);
-  });
+  let remaining = drift;
+  for (let pass = 0; pass < units.length && Math.abs(remaining) >= 1; pass++) {
+    const eligible = units.filter((u) =>
+      remaining < 0 ? u.dur > MIN_WORK_SEC : u.dur < MAX_WORK_SEC,
+    );
+    if (eligible.length === 0) break;
+    const per = remaining / eligible.length;
+    let absorbed = 0;
+    eligible.forEach((u, i) => {
+      const share = Math.round(per * (i + 1)) - Math.round(per * i);
+      const before = u.dur;
+      u.dur = clamp(u.dur + share, MIN_WORK_SEC, MAX_WORK_SEC);
+      absorbed += u.dur - before;
+    });
+    if (absorbed === 0) break; // no unit could move; nothing more to do
+    remaining -= absorbed;
+  }
 }
 
 function prepareSegment(ex: Exercise, lead: string, round: number): Segment {

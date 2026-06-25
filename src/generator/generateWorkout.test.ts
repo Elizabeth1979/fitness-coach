@@ -33,12 +33,14 @@ describe('generateWorkout', () => {
     expect(generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 1 }).focus).toBe('movement');
   });
 
-  it('total duration stays within 45s of target across seeds and both focuses', () => {
+  it('total duration stays within 45s of target across many seeds and both focuses', () => {
     for (const [kind, target] of [['10min', 600], ['20min', 1200], ['30min', 1800]] as const) {
+      const maxSeed = kind === '10min' ? 400 : 60; // 10-min is the tightest budget — sweep it hard
       for (const date of [WED, TUE]) {
-        for (let seed = 0; seed < 24; seed++) {
+        for (let seed = 0; seed <= maxSeed; seed++) {
           const w = generateWorkout({ kind, date, equipment: ALL, seed });
-          expect(Math.abs(total(w.segments) - target)).toBeLessThanOrEqual(45);
+          const got = total(w.segments);
+          expect(Math.abs(got - target), `${kind} ${date.toISOString()} seed ${seed} → ${got}s`).toBeLessThanOrEqual(45);
         }
       }
     }
