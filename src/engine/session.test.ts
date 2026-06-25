@@ -5,7 +5,7 @@ import type { Workout } from '../domain/types';
 
 function makeWorkout(): Workout {
   return {
-    id: 't', kind: '10min', focus: 'movement',
+    id: 't', kind: '10min', focus: 'movement', rounds: 1,
     segments: [
       { kind: 'work', durationSec: 10, cues: [
         { atSec: 0, say: 'Begin.', haptic: 'start' },

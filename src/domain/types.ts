@@ -29,12 +29,13 @@ export interface Cue {
   haptic?: HapticKind;
 }
 
-export type SegmentKind = 'prepare' | 'work' | 'rest' | 'celebrate';
+export type SegmentKind = 'prepare' | 'work' | 'rest' | 'roundrest' | 'celebrate';
 
 export interface Segment {
   kind: SegmentKind;
   exercise?: Exercise;
   side?: 'left' | 'right';
+  round?: number;
   durationSec: number;
   cues: Cue[];
 }
@@ -46,6 +47,7 @@ export interface Workout {
   id: string;
   kind: WorkoutKind;
   focus: Focus;
+  rounds: number;
   warmupThemeId?: string;
   segments: Segment[];
 }
