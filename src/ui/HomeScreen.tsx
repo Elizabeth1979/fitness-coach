@@ -56,7 +56,10 @@ export function HomeScreen(p: Props) {
       <div className="card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ fontSize: 15, fontWeight: 500 }}>Today · {focus === 'strength' ? 'Strength' : 'Movement'}</div>
-          <span className="pill"><i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 14 }} />{total(p.workout)} minutes</span>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <span className="pill"><i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 14 }} />{total(p.workout)} minutes</span>
+            <span className="pill"><i className="ti ti-repeat" aria-hidden="true" style={{ fontSize: 14 }} />{p.workout.rounds} rounds</span>
+          </div>
         </div>
 
         <div role="group" aria-label="Detail level" style={{ display: 'flex', gap: 5, background: '#f3edfa', borderRadius: 12, padding: 4, marginBottom: 14 }}>
@@ -74,7 +77,7 @@ export function HomeScreen(p: Props) {
             <i className="ti ti-music" aria-hidden="true" style={{ fontSize: 20, color: '#7a3ea3' }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--accent-ink)' }}>{warm.exercise.name}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>Today's warm-up</div>
+              <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>Today's warm-up · once at the start</div>
             </div>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: '#7a3ea3' }}>
               <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 15 }} />{warm.target}
@@ -82,10 +85,14 @@ export function HomeScreen(p: Props) {
           </div>
         )}
 
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, marginBottom: 2 }}>
+          <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '.4px' }}>The circuit</span>
+          <span style={{ fontSize: 12, color: 'var(--text-hint)' }}>repeat {p.workout.rounds}×</span>
+        </div>
         <WorkoutPreview workout={p.workout} detailed={detailed} onOpenMove={p.onOpenMove} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 12, borderTop: '1px solid #f1ebf7', fontSize: 12, color: 'var(--text-muted)' }}>
-          <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 15 }} />About {total(p.workout)} minutes · short rests between moves
+          <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 15 }} />About {total(p.workout)} minutes · {p.workout.rounds} rounds · a longer rest between each
         </div>
 
         <button className="btn btn-soft" onClick={p.onReroll} style={{ width: '100%', marginTop: 12, fontSize: 14, padding: '10px' }}>

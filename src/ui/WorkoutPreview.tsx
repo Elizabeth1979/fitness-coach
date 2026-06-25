@@ -1,5 +1,5 @@
 import type { Workout } from '../domain/types';
-import { sessionMoves } from './format';
+import { circuitMoves } from './format';
 
 const CAT: Record<string, string> = {
   push: 'Push', pull: 'Pull', legs: 'Legs', hinge: 'Hinge', carry: 'Carry', crawl: 'Crawl',
@@ -10,7 +10,7 @@ const isTime = (t: string) => /second|minute/.test(t);
 interface Props { workout: Workout; detailed: boolean; onOpenMove: (prepareIndex: number) => void }
 
 export function WorkoutPreview({ workout, detailed, onOpenMove }: Props) {
-  const moves = sessionMoves(workout).filter((m) => !m.isWarmup);
+  const moves = circuitMoves(workout);
   return (
     <div>
       {moves.map((m) => {
