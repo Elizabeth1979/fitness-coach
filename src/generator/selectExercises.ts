@@ -9,7 +9,7 @@ function hasEquipment(ex: Exercise, available: Equipment[]): boolean {
   return ex.equipment.every((eq) => available.includes(eq));
 }
 
-function candidatesFor(category: Category, available: Equipment[]): Exercise[] {
+export function candidatesFor(category: Category, available: Equipment[]): Exercise[] {
   const cats: Category[] = category === 'carry' ? ['carry', 'crawl'] : [category];
   return EXERCISES.filter((e) => cats.includes(e.category) && hasEquipment(e, available));
 }
