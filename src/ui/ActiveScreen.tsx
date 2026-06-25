@@ -1,7 +1,7 @@
 import type { SessionState } from '../engine/session';
 import type { Workout } from '../domain/types';
 import { TimerRing } from './TimerRing';
-import { sessionMoves, currentMoveIndex } from './format';
+import { sessionMoves, currentMoveIndex, roundInfo } from './format';
 
 const CAT: Record<string, string> = { warmup: 'Warm-up', push: 'Push', pull: 'Pull', legs: 'Legs', hinge: 'Hinge', carry: 'Carry', crawl: 'Crawl', core: 'Core', balance: 'Balance', mobility: 'Mobility' };
 
@@ -12,27 +12,41 @@ interface Props {
 
 export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd }: Props) {
   const seg = state.segment;
-  const isRest = seg?.kind === 'rest';
+  const isRoundRest = seg?.kind === 'roundrest';
+  const isRest = seg?.kind === 'rest' || isRoundRest; // both get the calm background
   const isPrepare = seg?.kind === 'prepare';
   const isCelebrate = seg?.kind === 'celebrate';
   const moves = sessionMoves(workout);
   const mi = currentMoveIndex(moves, isPrepare ? state.segmentIndex + 1 : state.segmentIndex);
   const move = moves[mi];
   const next = moves[mi + 1];
-  const title = isRest ? 'Rest' : isCelebrate ? 'Well done!' : (seg?.exercise?.name ?? 'Get ready');
+  const ri = roundInfo(workout, state.segmentIndex);
+
+  const title = isRoundRest ? `Round ${ri.round} complete`
+    : seg?.kind === 'rest' ? 'Rest'
+    : isCelebrate ? 'Well done!'
+    : (seg?.exercise?.name ?? 'Get ready');
+
+  const phaseLabel = isCelebrate ? ''
+    : isRoundRest ? `Round ${ri.round} of ${ri.totalRounds}`
+    : ri.round > 0 ? `Move ${ri.moveInRound} of ${ri.movesPerRound}`
+    : 'Warm-up';
+
+  const showRoundChip = ri.round > 0 && !isRoundRest && !isCelebrate;
 
   return (
     <main className="screen" style={{ display: 'flex', flexDirection: 'column', background: isRest ? '#eef3fb' : 'var(--bg)' }}>
-      <p className="sr-only" aria-live="assertive">Now: {title}</p>
+      <p className="sr-only" aria-live="assertive">{isRoundRest ? `Round ${ri.round} of ${ri.totalRounds} complete. Rest.` : `Now: ${title}`}</p>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
         <div style={{ flex: 1, height: 7, background: '#e7def2', borderRadius: 99, overflow: 'hidden' }}>
           <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: 'var(--accent)', borderRadius: 99 }} />
         </div>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Move {mi + 1} of {moves.length}</div>
+        {phaseLabel && <div style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
       </div>
 
-      <div style={{ textAlign: 'center', marginBottom: 7 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 7, minHeight: 24 }}>
+        {showRoundChip && <span className="pill">Round {ri.round} of {ri.totalRounds}</span>}
         {!isRest && !isCelebrate && seg?.exercise && <span className="pill">{CAT[seg.exercise.category] ?? seg.exercise.category}</span>}
       </div>
       <div style={{ textAlign: 'center', fontSize: 27, fontWeight: 500, letterSpacing: '-.3px', marginBottom: 7 }}>{title}</div>
@@ -44,7 +58,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
         <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} />
       </div>
 
-      {next && (
+      {next && !isCelebrate && (
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', marginBottom: 18 }}>
           <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: '50%', background: 'var(--accent-soft)', color: 'var(--accent)' }}><i className="ti ti-arrow-right" aria-hidden="true" /></span>
           <div style={{ flex: 1 }}>
