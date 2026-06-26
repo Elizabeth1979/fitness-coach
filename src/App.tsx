@@ -7,6 +7,7 @@ import { ActiveScreen } from './ui/ActiveScreen';
 import { DoneScreen } from './ui/DoneScreen';
 import { MoveDetail } from './ui/MoveDetail';
 import { swapMove } from './generator/swapMove';
+import { WARMUP_FLOWS } from './generator/warmupFlows';
 import { createRng } from './generator/rng';
 import { recordCompletion, currentStreak, getPrefs, setPrefs, getCheckpoint, getRecentThemes, pushRecentTheme } from './storage/store';
 import type { Checkpoint } from './storage/store';
@@ -22,6 +23,7 @@ export default function App() {
   const [seed, setSeed] = useState<number>(initialSeed);
   const initialStyle: WorkoutStyle = getPrefs().style ?? 'circuit';
   const [style, setStyle] = useState<WorkoutStyle>(initialStyle);
+  const [warmupTheme, setWarmupTheme] = useState<string | undefined>(undefined);
   const [preview, setPreview] = useState<Workout>(() =>
     generateWorkout({ kind: initialKind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed: initialSeed, style: initialStyle }));
   const [workout, setWorkout] = useState<Workout | null>(null);
@@ -32,12 +34,23 @@ export default function App() {
   const { state, completed, start, pause, resume, skip, end } = useWorkoutSession(workout);
 
   useEffect(() => {
-    setPreview(generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed, style }));
-  }, [kind, seed, style]);
+    setPreview(generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed, style, warmupThemeId: warmupTheme }));
+  }, [kind, seed, style, warmupTheme]);
 
+  // Re-roll, change length, or change style → drop the warm-up override so the
+  // Lottery picks fresh again.
+  function handleKind(k: WorkoutKind) { setWarmupTheme(undefined); setKind(k); }
+  function handleReroll() { setWarmupTheme(undefined); setSeed((s) => s + 1); }
   function handleStyle(s: WorkoutStyle) {
+    setWarmupTheme(undefined);
     setStyle(s);
     setPrefs({ ...getPrefs(), style: s });
+  }
+  // "Different warm-up": force a different flow than the one currently shown.
+  function handleSwapWarmup() {
+    const choices = WARMUP_FLOWS.map((f) => f.id).filter((id) => id !== preview.warmupThemeId);
+    if (choices.length === 0) return;
+    setWarmupTheme(choices[Math.floor(Math.random() * choices.length)]);
   }
 
   useEffect(() => {
@@ -80,9 +93,9 @@ export default function App() {
 
   if (phase === 'home') return (
     <>
-      <HomeScreen workout={preview} kind={kind} onKind={setKind} streak={streak}
-        style={style} onStyle={handleStyle}
-        canResume={!!checkpoint} onResume={handleResume} onReroll={() => setSeed((s) => s + 1)}
+      <HomeScreen workout={preview} kind={kind} onKind={handleKind} streak={streak}
+        style={style} onStyle={handleStyle} onSwapWarmup={handleSwapWarmup}
+        canResume={!!checkpoint} onResume={handleResume} onReroll={handleReroll}
         onStart={handleStart} onOpenMove={setOpenPrepare} />
       {openPrepare !== null && (
         <MoveDetail workout={preview} prepareIndex={openPrepare}

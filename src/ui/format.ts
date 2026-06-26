@@ -49,6 +49,11 @@ export function sessionMoves(workout: Workout): SessionMove[] {
   return moves;
 }
 
+// The warm-up moves (the themed flow shown once at the start).
+export function warmupMoves(workout: Workout): SessionMove[] {
+  return sessionMoves(workout).filter((m) => m.isWarmup);
+}
+
 export function currentMoveIndex(moves: SessionMove[], segmentIndex: number): number {
   let idx = 0;
   for (let i = 0; i < moves.length; i++) {
