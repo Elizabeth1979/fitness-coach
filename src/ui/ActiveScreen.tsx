@@ -43,16 +43,16 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
         <div style={{ flex: 1, height: 8, background: '#ece2f7', borderRadius: 99, overflow: 'hidden' }}>
           <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: cc.ink, borderRadius: 99, transition: 'width .4s cubic-bezier(.21,1.02,.45,1), background .3s' }} />
         </div>
-        {phaseLabel && <div style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
+        {phaseLabel && <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 7, minHeight: 24 }}>
         {showRoundChip && <span className="pill">Round {ri.round} of {ri.totalRounds}</span>}
         {!isRest && !isCelebrate && seg?.exercise && <span className="pill" style={{ color: cc.ink, background: cc.soft }}>{cc.label}</span>}
       </div>
-      <div style={{ textAlign: 'center', fontSize: 27, fontWeight: 500, letterSpacing: '-.3px', marginBottom: 7 }}>{title}</div>
+      <div style={{ textAlign: 'center', fontSize: 34, fontWeight: 700, letterSpacing: '-.3px', marginBottom: 7 }}>{title}</div>
       {!isRest && !isCelebrate && move && (
-        <div style={{ textAlign: 'center', fontSize: 14, color: 'var(--text-muted)', marginBottom: 16 }}>{move.target}</div>
+        <div style={{ textAlign: 'center', fontSize: 17, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 16 }}>{move.target}</div>
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0 18px' }}>
@@ -65,10 +65,10 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
           <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', marginBottom: 18 }}>
             <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: '50%', background: nc.soft, color: nc.ink }}><i className="ti ti-arrow-right" aria-hidden="true" /></span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>Next up</div>
-              <div style={{ fontSize: 15, fontWeight: 600 }}>{next.exercise.name}</div>
+              <div style={{ fontSize: 13, color: 'var(--text-hint)' }}>Next up</div>
+              <div style={{ fontSize: 18, fontWeight: 700 }}>{next.exercise.name}</div>
             </div>
-            <div style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'right' }}><span style={{ color: nc.ink, fontWeight: 600 }}>{nc.label}</span><br />{next.target}</div>
+            <div style={{ fontSize: 15, color: 'var(--text-muted)', textAlign: 'right' }}><span style={{ color: nc.ink, fontWeight: 700 }}>{nc.label}</span><br />{next.target}</div>
           </div>
         );
       })()}

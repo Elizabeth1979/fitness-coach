@@ -12,8 +12,8 @@ export function TimerRing({ remaining, total, color = '#7338b0' }: Props) {
           style={{ transition: 'stroke-dashoffset .35s linear, stroke .3s', filter: 'drop-shadow(0 3px 7px rgba(115,56,176,.22))' }} />
       </svg>
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontSize: 46, fontWeight: 700, letterSpacing: '-1px', lineHeight: 1 }}>{mm}:{ss}</div>
-        <div style={{ fontSize: 12, color: 'var(--text-hint)', marginTop: 4 }}>remaining</div>
+        <div style={{ fontSize: 54, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1 }}>{mm}:{ss}</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-hint)', marginTop: 4 }}>remaining</div>
       </div>
     </div>
   );

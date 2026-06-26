@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '@tabler/icons-webfont/dist/tabler-icons.min.css';
+@import '@fontsource-variable/baloo-2';
 
 :root {
   color-scheme: light;
@@ -11,8 +12,8 @@
 }
 html, body, #root { height: 100%; }
 body {
-  margin: 0; color: var(--text); background: var(--bg);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased;
+  margin: 0; color: var(--text); background: var(--bg); font-size: 18px;
+  font-family: 'Baloo 2 Variable', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased;
 }
 /* slow-drifting soft color blobs for a lively, never-boring backdrop (solid color, blurred — no gradient) */
 body::before, body::after {
@@ -27,12 +28,12 @@ body::after  { width: 320px; height: 320px; right:-100px; top:46%; background: #
   background: var(--surface); border: 1px solid var(--surface-border); border-radius: 22px; box-shadow: var(--surface-shadow);
   padding: 16px; animation: pop-in .5s cubic-bezier(.21,1.02,.45,1) both;
 }
-.pill { display:inline-flex; align-items:center; gap:5px; background: var(--accent-soft); color: var(--accent); font-size:12px; font-weight:600; padding:5px 10px; border-radius:99px; }
-.cat { display:inline-flex; align-items:center; font-size:11px; font-weight:700; letter-spacing:.2px; color: var(--accent); background: var(--accent-soft); padding:3px 9px; border-radius:8px; }
-.chip { display:inline-flex; align-items:center; gap:5px; font-size:13px; font-weight:600; color: var(--accent-ink); background: var(--accent-soft); padding:6px 12px; border-radius:99px; }
+.pill { display:inline-flex; align-items:center; gap:5px; background: var(--accent-soft); color: var(--accent); font-size:14px; font-weight:600; padding:6px 12px; border-radius:99px; }
+.cat { display:inline-flex; align-items:center; font-size:13px; font-weight:700; letter-spacing:.2px; color: var(--accent); background: var(--accent-soft); padding:4px 11px; border-radius:9px; }
+.chip { display:inline-flex; align-items:center; gap:5px; font-size:15px; font-weight:700; color: var(--accent-ink); background: var(--accent-soft); padding:7px 14px; border-radius:99px; }
 
-.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:0; cursor:pointer; font: inherit; font-weight:600; border-radius:16px; padding:15px; transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, filter .2s; }
-.btn-primary { background: var(--accent); color:#fff; font-size:17px; box-shadow: var(--glow); animation: cta-breathe 3.6s ease-in-out infinite; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:0; cursor:pointer; font: inherit; font-weight:700; border-radius:18px; padding:16px; transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, filter .2s; }
+.btn-primary { background: var(--accent); color:#fff; font-size:20px; box-shadow: var(--glow); animation: cta-breathe 3.6s ease-in-out infinite; }
 .btn-primary:hover { filter: brightness(1.06); }
 .btn-soft { background: var(--accent-soft); color: var(--accent); }
 .btn-ghost { background:#f3edfa; color: var(--text-muted); }
@@ -40,7 +41,7 @@ body::after  { width: 320px; height: 320px; right:-100px; top:46%; background: #
 .btn-primary:active { transform: scale(0.97); }
 
 .hero-title {
-  font-size:23px; font-weight:800; letter-spacing:-.4px; line-height:1.1; color: var(--accent);
+  font-size:31px; font-weight:800; letter-spacing:-.3px; line-height:1.05; color: var(--accent);
 }
 
 /* tappable list rows get a friendly lift */

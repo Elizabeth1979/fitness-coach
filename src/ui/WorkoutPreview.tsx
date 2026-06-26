@@ -23,17 +23,17 @@ export function WorkoutPreview({ workout, detailed, onOpenMove }: Props) {
           >
             <span aria-hidden="true" style={{ flexShrink: 0, width: 12, height: 12, borderRadius: '50%', background: c.ink, boxShadow: `0 0 0 4px ${c.soft}` }} />
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontSize: 15, fontWeight: 600 }}>{m.exercise.name}</span>
+              <span style={{ fontSize: 19, fontWeight: 700 }}>{m.exercise.name}</span>
               {detailed && (
                 <span style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 5 }}>
                   <span className="cat" style={{ color: c.ink, background: c.soft }}>{c.label}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--text-muted)' }}>
-                    <i className={`ti ${isTime(m.target) ? 'ti-clock' : 'ti-repeat'}`} aria-hidden="true" style={{ fontSize: 15 }} />{m.target}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 15, color: 'var(--text-muted)' }}>
+                    <i className={`ti ${isTime(m.target) ? 'ti-clock' : 'ti-repeat'}`} aria-hidden="true" style={{ fontSize: 16 }} />{m.target}
                   </span>
                 </span>
               )}
             </span>
-            <i className="ti ti-chevron-right" aria-hidden="true" style={{ fontSize: 19, color: c.ink, opacity: .55 }} />
+            <i className="ti ti-chevron-right" aria-hidden="true" style={{ fontSize: 22, color: c.ink, opacity: .55 }} />
           </button>
         );
       })}
