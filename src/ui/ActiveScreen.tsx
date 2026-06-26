@@ -2,8 +2,7 @@ import type { SessionState } from '../engine/session';
 import type { Workout } from '../domain/types';
 import { TimerRing } from './TimerRing';
 import { sessionMoves, currentMoveIndex, roundInfo } from './format';
-
-const CAT: Record<string, string> = { warmup: 'Warm-up', push: 'Push', pull: 'Pull', legs: 'Legs', hinge: 'Hinge', carry: 'Carry', crawl: 'Crawl', core: 'Core', balance: 'Balance', mobility: 'Mobility' };
+import { catColor } from './categoryColor';
 
 interface Props {
   state: SessionState; workout: Workout;
@@ -33,21 +32,25 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
     : 'Warm-up';
 
   const showRoundChip = ri.round > 0 && !isRoundRest && !isCelebrate;
+  const cc = seg?.exercise ? catColor(seg.exercise.category) : catColor('warmup');
+  const ring = isRest ? { from: '#4dabf7', to: '#74c0fc' }
+    : isCelebrate ? { from: '#1aa772', to: '#51cf66' }
+    : { from: cc.ink, to: '#fb7185' };
 
   return (
     <main className="screen" style={{ display: 'flex', flexDirection: 'column', background: isRest ? '#eef3fb' : 'var(--bg)' }}>
       <p className="sr-only" aria-live="assertive">{isRoundRest ? `Round ${ri.round} of ${ri.totalRounds} complete. Rest.` : `Now: ${title}`}</p>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
-        <div style={{ flex: 1, height: 7, background: '#e7def2', borderRadius: 99, overflow: 'hidden' }}>
-          <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: 'var(--accent)', borderRadius: 99 }} />
+        <div style={{ flex: 1, height: 8, background: '#ece2f7', borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: 'var(--grad-cta)', borderRadius: 99, transition: 'width .4s cubic-bezier(.21,1.02,.45,1)' }} />
         </div>
         {phaseLabel && <div style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 7, minHeight: 24 }}>
         {showRoundChip && <span className="pill">Round {ri.round} of {ri.totalRounds}</span>}
-        {!isRest && !isCelebrate && seg?.exercise && <span className="pill">{CAT[seg.exercise.category] ?? seg.exercise.category}</span>}
+        {!isRest && !isCelebrate && seg?.exercise && <span className="pill" style={{ color: cc.ink, background: cc.soft }}>{cc.label}</span>}
       </div>
       <div style={{ textAlign: 'center', fontSize: 27, fontWeight: 500, letterSpacing: '-.3px', marginBottom: 7 }}>{title}</div>
       {!isRest && !isCelebrate && move && (
@@ -55,19 +58,22 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0 18px' }}>
-        <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} />
+        <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} from={ring.from} to={ring.to} />
       </div>
 
-      {next && !isCelebrate && (
-        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', marginBottom: 18 }}>
-          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: '50%', background: 'var(--accent-soft)', color: 'var(--accent)' }}><i className="ti ti-arrow-right" aria-hidden="true" /></span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>Next up</div>
-            <div style={{ fontSize: 15, fontWeight: 500 }}>{next.exercise.name}</div>
+      {next && !isCelebrate && (() => {
+        const nc = catColor(next.category);
+        return (
+          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', marginBottom: 18 }}>
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: '50%', background: nc.soft, color: nc.ink }}><i className="ti ti-arrow-right" aria-hidden="true" /></span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>Next up</div>
+              <div style={{ fontSize: 15, fontWeight: 600 }}>{next.exercise.name}</div>
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'right' }}><span style={{ color: nc.ink, fontWeight: 600 }}>{nc.label}</span><br />{next.target}</div>
           </div>
-          <div style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'right' }}>{CAT[next.category] ?? next.category}<br />{next.target}</div>
-        </div>
-      )}
+        );
+      })()}
 
       <div style={{ display: 'flex', gap: 9, marginTop: 'auto' }}>
         {state.status === 'paused'
