@@ -34,7 +34,7 @@ export default function App() {
   const [resumeFrom, setResumeFrom] = useState<{ index: number; elapsedSec: number } | null>(null);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(() => getCheckpoint());
   const [openPrepare, setOpenPrepare] = useState<number | null>(null);
-  const { state, completed, start, pause, resume, skip, end } = useWorkoutSession(workout);
+  const { state, completed, start, pause, resume, skip, end, musicOn, toggleMusic, musicAvailable } = useWorkoutSession(workout);
 
   useEffect(() => {
     setPreview(generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed, style, warmupThemeId: warmupTheme, sore }));
@@ -110,5 +110,6 @@ export default function App() {
     </>
   );
   if (phase === 'done') return <DoneScreen categories={categories} streak={streak} workout={workout} onHome={() => { setWorkout(null); setPhase('home'); }} />;
-  return <ActiveScreen state={state} workout={workout!} onPause={pause} onResume={resume} onSkip={skip} onEnd={end} />;
+  return <ActiveScreen state={state} workout={workout!} onPause={pause} onResume={resume} onSkip={skip} onEnd={end}
+    musicOn={musicOn} onToggleMusic={toggleMusic} musicAvailable={musicAvailable} />;
 }

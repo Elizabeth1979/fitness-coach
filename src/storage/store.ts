@@ -14,6 +14,7 @@ export interface Prefs {
   voiceURI?: string;
   equipment: Equipment[];
   style?: WorkoutStyle;
+  music?: boolean;   // background beats during a workout (default on)
 }
 
 export interface Checkpoint {
