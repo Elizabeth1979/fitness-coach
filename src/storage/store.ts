@@ -1,4 +1,4 @@
-import type { Equipment, Workout, WorkoutStyle } from '../domain/types';
+import type { Equipment, SoreArea, Workout, WorkoutStyle } from '../domain/types';
 import { computeStreak } from './streak';
 
 export interface Completion {
@@ -7,6 +7,7 @@ export interface Completion {
   focus: string;
   exerciseIds: string[];
   durationSec: number;
+  sore?: SoreArea;     // the sore area chosen for this session (for next-day suggestion)
 }
 
 export interface Prefs {
@@ -67,6 +68,16 @@ export function setPrefs(p: Prefs): void {
 
 export function currentStreak(today: string): number {
   return computeStreak(loadStore().completions.map((c) => c.date), today);
+}
+
+// Suggest today's sore area from the last completed session: give whatever was
+// emphasised last time a day to recover (alternate upper/lower). Manual choices
+// of 'back'/'none' don't carry a clear complement, so they suggest 'none'.
+const SORE_NEXT: Partial<Record<SoreArea, SoreArea>> = { shoulders: 'legs', legs: 'shoulders' };
+export function suggestedSore(): SoreArea {
+  const comps = loadStore().completions;
+  const last = comps[comps.length - 1];
+  return (last && last.sore && SORE_NEXT[last.sore]) || 'none';
 }
 
 export function saveCheckpoint(c: Checkpoint): void {

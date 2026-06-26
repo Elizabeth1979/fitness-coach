@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Category, Workout, WorkoutKind, WorkoutStyle } from './domain/types';
+import type { Category, SoreArea, Workout, WorkoutKind, WorkoutStyle } from './domain/types';
 import { generateWorkout } from './generator/generateWorkout';
 import { useWorkoutSession } from './ui/useWorkoutSession';
 import { HomeScreen } from './ui/HomeScreen';
@@ -9,7 +9,7 @@ import { MoveDetail } from './ui/MoveDetail';
 import { swapMove } from './generator/swapMove';
 import { WARMUP_FLOWS } from './generator/warmupFlows';
 import { createRng } from './generator/rng';
-import { recordCompletion, currentStreak, getPrefs, setPrefs, getCheckpoint, getRecentThemes, pushRecentTheme } from './storage/store';
+import { recordCompletion, currentStreak, getPrefs, setPrefs, getCheckpoint, getRecentThemes, pushRecentTheme, suggestedSore } from './storage/store';
 import type { Checkpoint } from './storage/store';
 
 function todayStr(): string { return new Date().toISOString().slice(0, 10); }
@@ -24,8 +24,11 @@ export default function App() {
   const initialStyle: WorkoutStyle = getPrefs().style ?? 'circuit';
   const [style, setStyle] = useState<WorkoutStyle>(initialStyle);
   const [warmupTheme, setWarmupTheme] = useState<string | undefined>(undefined);
+  // Pre-select today's sore area from the last session (recover what you trained).
+  const initialSore: SoreArea = suggestedSore();
+  const [sore, setSore] = useState<SoreArea>(initialSore);
   const [preview, setPreview] = useState<Workout>(() =>
-    generateWorkout({ kind: initialKind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed: initialSeed, style: initialStyle }));
+    generateWorkout({ kind: initialKind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed: initialSeed, style: initialStyle, sore: initialSore }));
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [streak, setStreak] = useState(0);
   const [resumeFrom, setResumeFrom] = useState<{ index: number; elapsedSec: number } | null>(null);
@@ -34,8 +37,10 @@ export default function App() {
   const { state, completed, start, pause, resume, skip, end } = useWorkoutSession(workout);
 
   useEffect(() => {
-    setPreview(generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed, style, warmupThemeId: warmupTheme }));
-  }, [kind, seed, style, warmupTheme]);
+    setPreview(generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed, style, warmupThemeId: warmupTheme, sore }));
+  }, [kind, seed, style, warmupTheme, sore]);
+
+  function handleSore(s: SoreArea) { setWarmupTheme(undefined); setSore(s); }
 
   // Re-roll, change length, or change style → drop the warm-up override so the
   // Lottery picks fresh again.
@@ -85,7 +90,7 @@ export default function App() {
       if (completed) {
         recordCompletion({ date: todayStr(), kind: workout.kind, focus: workout.focus,
           exerciseIds: [...new Set(workout.segments.flatMap((s) => (s.exercise ? [s.exercise.id] : [])))],
-          durationSec: workout.segments.reduce((a, s) => a + s.durationSec, 0) });
+          durationSec: workout.segments.reduce((a, s) => a + s.durationSec, 0), sore });
         setPhase('done');
       } else { setWorkout(null); setPhase('home'); }
     }
@@ -95,6 +100,7 @@ export default function App() {
     <>
       <HomeScreen workout={preview} kind={kind} onKind={handleKind} streak={streak}
         style={style} onStyle={handleStyle} onSwapWarmup={handleSwapWarmup}
+        sore={sore} onSore={handleSore} soreSuggested={initialSore}
         canResume={!!checkpoint} onResume={handleResume} onReroll={handleReroll}
         onStart={handleStart} onOpenMove={setOpenPrepare} />
       {openPrepare !== null && (

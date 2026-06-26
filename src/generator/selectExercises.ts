@@ -1,4 +1,4 @@
-import type { Category, Equipment, Exercise } from '../domain/types';
+import type { Category, Equipment, Exercise, SoreArea } from '../domain/types';
 import { EXERCISES, exercisesByCategory } from '../domain/exercises';
 import { pick } from './rng';
 
@@ -7,6 +7,30 @@ export const SLOTS: Category[] = ['push', 'pull', 'legs', 'hinge', 'carry', 'mob
 // The short (10-min) session trims to a focused trio so each move still gets ≥3
 // sets in the budget. push/pull are never unilateral, so the time math is stable.
 export const SLOTS_SHORT: Category[] = ['push', 'pull', 'legs'];
+
+// When an area is sore, drop the categories that load it; the freed slots are
+// backfilled with the rest (so e.g. a sore shoulder shifts the day toward legs).
+export const AVOID_FOR_SORE: Record<SoreArea, Category[]> = {
+  none: [],
+  shoulders: ['push', 'pull'],
+  back: ['hinge', 'pull'],
+  legs: ['legs', 'hinge'],
+};
+// Backfill priority for the freed slots — lower body first, to emphasise it.
+const EMPHASIS_ORDER: Category[] = ['legs', 'hinge', 'push', 'pull', 'carry', 'crawl', 'mobility'];
+
+// Given a base slot template and a sore area, return a same-width slot list with
+// the avoided categories removed and the gaps refilled from EMPHASIS_ORDER
+// (new categories first, then repeats — repeats just pick a different exercise).
+export function slotsForSore(base: Category[], sore: SoreArea): Category[] {
+  const avoid = AVOID_FOR_SORE[sore];
+  if (avoid.length === 0) return base;
+  const out = base.filter((s) => !avoid.includes(s));
+  const prefs = EMPHASIS_ORDER.filter((c) => !avoid.includes(c));
+  for (const c of prefs) { if (out.length >= base.length) break; if (!out.includes(c)) out.push(c); }
+  for (let i = 0; out.length < base.length && prefs.length > 0; i = (i + 1) % prefs.length) out.push(prefs[i]);
+  return out;
+}
 
 function hasEquipment(ex: Exercise, available: Equipment[]): boolean {
   return ex.equipment.every((eq) => available.includes(eq));
