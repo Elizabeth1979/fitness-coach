@@ -118,8 +118,8 @@ export function HomeScreen(p: Props) {
           <button key={k} role="radio" aria-checked={p.kind === k} onClick={() => p.onKind(k)}
             style={{ flex: 1, fontSize: 13, padding: '11px 0', borderRadius: 13, cursor: 'pointer', font: 'inherit', transition: 'transform .12s',
               border: p.kind === k ? 0 : '1px solid #e7def2', fontWeight: p.kind === k ? 700 : 500,
-              background: p.kind === k ? 'var(--grad-cta)' : '#fff', color: p.kind === k ? '#fff' : 'var(--accent)',
-              boxShadow: p.kind === k ? '0 6px 16px -4px rgba(168,40,180,.4)' : 'none' }}>
+              background: p.kind === k ? 'var(--accent)' : '#fff', color: p.kind === k ? '#fff' : 'var(--accent)',
+              boxShadow: p.kind === k ? '0 6px 16px -5px rgba(115,56,176,.45)' : 'none' }}>
             {k.replace('min', ' minutes')}
           </button>
         ))}

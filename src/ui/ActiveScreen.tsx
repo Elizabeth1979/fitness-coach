@@ -33,9 +33,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
 
   const showRoundChip = ri.round > 0 && !isRoundRest && !isCelebrate;
   const cc = seg?.exercise ? catColor(seg.exercise.category) : catColor('warmup');
-  const ring = isRest ? { from: '#4dabf7', to: '#74c0fc' }
-    : isCelebrate ? { from: '#1aa772', to: '#51cf66' }
-    : { from: cc.ink, to: '#fb7185' };
+  const ringColor = isRest ? '#3b82c4' : isCelebrate ? '#1aa772' : cc.ink;
 
   return (
     <main className="screen" style={{ display: 'flex', flexDirection: 'column', background: isRest ? '#eef3fb' : 'var(--bg)' }}>
@@ -43,7 +41,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
         <div style={{ flex: 1, height: 8, background: '#ece2f7', borderRadius: 99, overflow: 'hidden' }}>
-          <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: 'var(--grad-cta)', borderRadius: 99, transition: 'width .4s cubic-bezier(.21,1.02,.45,1)' }} />
+          <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: cc.ink, borderRadius: 99, transition: 'width .4s cubic-bezier(.21,1.02,.45,1), background .3s' }} />
         </div>
         {phaseLabel && <div style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
       </div>
@@ -58,7 +56,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0 18px' }}>
-        <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} from={ring.from} to={ring.to} />
+        <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} color={ringColor} />
       </div>
 
       {next && !isCelebrate && (() => {
