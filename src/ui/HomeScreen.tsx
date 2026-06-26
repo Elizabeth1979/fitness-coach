@@ -5,7 +5,8 @@ import { getPrefs, setPrefs } from '../storage/store';
 import { useVoices } from './useVoices';
 import { VoicePicker } from './VoicePicker';
 import { WorkoutPreview } from './WorkoutPreview';
-import { sessionMoves } from './format';
+import { warmupMoves } from './format';
+import { warmupFlowName } from '../generator/warmupFlows';
 import { catColor } from './categoryColor';
 
 function greeting(d: Date): string {
@@ -18,6 +19,7 @@ function greeting(d: Date): string {
 interface Props {
   workout: Workout; kind: WorkoutKind; onKind: (k: WorkoutKind) => void; streak: number;
   style?: WorkoutStyle; onStyle?: (s: WorkoutStyle) => void;
+  onSwapWarmup?: () => void;
   canResume?: boolean; onResume?: () => void; onReroll: () => void; onStart: () => void;
   onOpenMove: (prepareIndex: number) => void;
 }
@@ -29,7 +31,8 @@ export function HomeScreen(p: Props) {
   const voices = useVoices();
   const [voiceURI, setVoiceURI] = useState<string | undefined>(() => getPrefs().voiceURI);
   const focus = focusForDate(new Date());
-  const warm = sessionMoves(p.workout).find((m) => m.isWarmup);
+  const warmups = warmupMoves(p.workout);
+  const warmName = warmupFlowName(p.workout.warmupThemeId);
   const style: WorkoutStyle = p.style ?? 'circuit';
   const rounds = p.workout.rounds;
 
@@ -83,20 +86,38 @@ export function HomeScreen(p: Props) {
           ))}
         </div>
 
-        {warm && (() => {
+        {warmups.length > 0 && (() => {
           const wc = catColor('warmup');
           return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 11, background: wc.soft, border: `1px solid ${wc.ink}22`, borderRadius: 14, padding: '11px 12px', marginBottom: 6 }}>
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#fff', color: wc.ink, boxShadow: `0 0 0 3px ${wc.ink}1a` }}>
-                <i className="ti ti-music" aria-hidden="true" style={{ fontSize: 22 }} />
-              </span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 18, fontWeight: 700, color: wc.ink }}>{warm.exercise.name}</div>
-                <div style={{ fontSize: 14, color: 'var(--text-hint)' }}>Today's warm-up · once at the start</div>
+            <div style={{ background: wc.soft, border: `1px solid ${wc.ink}22`, borderRadius: 14, padding: '11px 12px', marginBottom: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#fff', color: wc.ink, boxShadow: `0 0 0 3px ${wc.ink}1a`, flexShrink: 0 }}>
+                  <i className="ti ti-music" aria-hidden="true" style={{ fontSize: 22 }} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: wc.ink }}>Warm-up{warmName ? ` · ${warmName}` : ''}</div>
+                  <div style={{ fontSize: 14, color: 'var(--text-hint)' }}>{warmups.length} {warmups.length === 1 ? 'move' : 'moves'} · once at the start</div>
+                </div>
               </div>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 15, fontWeight: 700, color: wc.ink }}>
-                <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 15 }} />{warm.target}
-              </span>
+
+              <div style={{ marginTop: 9 }}>
+                {warmups.map((m, i) => (
+                  <div key={m.firstSegment} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 2px', borderTop: i === 0 ? 0 : `1px solid ${wc.ink}1a` }}>
+                    <span aria-hidden="true" style={{ fontSize: 13, fontWeight: 700, color: wc.ink, width: 18, flexShrink: 0 }}>{i + 1}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{m.exercise.name}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: wc.ink }}>
+                      <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 14 }} />{m.target}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {p.onSwapWarmup && (
+                <button onClick={p.onSwapWarmup}
+                  style={{ width: '100%', marginTop: 9, fontSize: 14, fontWeight: 700, padding: '9px', borderRadius: 11, border: 0, cursor: 'pointer', font: 'inherit', background: '#fff', color: wc.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                  <i className="ti ti-refresh" aria-hidden="true" />Different warm-up
+                </button>
+              )}
             </div>
           );
         })()}

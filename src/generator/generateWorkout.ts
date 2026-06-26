@@ -5,7 +5,7 @@ import { selectExercises } from './selectExercises';
 import { focusForDate } from './schedule';
 import { createRng } from './rng';
 import { phrases } from '../coach/phrases';
-import { pickWarmupFlow, type WarmupFlow } from './warmupFlows';
+import { pickWarmupFlow, WARMUP_FLOWS, type WarmupFlow } from './warmupFlows';
 import { exerciseById } from '../domain/exercises';
 
 export interface GenerateOptions {
@@ -16,6 +16,10 @@ export interface GenerateOptions {
   recentThemeIds?: string[];
   seed?: number;
   style?: WorkoutStyle;
+  // Force a specific warm-up flow (used by the "Different warm-up" switch). When
+  // unset, the Mobility Lottery picks one. The circuit is chosen before the flow,
+  // so overriding the warm-up keeps the same circuit; the body re-sizes to budget.
+  warmupThemeId?: string;
 }
 
 export const TARGET_SECONDS: Record<Exclude<WorkoutKind, 'free'>, number> = {
@@ -195,8 +199,10 @@ export function generateWorkout(opts: GenerateOptions): Workout {
     equipment: opts.equipment, recentExerciseIds: recent, rng, includeWarmup: false,
   });
 
-  // Lottery: a warm-up flow that preps the day's work and avoids recent themes.
-  const flow = pickWarmupFlow({ workoutCategories: circuit.map((e) => e.category), recentThemeIds, rng });
+  // A forced theme (the "Different warm-up" switch) wins; otherwise the Lottery
+  // picks a flow that preps the day's work and avoids recent themes.
+  const forced = opts.warmupThemeId ? WARMUP_FLOWS.find((f) => f.id === opts.warmupThemeId) : undefined;
+  const flow = forced ?? pickWarmupFlow({ workoutCategories: circuit.map((e) => e.category), recentThemeIds, rng });
   const warmupSegs = buildWarmup(flow, focus, target, rng);
   const warmupTotal = warmupSegs.reduce((s, seg) => s + seg.durationSec, 0);
 

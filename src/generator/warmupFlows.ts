@@ -23,6 +23,11 @@ export const WARMUP_FLOWS: WarmupFlow[] = [
     moves: ['free-dance'] },
 ];
 
+// Human-readable flow name for a theme id (for the Home warm-up card).
+export function warmupFlowName(id: string | undefined): string | undefined {
+  return WARMUP_FLOWS.find((f) => f.id === id)?.name;
+}
+
 export interface PickWarmupOptions {
   workoutCategories: Category[];
   recentThemeIds: string[];
