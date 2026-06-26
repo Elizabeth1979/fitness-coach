@@ -1,5 +1,5 @@
 import type {
-  Cue, Equipment, Exercise, Focus, Segment, Workout, WorkoutKind,
+  Cue, Equipment, Exercise, Focus, Segment, Workout, WorkoutKind, WorkoutStyle,
 } from '../domain/types';
 import { selectExercises } from './selectExercises';
 import { focusForDate } from './schedule';
@@ -15,6 +15,7 @@ export interface GenerateOptions {
   recentExerciseIds?: string[];
   recentThemeIds?: string[];
   seed?: number;
+  style?: WorkoutStyle;
 }
 
 export const TARGET_SECONDS: Record<Exclude<WorkoutKind, 'free'>, number> = {
@@ -137,6 +138,20 @@ function roundRestSegment(round: number, total: number, focus: Focus): Segment {
   };
 }
 
+// Station style: the recovery between two sets of the SAME exercise. Uses the
+// substantial round-rest length (you've just worked one muscle group hard), and
+// leads back in with a countdown haptic so you know when to start the next set.
+function setRestSegment(round: number, focus: Focus): Segment {
+  const dur = roundRestSec(focus);
+  return {
+    kind: 'rest', durationSec: dur, round,
+    cues: [
+      { atSec: 0, say: phrases.rest(), haptic: 'rest' },
+      { atSec: Math.max(1, dur - 4), haptic: 'countdown' },
+    ],
+  };
+}
+
 // --- Warm-up flow rendering (fixed-length, excluded from drift) ---
 
 function warmupMoveCount(target: number, flow: WarmupFlow): number {
@@ -185,35 +200,66 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   const warmupSegs = buildWarmup(flow, focus, target, rng);
   const warmupTotal = warmupSegs.reduce((s, seg) => s + seg.durationSec, 0);
 
-  // Size ONE circuit's work bouts so warm-up + (work+short-rests)*rounds +
-  // round-rests + celebrate ≈ target, then replicate with identical durations.
   const units = buildUnits(circuit, focus);
   const items = circuit.length;
   const roundRest = roundRestSec(focus);
-  const fixed = warmupTotal + CELEBRATE_SEC
-    + (rounds - 1) * roundRest
-    + rounds * (items * PREPARE_SEC + items * SHORT_REST_SEC);
-  const perRoundWork = (target - fixed) / rounds;
-  const baseWork = units.reduce((s, u) => s + u.dur, 0);
-  spreadDrift(units, perRoundWork - baseWork);
+  const style: WorkoutStyle = opts.style ?? 'circuit';
+  const baseWork = (): number => units.reduce((s, u) => s + u.dur, 0);
 
-  // Lay out: warm-up → [circuit] × rounds (round-rest between) → celebrate.
-  const segments: Segment[] = [...warmupSegs];
-  for (let r = 1; r <= rounds; r++) {
-    let u = 0;
-    circuit.forEach((ex) => {
-      segments.push(prepareSegment(ex, phrases.next(ex.name), r));
-      const sides = ex.unilateral ? 2 : 1;
-      for (let s = 0; s < sides; s++) segments.push(workSegment(units[u++], r, rng));
-      segments.push(shortRestSegment(r));
-    });
-    if (r < rounds) segments.push(roundRestSegment(r, rounds, focus));
-  }
-
-  segments.push({
+  const celebrate: Segment = {
     kind: 'celebrate', durationSec: CELEBRATE_SEC,
     cues: [{ atSec: 0, say: phrases.celebrate(circuit.map((e) => e.category)) }],
-  });
+  };
 
-  return { id: `w-${seed}-${opts.kind}`, kind: opts.kind, focus, rounds, warmupThemeId: flow.id, segments };
+  let segments: Segment[];
+  if (style === 'stations') {
+    // Station style: do every set of one exercise before moving on. Fixed time =
+    // warm-up + celebrate + one prepare per station + the (rounds-1) set-rests
+    // inside each station; work bouts fill the remaining budget.
+    const fixed = warmupTotal + CELEBRATE_SEC
+      + items * PREPARE_SEC
+      + items * (rounds - 1) * roundRest;
+    const perRoundWork = (target - fixed) / rounds;
+    spreadDrift(units, perRoundWork - baseWork());
+
+    // Lay out: warm-up → per station: prepare → [work × sides → set-rest] × rounds → celebrate.
+    // Each set is tagged with its set number (round), so set 1 of every station is "round 1".
+    segments = [...warmupSegs];
+    let u = 0;
+    circuit.forEach((ex) => {
+      const sides = ex.unilateral ? 2 : 1;
+      const exUnits = units.slice(u, u + sides);
+      u += sides;
+      segments.push(prepareSegment(ex, phrases.next(ex.name), 1));
+      for (let set = 1; set <= rounds; set++) {
+        exUnits.forEach((un) => segments.push(workSegment(un, set, rng)));
+        if (set < rounds) segments.push(setRestSegment(set, focus));
+      }
+    });
+    segments.push(celebrate);
+  } else {
+    // Circuit (default): size ONE circuit's work bouts so warm-up +
+    // (work+short-rests)*rounds + round-rests + celebrate ≈ target, then replicate.
+    const fixed = warmupTotal + CELEBRATE_SEC
+      + (rounds - 1) * roundRest
+      + rounds * (items * PREPARE_SEC + items * SHORT_REST_SEC);
+    const perRoundWork = (target - fixed) / rounds;
+    spreadDrift(units, perRoundWork - baseWork());
+
+    // Lay out: warm-up → [circuit] × rounds (round-rest between) → celebrate.
+    segments = [...warmupSegs];
+    for (let r = 1; r <= rounds; r++) {
+      let u = 0;
+      circuit.forEach((ex) => {
+        segments.push(prepareSegment(ex, phrases.next(ex.name), r));
+        const sides = ex.unilateral ? 2 : 1;
+        for (let s = 0; s < sides; s++) segments.push(workSegment(units[u++], r, rng));
+        segments.push(shortRestSegment(r));
+      });
+      if (r < rounds) segments.push(roundRestSegment(r, rounds, focus));
+    }
+    segments.push(celebrate);
+  }
+
+  return { id: `w-${seed}-${opts.kind}-${style}`, kind: opts.kind, focus, rounds, style, warmupThemeId: flow.id, segments };
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Workout, WorkoutKind } from '../domain/types';
+import type { Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
 import { focusForDate } from '../generator/schedule';
 import { getPrefs, setPrefs } from '../storage/store';
 import { useVoices } from './useVoices';
@@ -17,6 +17,7 @@ function greeting(d: Date): string {
 
 interface Props {
   workout: Workout; kind: WorkoutKind; onKind: (k: WorkoutKind) => void; streak: number;
+  style?: WorkoutStyle; onStyle?: (s: WorkoutStyle) => void;
   canResume?: boolean; onResume?: () => void; onReroll: () => void; onStart: () => void;
   onOpenMove: (prepareIndex: number) => void;
 }
@@ -29,6 +30,8 @@ export function HomeScreen(p: Props) {
   const [voiceURI, setVoiceURI] = useState<string | undefined>(() => getPrefs().voiceURI);
   const focus = focusForDate(new Date());
   const warm = sessionMoves(p.workout).find((m) => m.isWarmup);
+  const style: WorkoutStyle = p.style ?? 'circuit';
+  const rounds = p.workout.rounds;
 
   function handleVoiceChange(uri: string) {
     const next = uri || undefined;
@@ -66,7 +69,7 @@ export function HomeScreen(p: Props) {
           <div style={{ fontSize: 19, fontWeight: 700 }}>Today · {focus === 'strength' ? 'Strength' : 'Movement'}</div>
           <div style={{ display: 'flex', gap: 6 }}>
             <span className="pill"><i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 14 }} />{total(p.workout)} minutes</span>
-            <span className="pill"><i className="ti ti-repeat" aria-hidden="true" style={{ fontSize: 14 }} />{p.workout.rounds} rounds</span>
+            <span className="pill"><i className="ti ti-repeat" aria-hidden="true" style={{ fontSize: 14 }} />{rounds} {style === 'stations' ? 'sets' : 'rounds'}</span>
           </div>
         </div>
 
@@ -98,14 +101,33 @@ export function HomeScreen(p: Props) {
           );
         })()}
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, marginBottom: 2 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '.4px' }}>The circuit</span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-hint)' }}>repeat {p.workout.rounds}×</span>
+        {p.onStyle && (
+          <div style={{ marginTop: 14 }}>
+            <div role="radiogroup" aria-label="Workout style" style={{ display: 'flex', gap: 5, background: '#f3edfa', borderRadius: 12, padding: 4 }}>
+              {([['circuit', 'Circuit'], ['stations', 'Stations']] as const).map(([val, label]) => (
+                <button key={val} role="radio" aria-checked={style === val} onClick={() => p.onStyle!(val)}
+                  style={{ flex: 1, fontSize: 15, padding: '9px 0', borderRadius: 9, border: 0, cursor: 'pointer', font: 'inherit',
+                    fontWeight: style === val ? 700 : 500, background: style === val ? '#fff' : 'transparent', color: style === val ? 'var(--accent)' : 'var(--text-muted)' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text-hint)', margin: '7px 2px 0' }}>
+              {style === 'stations'
+                ? `Do all ${rounds} sets of one move (with rest between), then the next.`
+                : `Do all moves once, then repeat the whole circuit — ${rounds} rounds.`}
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, marginBottom: 2 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '.4px' }}>{style === 'stations' ? 'The moves' : 'The circuit'}</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-hint)' }}>{style === 'stations' ? `${rounds} sets each` : `repeat ${rounds}×`}</span>
         </div>
         <WorkoutPreview workout={p.workout} detailed={detailed} onOpenMove={p.onOpenMove} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 12, borderTop: '1px solid #f1ebf7', fontSize: 14, color: 'var(--text-muted)' }}>
-          <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 16 }} />About {total(p.workout)} minutes · {p.workout.rounds} rounds · a longer rest between each
+          <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 16 }} />About {total(p.workout)} minutes · {style === 'stations' ? `${rounds} sets each · rest between sets` : `${rounds} rounds · a longer rest between each`}
         </div>
 
         <button className="btn btn-soft" onClick={p.onReroll} style={{ width: '100%', marginTop: 12, fontSize: 16, padding: '12px' }}>

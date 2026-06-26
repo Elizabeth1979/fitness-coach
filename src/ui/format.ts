@@ -71,6 +71,25 @@ export interface RoundInfo {
   movesPerRound: number;
 }
 
+export interface StationInfo {
+  station: number;        // 1-based station you're on; 0 during warm-up
+  totalStations: number;  // number of exercises (one prepare each)
+  set: number;            // 1-based set within the station
+  totalSets: number;
+}
+
+// Station style: which exercise (station) and which set you're on. Stations are
+// delimited by their single prepare; the segment's `round` carries the set number.
+export function stationInfo(workout: Workout, segmentIndex: number): StationInfo {
+  const totalStations = workout.segments.filter((s) => s.kind === 'prepare').length;
+  let station = 0;
+  for (let i = 0; i <= segmentIndex && i < workout.segments.length; i++) {
+    if (workout.segments[i].kind === 'prepare') station++;
+  }
+  const set = workout.segments[segmentIndex]?.round ?? 1;
+  return { station, totalStations, set, totalSets: workout.rounds };
+}
+
 export function roundInfo(workout: Workout, segmentIndex: number): RoundInfo {
   const totalRounds = workout.rounds;
   const movesPerRound = workout.segments.filter(

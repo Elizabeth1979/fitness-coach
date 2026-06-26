@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Category, Workout, WorkoutKind } from './domain/types';
+import type { Category, Workout, WorkoutKind, WorkoutStyle } from './domain/types';
 import { generateWorkout } from './generator/generateWorkout';
 import { useWorkoutSession } from './ui/useWorkoutSession';
 import { HomeScreen } from './ui/HomeScreen';
@@ -8,7 +8,7 @@ import { DoneScreen } from './ui/DoneScreen';
 import { MoveDetail } from './ui/MoveDetail';
 import { swapMove } from './generator/swapMove';
 import { createRng } from './generator/rng';
-import { recordCompletion, currentStreak, getPrefs, getCheckpoint, getRecentThemes, pushRecentTheme } from './storage/store';
+import { recordCompletion, currentStreak, getPrefs, setPrefs, getCheckpoint, getRecentThemes, pushRecentTheme } from './storage/store';
 import type { Checkpoint } from './storage/store';
 
 function todayStr(): string { return new Date().toISOString().slice(0, 10); }
@@ -20,8 +20,10 @@ export default function App() {
   const initialSeed = daySeed();
   const [kind, setKind] = useState<WorkoutKind>(initialKind);
   const [seed, setSeed] = useState<number>(initialSeed);
+  const initialStyle: WorkoutStyle = getPrefs().style ?? 'circuit';
+  const [style, setStyle] = useState<WorkoutStyle>(initialStyle);
   const [preview, setPreview] = useState<Workout>(() =>
-    generateWorkout({ kind: initialKind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed: initialSeed }));
+    generateWorkout({ kind: initialKind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed: initialSeed, style: initialStyle }));
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [streak, setStreak] = useState(0);
   const [resumeFrom, setResumeFrom] = useState<{ index: number; elapsedSec: number } | null>(null);
@@ -30,8 +32,13 @@ export default function App() {
   const { state, completed, start, pause, resume, skip, end } = useWorkoutSession(workout);
 
   useEffect(() => {
-    setPreview(generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed }));
-  }, [kind, seed]);
+    setPreview(generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed, style }));
+  }, [kind, seed, style]);
+
+  function handleStyle(s: WorkoutStyle) {
+    setStyle(s);
+    setPrefs({ ...getPrefs(), style: s });
+  }
 
   useEffect(() => {
     setStreak(currentStreak(todayStr()));
@@ -74,6 +81,7 @@ export default function App() {
   if (phase === 'home') return (
     <>
       <HomeScreen workout={preview} kind={kind} onKind={setKind} streak={streak}
+        style={style} onStyle={handleStyle}
         canResume={!!checkpoint} onResume={handleResume} onReroll={() => setSeed((s) => s + 1)}
         onStart={handleStart} onOpenMove={setOpenPrepare} />
       {openPrepare !== null && (
