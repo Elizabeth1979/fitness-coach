@@ -7,9 +7,10 @@ import { catColor } from './categoryColor';
 interface Props {
   state: SessionState; workout: Workout;
   onPause: () => void; onResume: () => void; onSkip: () => void; onEnd: () => void;
+  musicOn?: boolean; onToggleMusic?: () => void; musicAvailable?: boolean;
 }
 
-export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd }: Props) {
+export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd, musicOn, onToggleMusic, musicAvailable }: Props) {
   const seg = state.segment;
   const isRoundRest = seg?.kind === 'roundrest';
   const isRest = seg?.kind === 'rest' || isRoundRest; // both get the calm background
@@ -53,6 +54,13 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
           <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: cc.ink, borderRadius: 99, transition: 'width .4s cubic-bezier(.21,1.02,.45,1), background .3s' }} />
         </div>
         {phaseLabel && <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
+        {musicAvailable && onToggleMusic && (
+          <button onClick={onToggleMusic} aria-label={musicOn ? 'Mute background beats' : 'Play background beats'} aria-pressed={musicOn}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', border: 0, cursor: 'pointer', flexShrink: 0,
+              background: musicOn ? 'var(--accent-soft)' : '#f1ebf7', color: musicOn ? 'var(--accent)' : 'var(--text-hint)' }}>
+            <i className={`ti ${musicOn ? 'ti-music' : 'ti-music-off'}`} aria-hidden="true" style={{ fontSize: 18 }} />
+          </button>
+        )}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 7, minHeight: 24 }}>

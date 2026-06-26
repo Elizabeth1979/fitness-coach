@@ -4,17 +4,23 @@ import { WorkoutSession, type SessionState } from '../engine/session';
 import { RafClock } from '../engine/clock';
 import { createCoach } from '../coach/coach';
 import { createFeedback } from '../feedback/feedback';
+import { createBeats } from '../feedback/beats';
 import { requestWakeLock, releaseWakeLock } from '../pwa/wakeLock';
-import { getPrefs, saveCheckpoint, clearCheckpoint } from '../storage/store';
+import { getPrefs, setPrefs, saveCheckpoint, clearCheckpoint } from '../storage/store';
 
 const IDLE: SessionState = { status: 'idle', segmentIndex: 0, segment: null, segmentRemainingSec: 0 };
 
 export function useWorkoutSession(workout: Workout | null) {
   const coach = useMemo(() => createCoach(), []);
   const feedback = useMemo(() => createFeedback(), []);
+  const beats = useMemo(() => createBeats(), []);
   const sessionRef = useRef<WorkoutSession | null>(null);
   const [state, setState] = useState<SessionState>(IDLE);
   const [completed, setCompleted] = useState(false);
+  // Background beats: on by default; mutable mid-workout and persisted.
+  const [musicOn, setMusicOn] = useState<boolean>(() => getPrefs().music !== false);
+  const musicOnRef = useRef(musicOn);
+  musicOnRef.current = musicOn;
 
   // Reset synchronously when the workout changes, so a finished workout never
   // leaks its 'done'/'completed' state into the next one (the finish effect in
@@ -39,35 +45,54 @@ export function useWorkoutSession(workout: Workout | null) {
           saveCheckpoint({ workout, segmentIndex: e.index, elapsedSec: 0 });
         }
       } else if (e.type === 'cue') {
-        if (e.cue.say) coach.speak(e.cue.say);
+        if (e.cue.say) { beats.duck(e.cue.say); coach.speak(e.cue.say); }
         if (e.cue.haptic) feedback.fire(e.cue.haptic);
       } else if (e.type === 'finished') {
         setState(session.getState());
         setCompleted(e.completed);
         clearCheckpoint();
+        beats.stop();
         void releaseWakeLock();
       }
     });
     sessionRef.current = session;
     setState(session.getState());
-    return () => { session.end(); void releaseWakeLock(); };
-  }, [workout, coach, feedback]);
+    return () => { session.end(); beats.stop(); void releaseWakeLock(); };
+  }, [workout, coach, feedback, beats]);
 
   const start = useCallback((from?: { index: number; elapsedSec: number }) => {
     const v = getPrefs().voiceURI;
     if (v) coach.setVoiceURI(v);
     coach.prime();
     void requestWakeLock();
+    beats.start();
+    beats.setMuted(!musicOnRef.current);
     if (from) sessionRef.current?.startAt(from.index, from.elapsedSec);
     else sessionRef.current?.start();
-  }, [coach]);
-  const pause = useCallback(() => sessionRef.current?.pause(), []);
-  const resume = useCallback(() => sessionRef.current?.resume(), []);
+  }, [coach, beats]);
+  const pause = useCallback(() => { sessionRef.current?.pause(); beats.stop(); }, [beats]);
+  const resume = useCallback(() => {
+    sessionRef.current?.resume();
+    beats.start();
+    beats.setMuted(!musicOnRef.current);
+  }, [beats]);
   const skip = useCallback(() => sessionRef.current?.skip(), []);
   const end = useCallback(() => {
     sessionRef.current?.end();
+    beats.stop();
     void releaseWakeLock();
-  }, []);
+  }, [beats]);
 
-  return { state, completed, start, pause, resume, skip, end };
+  // Toggle the background beats live (and remember the choice).
+  const toggleMusic = useCallback(() => {
+    setMusicOn((on) => {
+      const next = !on;
+      beats.setMuted(!next);
+      if (next) beats.start(); // resume the scheduler if it was stopped
+      setPrefs({ ...getPrefs(), music: next });
+      return next;
+    });
+  }, [beats]);
+
+  return { state, completed, start, pause, resume, skip, end, musicOn, toggleMusic, musicAvailable: beats.available };
 }
