@@ -1,7 +1,7 @@
 import type {
   Cue, Equipment, Exercise, Focus, Segment, Workout, WorkoutKind, WorkoutStyle,
 } from '../domain/types';
-import { selectExercises } from './selectExercises';
+import { selectExercises, SLOTS, SLOTS_SHORT } from './selectExercises';
 import { focusForDate } from './schedule';
 import { createRng } from './rng';
 import { phrases } from '../coach/phrases';
@@ -26,8 +26,10 @@ export const TARGET_SECONDS: Record<Exclude<WorkoutKind, 'free'>, number> = {
   '10min': 600, '20min': 1200, '30min': 1800,
 };
 
-// How many times the circuit repeats. The SAME six exercises every round.
-const ROUNDS: Record<WorkoutKind, number> = { '10min': 2, '20min': 3, '30min': 5, free: 3 };
+// How many times the circuit repeats. The 10-min trims to a focused trio so each
+// move still gets 3 sets (more effective than 6 moves × 2); longer sessions keep
+// the full six-move circuit.
+const ROUNDS: Record<WorkoutKind, number> = { '10min': 3, '20min': 3, '30min': 5, free: 3 };
 
 const CELEBRATE_SEC = 18;
 const PREPARE_SEC = 4;
@@ -197,6 +199,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   // The same circuit repeats every round.
   const circuit = selectExercises({
     equipment: opts.equipment, recentExerciseIds: recent, rng, includeWarmup: false,
+    slots: opts.kind === '10min' ? SLOTS_SHORT : SLOTS,
   });
 
   // A forced theme (the "Different warm-up" switch) wins; otherwise the Lottery
