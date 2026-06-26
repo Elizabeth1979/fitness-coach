@@ -49,6 +49,9 @@ export type Focus = 'strength' | 'movement';
 //  - 'circuit'  : do all exercises once, then repeat the whole set each round.
 //  - 'stations' : do every set of one exercise (with rest between) before moving on.
 export type WorkoutStyle = 'circuit' | 'stations';
+// A body area that's sore/tired today: the generator drops the moves that load
+// it and emphasises the rest. 'none' = a normal balanced session.
+export type SoreArea = 'none' | 'shoulders' | 'back' | 'legs';
 
 export interface Workout {
   id: string;

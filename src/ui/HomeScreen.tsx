@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
+import type { SoreArea, Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
 import { focusForDate } from '../generator/schedule';
 import { getPrefs, setPrefs } from '../storage/store';
 import { useVoices } from './useVoices';
@@ -20,10 +20,15 @@ interface Props {
   workout: Workout; kind: WorkoutKind; onKind: (k: WorkoutKind) => void; streak: number;
   style?: WorkoutStyle; onStyle?: (s: WorkoutStyle) => void;
   onSwapWarmup?: () => void;
+  sore?: SoreArea; onSore?: (s: SoreArea) => void; soreSuggested?: SoreArea;
   canResume?: boolean; onResume?: () => void; onReroll: () => void; onStart: () => void;
   onOpenMove: (prepareIndex: number) => void;
 }
 const KINDS: WorkoutKind[] = ['10min', '20min', '30min'];
+const SORES: { id: SoreArea; label: string }[] = [
+  { id: 'none', label: 'All good' }, { id: 'shoulders', label: 'Shoulders' },
+  { id: 'back', label: 'Back' }, { id: 'legs', label: 'Legs' },
+];
 const total = (w: Workout) => Math.round(w.segments.reduce((s, x) => s + x.durationSec, 0) / 60);
 
 export function HomeScreen(p: Props) {
@@ -37,6 +42,8 @@ export function HomeScreen(p: Props) {
   const coreSec = p.workout.segments.filter((s) => s.block === 'core').reduce((a, s) => a + s.durationSec, 0);
   const style: WorkoutStyle = p.style ?? 'circuit';
   const rounds = p.workout.rounds;
+  const sore: SoreArea = p.sore ?? 'none';
+  const suggestedLabel = SORES.find((s) => s.id === p.soreSuggested)?.label;
 
   function handleVoiceChange(uri: string) {
     const next = uri || undefined;
@@ -180,6 +187,33 @@ export function HomeScreen(p: Props) {
           <i className="ti ti-refresh" aria-hidden="true" />Different mix
         </button>
       </div>
+
+      {p.onSore && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 8, marginLeft: 2 }}>
+            Anything sore today? <span style={{ color: 'var(--text-hint)', fontWeight: 500 }}>· we'll work around it</span>
+          </div>
+          <div role="radiogroup" aria-label="Sore area" style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+            {SORES.map(({ id, label }) => {
+              const selected = sore === id;
+              const isSug = p.soreSuggested === id && id !== 'none';
+              return (
+                <button key={id} role="radio" aria-checked={selected} onClick={() => p.onSore!(id)}
+                  style={{ fontSize: 14, fontWeight: selected ? 700 : 600, padding: '9px 14px', borderRadius: 99, cursor: 'pointer', font: 'inherit', transition: 'transform .12s',
+                    border: selected ? 0 : '1px solid #e7def2', background: selected ? 'var(--accent)' : '#fff', color: selected ? '#fff' : 'var(--accent)',
+                    boxShadow: selected ? '0 5px 14px -5px rgba(115,56,176,.45)' : 'none' }}>
+                  {label}{isSug ? ' ★' : ''}
+                </button>
+              );
+            })}
+          </div>
+          {p.soreSuggested && p.soreSuggested !== 'none' && suggestedLabel && (
+            <div style={{ fontSize: 12, color: 'var(--text-hint)', margin: '7px 2px 0' }}>
+              ★ Suggested — rest your {suggestedLabel.toLowerCase()} after last time. Tap to change.
+            </div>
+          )}
+        </div>
+      )}
 
       <div role="radiogroup" aria-label="Workout length" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         {KINDS.map((k) => (

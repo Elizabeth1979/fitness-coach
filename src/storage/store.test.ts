@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore, saveCheckpoint, getCheckpoint, clearCheckpoint, getRecentThemes, pushRecentTheme } from './store';
+import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore, saveCheckpoint, getCheckpoint, clearCheckpoint, getRecentThemes, pushRecentTheme, suggestedSore } from './store';
 
 const makeMemStorage = (): Storage => {
   const store: Record<string, string> = {};
@@ -52,5 +52,15 @@ describe('store', () => {
     pushRecentTheme('b');
     pushRecentTheme('c'); // capped at 3
     expect(getRecentThemes()).toEqual(['a', 'b', 'c']);
+  });
+
+  it('suggests a complementary sore area from the last session (alternate upper/lower)', () => {
+    expect(suggestedSore()).toBe('none'); // no history
+    recordCompletion({ date: '2026-06-24', kind: '20min', focus: 'movement', exerciseIds: ['x'], durationSec: 1200, sore: 'shoulders' });
+    expect(suggestedSore()).toBe('legs'); // worked legs last time → rest legs
+    recordCompletion({ date: '2026-06-25', kind: '20min', focus: 'movement', exerciseIds: ['x'], durationSec: 1200, sore: 'legs' });
+    expect(suggestedSore()).toBe('shoulders');
+    recordCompletion({ date: '2026-06-26', kind: '20min', focus: 'movement', exerciseIds: ['x'], durationSec: 1200, sore: 'none' });
+    expect(suggestedSore()).toBe('none'); // a balanced session → no strong suggestion
   });
 });

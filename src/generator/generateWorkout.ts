@@ -1,7 +1,7 @@
 import type {
-  Cue, Equipment, Exercise, Focus, Segment, Workout, WorkoutKind, WorkoutStyle,
+  Cue, Equipment, Exercise, Focus, Segment, SoreArea, Workout, WorkoutKind, WorkoutStyle,
 } from '../domain/types';
-import { selectExercises, candidatesFor, SLOTS, SLOTS_SHORT } from './selectExercises';
+import { selectExercises, candidatesFor, slotsForSore, SLOTS, SLOTS_SHORT } from './selectExercises';
 import { focusForDate } from './schedule';
 import { createRng, pick } from './rng';
 import { phrases } from '../coach/phrases';
@@ -16,6 +16,7 @@ export interface GenerateOptions {
   recentThemeIds?: string[];
   seed?: number;
   style?: WorkoutStyle;
+  sore?: SoreArea;
   // Force a specific warm-up flow (used by the "Different warm-up" switch). When
   // unset, the Mobility Lottery picks one. The circuit is chosen before the flow,
   // so overriding the warm-up keeps the same circuit; the body re-sizes to budget.
@@ -245,9 +246,10 @@ export function generateWorkout(opts: GenerateOptions): Workout {
 
   // One circuit (Push·Pull·Legs·Hinge·Carry-or-Crawl·Mobility), selected ONCE.
   // The same circuit repeats every round.
+  const baseSlots = opts.kind === '10min' ? SLOTS_SHORT : SLOTS;
   const circuit = selectExercises({
     equipment: opts.equipment, recentExerciseIds: recent, rng, includeWarmup: false,
-    slots: opts.kind === '10min' ? SLOTS_SHORT : SLOTS,
+    slots: slotsForSore(baseSlots, opts.sore ?? 'none'),
   });
 
   // A forced theme (the "Different warm-up" switch) wins; otherwise the Lottery
