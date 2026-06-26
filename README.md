@@ -8,7 +8,7 @@ Built for people (especially ADHD / novelty-sensitive movers) who love movement 
 on the planning. It's about becoming **more capable every year** — strength, mobility,
 balance, skill — not calories or body weight.
 
-> 🟢 **Live app:** https://elizabeth1979.github.io/fitness-coach/
+> 🟢 **Live app:** https://fitness-coach-peach.vercel.app/
 
 ## What it does
 
@@ -31,7 +31,7 @@ calorie count in sight.
 
 ```bash
 npm install
-npm run dev        # open the printed http://localhost:5173/fitness-coach/ URL
+npm run dev        # open the printed http://localhost:5173/ URL
 ```
 
 `npm run test:run` runs the test suite (56 tests); `npm run build` makes the production
@@ -41,8 +41,8 @@ build + service worker.
 
 React · Vite · TypeScript (strict) · Tailwind v4 · `vite-plugin-pwa` (Workbox) · Vitest.
 Browser platform: Web Speech (voice), Vibration (haptics), Screen Wake Lock, Web Audio
-(fallback cues), `localStorage` (history/streak/prefs). Deploys to GitHub Pages via Actions
-on every push to `main`.
+(fallback cues), `localStorage` (history/streak/prefs). Deploys to Vercel on every push to
+`main` (the build runs the test suite + `tsc -b` type-check before promoting).
 
 ## Architecture
 
