@@ -33,7 +33,7 @@ describe('generateWorkout — station style', () => {
     expect(new Set(order).size).toBe(order.length);
     // Within the workout, all work segments for a station are contiguous (same id
     // run), proving sets are grouped rather than interleaved round-robin.
-    const workIds = w.segments.filter((s) => s.kind === 'work' && s.exercise && s.exercise.category !== 'warmup').map((s) => s.exercise!.id);
+    const workIds = w.segments.filter((s) => s.kind === 'work' && s.exercise && s.exercise.category !== 'warmup' && s.block !== 'core').map((s) => s.exercise!.id);
     const runs: string[] = [];
     for (const id of workIds) if (runs[runs.length - 1] !== id) runs.push(id);
     expect(runs).toEqual(order); // each id appears in exactly one contiguous run

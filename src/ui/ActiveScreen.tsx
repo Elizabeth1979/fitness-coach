@@ -22,6 +22,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
   const ri = roundInfo(workout, state.segmentIndex);
   const stations = workout.style === 'stations';
   const si = stations ? stationInfo(workout, state.segmentIndex) : null;
+  const isCore = seg?.block === 'core';
 
   const title = isRoundRest ? `Round ${ri.round} complete`
     : seg?.kind === 'rest' ? 'Rest'
@@ -29,6 +30,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
     : (seg?.exercise?.name ?? 'Get ready');
 
   const phaseLabel = isCelebrate ? ''
+    : isCore ? 'Core finisher'
     : stations ? (si!.station > 0 ? `Set ${si!.set} of ${si!.totalSets}` : 'Warm-up')
     : isRoundRest ? `Round ${ri.round} of ${ri.totalRounds}`
     : ri.round > 0 ? `Move ${ri.moveInRound} of ${ri.movesPerRound}`

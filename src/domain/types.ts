@@ -36,6 +36,9 @@ export interface Segment {
   exercise?: Exercise;
   side?: 'left' | 'right';
   round?: number;
+  // Marks segments that belong to a special block rather than a numbered round.
+  // 'core' = the abs finisher at the very end (before celebrate).
+  block?: 'core';
   durationSec: number;
   cues: Cue[];
 }

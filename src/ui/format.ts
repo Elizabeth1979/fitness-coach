@@ -54,6 +54,11 @@ export function warmupMoves(workout: Workout): SessionMove[] {
   return sessionMoves(workout).filter((m) => m.isWarmup);
 }
 
+// The abs/core finisher moves (the block at the very end).
+export function coreMoves(workout: Workout): SessionMove[] {
+  return sessionMoves(workout).filter((m) => m.category === 'core');
+}
+
 export function currentMoveIndex(moves: SessionMove[], segmentIndex: number): number {
   let idx = 0;
   for (let i = 0; i < moves.length; i++) {

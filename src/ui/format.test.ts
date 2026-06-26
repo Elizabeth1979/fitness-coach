@@ -23,7 +23,8 @@ describe('sessionMoves', () => {
   it('returns warm-up move(s) then the circuit repeated each round', () => {
     const moves = sessionMoves(w);
     expect(moves.some((m) => m.isWarmup)).toBe(true);
-    expect(moves.filter((m) => !m.isWarmup).length).toBe(WIDTH * w.rounds);
+    // Main circuit moves only (exclude the warm-up and the core finisher).
+    expect(moves.filter((m) => !m.isWarmup && m.category !== 'core').length).toBe(WIDTH * w.rounds);
   });
   it('collapses a unilateral exercise (left then right) into one "each side" move', () => {
     const u = { id: 'u', name: 'Uni', category: 'legs', equipment: ['bodyweight'], goals: ['strength'], unilateral: true, measure: 'reps', defaultReps: 6, cue: '' };
