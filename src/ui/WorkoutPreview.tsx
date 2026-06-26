@@ -8,6 +8,7 @@ interface Props { workout: Workout; detailed: boolean; onOpenMove: (prepareIndex
 
 export function WorkoutPreview({ workout, detailed, onOpenMove }: Props) {
   const moves = circuitMoves(workout);
+  const stations = workout.style === 'stations';
   return (
     <div>
       {moves.map((m, i) => {
@@ -29,6 +30,11 @@ export function WorkoutPreview({ workout, detailed, onOpenMove }: Props) {
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 15, color: 'var(--text-muted)' }}>
                     <i className={`ti ${isTime(m.target) ? 'ti-clock' : 'ti-repeat'}`} aria-hidden="true" style={{ fontSize: 16 }} />{m.target}
                   </span>
+                  {stations && (
+                    <span style={{ fontSize: 12, fontWeight: 700, color: c.ink, background: c.soft, padding: '3px 9px', borderRadius: 99 }}>
+                      ×{workout.rounds} sets
+                    </span>
+                  )}
                 </span>
               )}
             </span>
