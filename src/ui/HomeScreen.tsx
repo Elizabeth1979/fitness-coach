@@ -100,29 +100,15 @@ export function HomeScreen(p: Props) {
                 </div>
               </div>
 
-              {detailed ? (
-                <div style={{ marginTop: 9 }}>
-                  {warmups.map((m, i) => (
-                    <div key={m.firstSegment} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 2px', borderTop: i === 0 ? 0 : `1px solid ${wc.ink}1a` }}>
-                      <span aria-hidden="true" style={{ fontSize: 13, fontWeight: 700, color: wc.ink, width: 18, flexShrink: 0 }}>{i + 1}</span>
-                      <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{m.exercise.name}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: wc.ink }}>
-                        <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 14 }} />{m.target}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                // Compact: the whole flow on one wrapping line, moves linked with arrows.
-                <div style={{ marginTop: 8, fontSize: 14, fontWeight: 600, color: 'var(--text)', lineHeight: 1.55 }}>
-                  {warmups.map((m, i) => (
-                    <span key={m.firstSegment}>
-                      {i > 0 && <i className="ti ti-arrow-right" aria-hidden="true" style={{ fontSize: 13, color: wc.ink, opacity: .6, margin: '0 5px', verticalAlign: 'middle' }} />}
-                      {m.exercise.name}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {/* The whole flow on one wrapping line, moves linked with arrows. */}
+              <div style={{ marginTop: 8, fontSize: 14, fontWeight: 600, color: 'var(--text)', lineHeight: 1.55 }}>
+                {warmups.map((m, i) => (
+                  <span key={m.firstSegment}>
+                    {i > 0 && <i className="ti ti-arrow-right" aria-hidden="true" style={{ fontSize: 13, color: wc.ink, opacity: .6, margin: '0 5px', verticalAlign: 'middle' }} />}
+                    {m.exercise.name}
+                  </span>
+                ))}
+              </div>
 
               {p.onSwapWarmup && (
                 <button onClick={p.onSwapWarmup}
