@@ -80,10 +80,13 @@ hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekVie
 - **Determinism:** `generateWorkout` is pure and seeded by `createRng(seed)` (seed defaults to the
   day number). Same `{kind, date, equipment, recentExerciseIds, recentThemeIds, seed}` ⇒ identical
   `Workout`. Never introduce `Math.random()` / `Date.now()` into the generator or engine.
-- **Time budget:** the main 6-slot circuit (1 each of Push/Pull/Legs/Hinge/Carry-or-Crawl/Mobility,
+- **Time budget:** the main circuit (1 each of Push/Pull/Legs/Hinge/Carry-or-Crawl/Mobility,
   repeated per round) is sized by `spreadDrift` to hit the target (10/20/30 min = 600/1200/1800s).
-  Warm-up flow segments are FIXED length (30s, or 120s free-dance) and are **excluded from**
-  `spreadDrift`. The "total within 45s of target" test guards this — tune durations, not the tolerance.
+  Circuit width + rounds are per-kind: **10-min trims to the `SLOTS_SHORT` trio (Push/Pull/Legs) ×
+  3 rounds** so each move gets ≥3 effective sets; 20/30-min use the full 6 slots (×3 / ×5). Warm-up
+  flow segments are FIXED length (30s, or 120s free-dance) and are **excluded from** `spreadDrift`.
+  The "total within 45s of target" test guards this (for both circuit & stations) — tune durations,
+  not the tolerance.
 - **Completion semantics:** the engine's `finished` event carries `completed: boolean` (true only on
   natural finish; the ✕ "end" button → `completed: false`). `App` records a completion ONLY when
   `completed` is true. The `useWorkoutSession` hook also resets its state to idle when `workout`

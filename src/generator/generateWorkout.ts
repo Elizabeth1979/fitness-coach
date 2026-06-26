@@ -1,9 +1,9 @@
 import type {
   Cue, Equipment, Exercise, Focus, Segment, Workout, WorkoutKind, WorkoutStyle,
 } from '../domain/types';
-import { selectExercises } from './selectExercises';
+import { selectExercises, candidatesFor, SLOTS, SLOTS_SHORT } from './selectExercises';
 import { focusForDate } from './schedule';
-import { createRng } from './rng';
+import { createRng, pick } from './rng';
 import { phrases } from '../coach/phrases';
 import { pickWarmupFlow, WARMUP_FLOWS, type WarmupFlow } from './warmupFlows';
 import { exerciseById } from '../domain/exercises';
@@ -26,8 +26,10 @@ export const TARGET_SECONDS: Record<Exclude<WorkoutKind, 'free'>, number> = {
   '10min': 600, '20min': 1200, '30min': 1800,
 };
 
-// How many times the circuit repeats. The SAME six exercises every round.
-const ROUNDS: Record<WorkoutKind, number> = { '10min': 2, '20min': 3, '30min': 5, free: 3 };
+// How many times the circuit repeats. The 10-min trims to a focused trio so each
+// move still gets 3 sets (more effective than 6 moves × 2); longer sessions keep
+// the full six-move circuit.
+const ROUNDS: Record<WorkoutKind, number> = { '10min': 3, '20min': 3, '30min': 5, free: 3 };
 
 const CELEBRATE_SEC = 18;
 const PREPARE_SEC = 4;
@@ -38,6 +40,10 @@ const PREPARE_SEC = 4;
 const MIN_WORK_SEC = 15;
 const MAX_WORK_SEC = 120;
 const WARMUP_MOVE_SEC = 30;
+// The abs finisher always closes the session (within the time budget). ~2–3 min,
+// rotating to a different core move every CORE_BOUT_SEC.
+const ABS_TARGET: Record<WorkoutKind, number> = { '10min': 120, '20min': 150, '30min': 180, free: 150 };
+const CORE_BOUT_SEC = 30;
 // Brief catch-your-breath rest between exercises within a round. The real
 // recovery is the longer round-rest; keeping this short is what lets a 10-min
 // two-round circuit fit its budget (12 short rests would otherwise dominate).
@@ -156,6 +162,50 @@ function setRestSegment(round: number, focus: Focus): Segment {
   };
 }
 
+// --- Abs finisher (fixed-length core block at the very end, before celebrate) ---
+
+// Builds the core finisher as a rotation of fixed CORE_BOUT_SEC bouts — a
+// different core move every bout (cycling the available, time-based,
+// equipment-matched core moves) with a short rest between, to roughly fill
+// `absBudget`. Tagged block:'core' so it sits outside the numbered rounds.
+function buildAbsFinisher(equipment: Equipment[], absBudget: number, recent: string[], rng: () => number): Segment[] {
+  const all = candidatesFor('core', equipment);
+  const timed = all.filter((e) => e.measure === 'time');
+  const pool = timed.length > 0 ? timed : all;
+  if (pool.length === 0) return [];
+
+  // How many 30s bouts fit (each bout carries a short rest except the last).
+  const per = CORE_BOUT_SEC + SHORT_REST_SEC;
+  const n = clamp(Math.floor((absBudget + SHORT_REST_SEC) / per), 1, 8);
+
+  // A distinct ordering (avoiding recent first); we cycle it so consecutive
+  // bouts are always different moves when more than one is available.
+  const used = new Set<string>();
+  const order: Exercise[] = [];
+  while (order.length < pool.length) {
+    const free = pool.filter((e) => !used.has(e.id));
+    const fresh = free.filter((e) => !recent.includes(e.id));
+    const ex = pick(rng, fresh.length > 0 ? fresh : free);
+    order.push(ex); used.add(ex.id);
+  }
+
+  const segs: Segment[] = [];
+  for (let i = 0; i < n; i++) {
+    const ex = order[i % order.length];
+    const lead = i === 0 ? `${phrases.coreFinisher()} ${phrases.exercise(ex.name)}` : phrases.next(ex.name);
+    const cues: Cue[] = [
+      { atSec: 0, say: lead, haptic: 'start' },
+      { atSec: Math.floor(CORE_BOUT_SEC / 2), say: phrases.encourage(rng) },
+      { atSec: CORE_BOUT_SEC - 5, haptic: 'countdown' },
+    ];
+    segs.push({ kind: 'work', exercise: ex, durationSec: CORE_BOUT_SEC, cues, block: 'core' });
+    if (i < n - 1) {
+      segs.push({ kind: 'rest', durationSec: SHORT_REST_SEC, block: 'core', cues: [{ atSec: 0, say: phrases.rest(), haptic: 'rest' }] });
+    }
+  }
+  return segs;
+}
+
 // --- Warm-up flow rendering (fixed-length, excluded from drift) ---
 
 function warmupMoveCount(target: number, flow: WarmupFlow): number {
@@ -197,6 +247,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   // The same circuit repeats every round.
   const circuit = selectExercises({
     equipment: opts.equipment, recentExerciseIds: recent, rng, includeWarmup: false,
+    slots: opts.kind === '10min' ? SLOTS_SHORT : SLOTS,
   });
 
   // A forced theme (the "Different warm-up" switch) wins; otherwise the Lottery
@@ -212,25 +263,36 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   const style: WorkoutStyle = opts.style ?? 'circuit';
   const baseWork = (): number => units.reduce((s, u) => s + u.dur, 0);
 
+  // Everything except the main work bouts and the abs block.
+  const baseFixed = style === 'stations'
+    ? warmupTotal + CELEBRATE_SEC + items * PREPARE_SEC + items * (rounds - 1) * roundRest
+    : warmupTotal + CELEBRATE_SEC + (rounds - 1) * roundRest + rounds * (items * PREPARE_SEC + items * SHORT_REST_SEC);
+
+  // The abs finisher always closes the session, within the budget. It aims for
+  // ABS_TARGET but never takes so much that the main work would be forced below
+  // its floor — so a unilateral-heavy long station session simply gets a shorter
+  // (but still present) finisher rather than overflowing the time budget.
+  const minWork = rounds * units.length * MIN_WORK_SEC;
+  const absBudget = Math.min(ABS_TARGET[opts.kind], Math.max(0, target - baseFixed - minWork));
+  const absSegs = absBudget >= CORE_BOUT_SEC ? buildAbsFinisher(opts.equipment, absBudget, recent, rng) : [];
+  const absTotal = absSegs.reduce((s, seg) => s + seg.durationSec, 0);
+
+  // Size the main work to fill what's left after warm-up, rests, abs and celebrate.
+  spreadDrift(units, (target - baseFixed - absTotal) / rounds - baseWork());
+
+  const practiced = absSegs.length > 0
+    ? [...circuit.map((e) => e.category), 'core' as const]
+    : circuit.map((e) => e.category);
   const celebrate: Segment = {
     kind: 'celebrate', durationSec: CELEBRATE_SEC,
-    cues: [{ atSec: 0, say: phrases.celebrate(circuit.map((e) => e.category)) }],
+    cues: [{ atSec: 0, say: phrases.celebrate(practiced) }],
   };
 
-  let segments: Segment[];
+  // Lay out the main work, then the abs finisher, then celebrate.
+  let segments: Segment[] = [...warmupSegs];
   if (style === 'stations') {
-    // Station style: do every set of one exercise before moving on. Fixed time =
-    // warm-up + celebrate + one prepare per station + the (rounds-1) set-rests
-    // inside each station; work bouts fill the remaining budget.
-    const fixed = warmupTotal + CELEBRATE_SEC
-      + items * PREPARE_SEC
-      + items * (rounds - 1) * roundRest;
-    const perRoundWork = (target - fixed) / rounds;
-    spreadDrift(units, perRoundWork - baseWork());
-
-    // Lay out: warm-up → per station: prepare → [work × sides → set-rest] × rounds → celebrate.
-    // Each set is tagged with its set number (round), so set 1 of every station is "round 1".
-    segments = [...warmupSegs];
+    // Per station: prepare → [work × sides → set-rest] × rounds. Each set is
+    // tagged with its set number (round), so set 1 of every station is "round 1".
     let u = 0;
     circuit.forEach((ex) => {
       const sides = ex.unilateral ? 2 : 1;
@@ -242,18 +304,8 @@ export function generateWorkout(opts: GenerateOptions): Workout {
         if (set < rounds) segments.push(setRestSegment(set, focus));
       }
     });
-    segments.push(celebrate);
   } else {
-    // Circuit (default): size ONE circuit's work bouts so warm-up +
-    // (work+short-rests)*rounds + round-rests + celebrate ≈ target, then replicate.
-    const fixed = warmupTotal + CELEBRATE_SEC
-      + (rounds - 1) * roundRest
-      + rounds * (items * PREPARE_SEC + items * SHORT_REST_SEC);
-    const perRoundWork = (target - fixed) / rounds;
-    spreadDrift(units, perRoundWork - baseWork());
-
-    // Lay out: warm-up → [circuit] × rounds (round-rest between) → celebrate.
-    segments = [...warmupSegs];
+    // [circuit] × rounds, with a round-rest between rounds.
     for (let r = 1; r <= rounds; r++) {
       let u = 0;
       circuit.forEach((ex) => {
@@ -264,8 +316,9 @@ export function generateWorkout(opts: GenerateOptions): Workout {
       });
       if (r < rounds) segments.push(roundRestSegment(r, rounds, focus));
     }
-    segments.push(celebrate);
   }
+  segments.push(...absSegs);
+  segments.push(celebrate);
 
   return { id: `w-${seed}-${opts.kind}-${style}`, kind: opts.kind, focus, rounds, style, warmupThemeId: flow.id, segments };
 }

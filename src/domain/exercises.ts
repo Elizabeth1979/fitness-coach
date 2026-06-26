@@ -60,6 +60,9 @@ export const EXERCISES: Exercise[] = [
 
   // --- Core ---
   { id: 'hollow', name: 'Hollow Hold', category: 'core', equipment: ['bodyweight'], goals: ['strength', 'skill'], unilateral: false, measure: 'time', cue: 'Hollow Hold. Low back pressed down, reach long.', defaultDurationSec: 30 },
+  { id: 'plank', name: 'Plank', category: 'core', equipment: ['bodyweight'], goals: ['strength'], unilateral: false, measure: 'time', cue: 'Plank. One straight line head to heels, breathe steady.', defaultDurationSec: 30 },
+  { id: 'dead-bug', name: 'Dead Bug', category: 'core', equipment: ['bodyweight'], goals: ['strength', 'coordination'], unilateral: false, measure: 'time', cue: 'Dead Bug. Low back down, reach opposite arm and leg, slow.', defaultDurationSec: 30 },
+  { id: 'flutter-kicks', name: 'Flutter Kicks', category: 'core', equipment: ['bodyweight'], goals: ['strength'], unilateral: false, measure: 'time', cue: 'Flutter Kicks. Legs low and long, small quick kicks.', defaultDurationSec: 30 },
   { id: 'hanging-leg-raise', name: 'Hanging Leg Raise', category: 'core', equipment: ['pullup_bar'], goals: ['strength', 'skill'], unilateral: false, measure: 'reps', cue: 'Hanging Leg Raises. Hang tall, lift with control.', defaultReps: 6 },
 
   // --- Balance ---

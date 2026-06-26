@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { formatTarget, sessionMoves, currentMoveIndex, circuitMoves, roundInfo } from './format';
 import { generateWorkout } from '../generator/generateWorkout';
+import { SLOTS_SHORT } from '../generator/selectExercises';
 import type { Segment } from '../domain/types';
+
+const WIDTH = SLOTS_SHORT.length; // 10-min circuit width
 
 const seg = (over: Partial<Segment>): Segment => ({ kind: 'work', durationSec: 30, cues: [], ...over });
 const ex = (m: 'reps' | 'time', extra: Record<string, unknown>) =>
@@ -20,7 +23,8 @@ describe('sessionMoves', () => {
   it('returns warm-up move(s) then the circuit repeated each round', () => {
     const moves = sessionMoves(w);
     expect(moves.some((m) => m.isWarmup)).toBe(true);
-    expect(moves.filter((m) => !m.isWarmup).length).toBe(6 * w.rounds);
+    // Main circuit moves only (exclude the warm-up and the core finisher).
+    expect(moves.filter((m) => !m.isWarmup && m.category !== 'core').length).toBe(WIDTH * w.rounds);
   });
   it('collapses a unilateral exercise (left then right) into one "each side" move', () => {
     const u = { id: 'u', name: 'Uni', category: 'legs', equipment: ['bodyweight'], goals: ['strength'], unilateral: true, measure: 'reps', defaultReps: 6, cue: '' };
@@ -49,11 +53,11 @@ describe('currentMoveIndex', () => {
 
 describe('circuitMoves', () => {
   const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'], seed: 4 });
-  it('returns the circuit once (round 1) — same as the first 6 main moves', () => {
+  it('returns the circuit once (round 1) — same as the first round of main moves', () => {
     const c = circuitMoves(w);
-    expect(c.length).toBe(6);
-    const firstSix = sessionMoves(w).filter((m) => !m.isWarmup).slice(0, 6).map((m) => m.exercise.id);
-    expect(c.map((m) => m.exercise.id)).toEqual(firstSix);
+    expect(c.length).toBe(WIDTH);
+    const firstRound = sessionMoves(w).filter((m) => !m.isWarmup).slice(0, WIDTH).map((m) => m.exercise.id);
+    expect(c.map((m) => m.exercise.id)).toEqual(firstRound);
   });
 });
 
@@ -64,8 +68,8 @@ describe('roundInfo', () => {
 
   it('reports total rounds, moves per round, and the first move of round 1', () => {
     const ri = roundInfo(w, prepsInRound(1)[0]);
-    expect(ri.totalRounds).toBe(w.rounds); // 2
-    expect(ri.movesPerRound).toBe(6);
+    expect(ri.totalRounds).toBe(w.rounds); // 3
+    expect(ri.movesPerRound).toBe(WIDTH);
     expect(ri.round).toBe(1);
     expect(ri.moveInRound).toBe(1);
   });

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { generateWorkout } from './generateWorkout';
 import type { Equipment, Segment, Workout } from '../domain/types';
 import { EXERCISES } from '../domain/exercises';
-import { SLOTS } from './selectExercises';
+import { SLOTS_SHORT } from './selectExercises';
 
 const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 const WED = new Date('2026-06-24T08:00:00'); // movement day
@@ -49,7 +49,7 @@ describe('generateWorkout', () => {
   });
 
   it('repeats the SAME circuit for the kind-appropriate number of rounds', () => {
-    for (const [kind, expected] of [['10min', 2], ['20min', 3], ['30min', 5]] as const) {
+    for (const [kind, expected] of [['10min', 3], ['20min', 3], ['30min', 5]] as const) {
       const w = generateWorkout({ kind, date: WED, equipment: ALL, seed: 4 });
       expect(w.rounds).toBe(expected);
       const byRound = circuitByRound(w);
@@ -123,17 +123,17 @@ describe('generateWorkout', () => {
   });
 
   it('worst-case 10-min floor budget stays within 45s — guards against adding unilateral exercises', () => {
-    // The 10-min / 2-round budget is tightest when every work bout is clamped to
-    // the MIN_WORK_SEC floor — which happens when circuit slots are unilateral
+    // The 10-min budget is tightest when every work bout is clamped to the
+    // MIN_WORK_SEC floor — which happens when circuit slots are unilateral
     // (each unilateral slot = 2 work units). This computes that worst case from
-    // the LIBRARY: if a future change adds unilateral exercises to enough circuit
-    // categories, `worstTotal` rises and this assertion fails before a real breach.
-    // Constants mirror generateWorkout.ts (10-min, strength = the larger round-rest,
-    // warm-up capped at 90s at 10 min).
+    // the LIBRARY: if a future change adds unilateral exercises to enough of the
+    // short-circuit categories, `worstTotal` rises and this fails before a real
+    // breach. Constants mirror generateWorkout.ts (10-min = 3 rounds over the
+    // SLOTS_SHORT trio, strength = the larger round-rest, warm-up capped at 90s).
     const MIN_WORK_SEC = 15, PREPARE = 4, SHORT_REST = 12, ROUND_REST_STRENGTH = 35, CELEBRATE = 18, WARMUP_MAX_10MIN = 90;
-    const rounds = 2;
-    const items = SLOTS.length; // circuit width (6)
-    const maxUnilateralSlots = SLOTS.filter((cat) => {
+    const rounds = 3;
+    const items = SLOTS_SHORT.length; // short circuit width (3)
+    const maxUnilateralSlots = SLOTS_SHORT.filter((cat) => {
       const cats = cat === 'carry' ? ['carry', 'crawl'] : [cat];
       return EXERCISES.some((e) => cats.includes(e.category) && e.unilateral);
     }).length;

@@ -5,7 +5,7 @@ import { getPrefs, setPrefs } from '../storage/store';
 import { useVoices } from './useVoices';
 import { VoicePicker } from './VoicePicker';
 import { WorkoutPreview } from './WorkoutPreview';
-import { warmupMoves } from './format';
+import { warmupMoves, coreMoves } from './format';
 import { warmupFlowName } from '../generator/warmupFlows';
 import { catColor } from './categoryColor';
 
@@ -33,6 +33,8 @@ export function HomeScreen(p: Props) {
   const focus = focusForDate(new Date());
   const warmups = warmupMoves(p.workout);
   const warmName = warmupFlowName(p.workout.warmupThemeId);
+  const cores = coreMoves(p.workout);
+  const coreSec = p.workout.segments.filter((s) => s.block === 'core').reduce((a, s) => a + s.durationSec, 0);
   const style: WorkoutStyle = p.style ?? 'circuit';
   const rounds = p.workout.rounds;
 
@@ -149,6 +151,26 @@ export function HomeScreen(p: Props) {
           <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-hint)' }}>{style === 'stations' ? `${rounds} sets each` : `repeat ${rounds}×`}</span>
         </div>
         <WorkoutPreview workout={p.workout} detailed={detailed} onOpenMove={p.onOpenMove} />
+
+        {cores.length > 0 && (() => {
+          const cc = catColor('core');
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 11, background: cc.soft, border: `1px solid ${cc.ink}22`, borderRadius: 14, padding: '11px 12px', marginTop: 12 }}>
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#fff', color: cc.ink, boxShadow: `0 0 0 3px ${cc.ink}1a`, flexShrink: 0 }}>
+                <i className="ti ti-flame" aria-hidden="true" style={{ fontSize: 20 }} />
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: cc.ink }}>Core finisher</div>
+                <div style={{ fontSize: 14, color: 'var(--text-hint)' }}>
+                  {detailed ? cores.map((m) => m.exercise.name).join(' · ') : `${cores.length} ${cores.length === 1 ? 'move' : 'moves'} · to finish`}
+                </div>
+              </div>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 15, fontWeight: 700, color: cc.ink }}>
+                <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 15 }} />~{Math.round(coreSec / 60)} min
+              </span>
+            </div>
+          );
+        })()}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 12, borderTop: '1px solid #f1ebf7', fontSize: 14, color: 'var(--text-muted)' }}>
           <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 16 }} />About {total(p.workout)} minutes · {style === 'stations' ? `${rounds} sets each · rest between sets` : `${rounds} rounds · a longer rest between each`}
