@@ -1,4 +1,4 @@
-import type { Equipment, Workout } from '../domain/types';
+import type { Equipment, Workout, WorkoutStyle } from '../domain/types';
 import { computeStreak } from './streak';
 
 export interface Completion {
@@ -12,6 +12,7 @@ export interface Completion {
 export interface Prefs {
   voiceURI?: string;
   equipment: Equipment[];
+  style?: WorkoutStyle;
 }
 
 export interface Checkpoint {

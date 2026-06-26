@@ -18,10 +18,9 @@ export function WorkoutPreview({ workout, detailed, onOpenMove }: Props) {
             key={m.firstSegment}
             onClick={() => onOpenMove(prepIdx)}
             className="move-row"
-            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 6px 11px 4px', width: '100%', background: 'none', border: 0, borderTop: i === 0 ? 0 : '1px solid #f1ebf7', textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'var(--text)', animation: 'pop-in .45s cubic-bezier(.21,1.02,.45,1) both', animationDelay: `${i * 55}ms` }}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 6px', width: '100%', background: 'none', border: 0, borderTop: i === 0 ? 0 : '1px solid #f1ebf7', textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'var(--text)', animation: 'pop-in .45s cubic-bezier(.21,1.02,.45,1) both', animationDelay: `${i * 55}ms` }}
             aria-label={`${m.exercise.name}, ${m.target}`}
           >
-            <span aria-hidden="true" style={{ flexShrink: 0, width: 12, height: 12, borderRadius: '50%', background: c.ink, boxShadow: `0 0 0 4px ${c.soft}` }} />
             <span style={{ flex: 1, minWidth: 0 }}>
               <span style={{ fontSize: 19, fontWeight: 700 }}>{m.exercise.name}</span>
               {detailed && (

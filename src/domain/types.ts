@@ -42,12 +42,17 @@ export interface Segment {
 
 export type WorkoutKind = '10min' | '20min' | '30min' | 'free';
 export type Focus = 'strength' | 'movement';
+// How the main work is ordered:
+//  - 'circuit'  : do all exercises once, then repeat the whole set each round.
+//  - 'stations' : do every set of one exercise (with rest between) before moving on.
+export type WorkoutStyle = 'circuit' | 'stations';
 
 export interface Workout {
   id: string;
   kind: WorkoutKind;
   focus: Focus;
   rounds: number;
+  style: WorkoutStyle;
   warmupThemeId?: string;
   segments: Segment[];
 }

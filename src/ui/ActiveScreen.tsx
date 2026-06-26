@@ -1,7 +1,7 @@
 import type { SessionState } from '../engine/session';
 import type { Workout } from '../domain/types';
 import { TimerRing } from './TimerRing';
-import { sessionMoves, currentMoveIndex, roundInfo } from './format';
+import { sessionMoves, currentMoveIndex, roundInfo, stationInfo } from './format';
 import { catColor } from './categoryColor';
 
 interface Props {
@@ -20,6 +20,8 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
   const move = moves[mi];
   const next = moves[mi + 1];
   const ri = roundInfo(workout, state.segmentIndex);
+  const stations = workout.style === 'stations';
+  const si = stations ? stationInfo(workout, state.segmentIndex) : null;
 
   const title = isRoundRest ? `Round ${ri.round} complete`
     : seg?.kind === 'rest' ? 'Rest'
@@ -27,11 +29,16 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
     : (seg?.exercise?.name ?? 'Get ready');
 
   const phaseLabel = isCelebrate ? ''
+    : stations ? (si!.station > 0 ? `Set ${si!.set} of ${si!.totalSets}` : 'Warm-up')
     : isRoundRest ? `Round ${ri.round} of ${ri.totalRounds}`
     : ri.round > 0 ? `Move ${ri.moveInRound} of ${ri.movesPerRound}`
     : 'Warm-up';
 
-  const showRoundChip = ri.round > 0 && !isRoundRest && !isCelebrate;
+  // The chip above the title: "Station x of N" in stations mode, "Round x of N" in circuit.
+  const chipLabel = stations
+    ? (si!.station > 0 ? `Station ${si!.station} of ${si!.totalStations}` : '')
+    : (ri.round > 0 ? `Round ${ri.round} of ${ri.totalRounds}` : '');
+  const showRoundChip = !!chipLabel && !isRoundRest && !isCelebrate;
   const cc = seg?.exercise ? catColor(seg.exercise.category) : catColor('warmup');
   const ringColor = isRest ? '#3b82c4' : isCelebrate ? '#1aa772' : cc.ink;
 
@@ -47,7 +54,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd 
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 7, minHeight: 24 }}>
-        {showRoundChip && <span className="pill">Round {ri.round} of {ri.totalRounds}</span>}
+        {showRoundChip && <span className="pill">{chipLabel}</span>}
         {!isRest && !isCelebrate && seg?.exercise && <span className="pill" style={{ color: cc.ink, background: cc.soft }}>{cc.label}</span>}
       </div>
       <div style={{ textAlign: 'center', fontSize: 34, fontWeight: 700, letterSpacing: '-.3px', marginBottom: 7 }}>{title}</div>
