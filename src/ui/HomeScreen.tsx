@@ -58,38 +58,39 @@ export function HomeScreen(p: Props) {
 
   return (
     <main className="screen">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
-          <div style={{ fontSize: 16, color: 'var(--text-hint)', fontWeight: 600 }}>{greeting(new Date())}, Elli <span aria-hidden="true">👋</span></div>
+          <div style={{ fontSize: 14, color: 'var(--text-hint)', fontWeight: 600 }}>{greeting(new Date())}, Elli <span aria-hidden="true">👋</span></div>
           <div className="hero-title">Move With Elli</div>
         </div>
         {p.streak > 0 && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--warm-soft)', color: 'var(--warm)', fontSize: 14, fontWeight: 700, padding: '8px 12px', borderRadius: 99 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--warm-soft)', color: 'var(--warm)', fontSize: 14, fontWeight: 600, padding: '8px 12px', borderRadius: 99 }}>
             <i className="ti ti-flame" aria-hidden="true" style={{ fontSize: 17 }} />{p.streak}-day streak
           </span>
         )}
       </div>
 
       {p.canResume && p.onResume && (
-        <button className="btn btn-soft" onClick={p.onResume} style={{ width: '100%', marginBottom: 12, background: 'var(--warm-soft)', color: 'var(--warm)' }}>
+        <button className="btn btn-soft" onClick={p.onResume} style={{ width: '100%', marginBottom: 16, background: 'var(--warm-soft)', color: 'var(--warm)' }}>
           <i className="ti ti-refresh" aria-hidden="true" />Resume workout
         </button>
       )}
 
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <div style={{ fontSize: 19, fontWeight: 700 }}>Today · {focus === 'strength' ? 'Strength' : 'Movement'}</div>
+      <div className="card" style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div className="t-title">Today · {focus === 'strength' ? 'Strength' : 'Movement'}</div>
           <div style={{ display: 'flex', gap: 6 }}>
             <span className="pill"><i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 14 }} />{total(p.workout)} minutes</span>
             <span className="pill"><i className="ti ti-repeat" aria-hidden="true" style={{ fontSize: 14 }} />{rounds} {style === 'stations' ? 'sets' : 'rounds'}</span>
           </div>
         </div>
 
-        <div role="group" aria-label="Detail level" style={{ display: 'flex', gap: 5, background: '#f3edfa', borderRadius: 12, padding: 4, marginBottom: 14 }}>
+        <div role="group" aria-label="Detail level" style={{ display: 'flex', gap: 5, background: 'var(--control-bg)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
           {[['Compact', false], ['Detailed', true]].map(([label, val]) => (
             <button key={label as string} onClick={() => setDetailed(val as boolean)} aria-pressed={detailed === val}
               style={{ flex: 1, fontSize: 15, padding: '9px 0', borderRadius: 9, border: 0, cursor: 'pointer', font: 'inherit',
-                fontWeight: detailed === val ? 700 : 500, background: detailed === val ? '#fff' : 'transparent', color: detailed === val ? 'var(--accent)' : 'var(--text-muted)' }}>
+                fontWeight: detailed === val ? 600 : 500, background: detailed === val ? '#fff' : 'transparent', color: detailed === val ? 'var(--text)' : 'var(--text-muted)',
+                boxShadow: detailed === val ? '0 0 0 1px var(--border), 0 1px 2px rgba(30,25,40,.05)' : 'none' }}>
               {label as string}
             </button>
           ))}
@@ -98,25 +99,23 @@ export function HomeScreen(p: Props) {
         {warmups.length > 0 && (() => {
           const wc = catColor('warmup');
           return (
-            <div style={{ background: wc.soft, border: `1px solid ${wc.ink}22`, borderRadius: 14, padding: '11px 12px', marginBottom: 6 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#fff', color: wc.ink, boxShadow: `0 0 0 3px ${wc.ink}1a`, flexShrink: 0 }}>
-                  <i className="ti ti-music" aria-hidden="true" style={{ fontSize: 22 }} />
-                </span>
+            <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 12, paddingBottom: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <i className="ti ti-stretching" aria-hidden="true" style={{ fontSize: 20, color: wc.ink, flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: wc.ink }}>Warm-up{warmName ? ` · ${warmName}` : ''}</div>
-                  <div style={{ fontSize: 14, color: 'var(--text-hint)' }}>{warmups.length} {warmups.length === 1 ? 'move' : 'moves'} · once at the start</div>
+                  <div style={{ fontSize: 16, fontWeight: 700 }}>Warm-up{warmName ? ` · ${warmName}` : ''}</div>
+                  <div className="t-hint">{warmups.length} {warmups.length === 1 ? 'move' : 'moves'} · once at the start</div>
                 </div>
               </div>
 
               {/* Detailed: the full numbered list. Compact: header only (no move list). */}
               {detailed && (
-                <div style={{ marginTop: 9 }}>
+                <div style={{ marginTop: 8 }}>
                   {warmups.map((m, i) => (
-                    <div key={m.firstSegment} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 2px', borderTop: i === 0 ? 0 : `1px solid ${wc.ink}1a` }}>
-                      <span aria-hidden="true" style={{ fontSize: 13, fontWeight: 700, color: wc.ink, width: 18, flexShrink: 0 }}>{i + 1}</span>
+                    <div key={m.firstSegment} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 2px', borderTop: i === 0 ? 0 : '1px solid var(--divider)' }}>
+                      <span aria-hidden="true" style={{ fontSize: 13, fontWeight: 600, color: wc.ink, width: 18, flexShrink: 0 }}>{i + 1}</span>
                       <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{m.exercise.name}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: wc.ink }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--text-muted)' }}>
                         <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 14 }} />{m.target}
                       </span>
                     </div>
@@ -126,7 +125,7 @@ export function HomeScreen(p: Props) {
 
               {p.onSwapWarmup && (
                 <button onClick={p.onSwapWarmup}
-                  style={{ width: '100%', marginTop: 9, fontSize: 14, fontWeight: 700, padding: '9px', borderRadius: 11, border: 0, cursor: 'pointer', font: 'inherit', background: '#fff', color: wc.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                  style={{ width: '100%', marginTop: 4, fontSize: 14, fontWeight: 600, padding: '8px', borderRadius: 10, border: 0, cursor: 'pointer', font: 'inherit', background: 'transparent', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
                   <i className="ti ti-refresh" aria-hidden="true" />Different warm-up
                 </button>
               )}
@@ -135,17 +134,18 @@ export function HomeScreen(p: Props) {
         })()}
 
         {p.onStyle && (
-          <div style={{ marginTop: 14 }}>
-            <div role="radiogroup" aria-label="Workout style" style={{ display: 'flex', gap: 5, background: '#f3edfa', borderRadius: 12, padding: 4 }}>
+          <div style={{ marginTop: 16 }}>
+            <div role="radiogroup" aria-label="Workout style" style={{ display: 'flex', gap: 5, background: 'var(--control-bg)', borderRadius: 12, padding: 4 }}>
               {([['circuit', 'Circuit'], ['stations', 'Stations']] as const).map(([val, label]) => (
                 <button key={val} role="radio" aria-checked={style === val} onClick={() => p.onStyle!(val)}
                   style={{ flex: 1, fontSize: 15, padding: '9px 0', borderRadius: 9, border: 0, cursor: 'pointer', font: 'inherit',
-                    fontWeight: style === val ? 700 : 500, background: style === val ? '#fff' : 'transparent', color: style === val ? 'var(--accent)' : 'var(--text-muted)' }}>
+                    fontWeight: style === val ? 600 : 500, background: style === val ? '#fff' : 'transparent', color: style === val ? 'var(--text)' : 'var(--text-muted)',
+                    boxShadow: style === val ? '0 0 0 1px var(--border), 0 1px 2px rgba(30,25,40,.05)' : 'none' }}>
                   {label}
                 </button>
               ))}
             </div>
-            <div style={{ fontSize: 13, color: 'var(--text-hint)', margin: '7px 2px 0' }}>
+            <div className="t-hint" style={{ margin: '8px 2px 0' }}>
               {style === 'stations'
                 ? `Do all ${rounds} sets of one move (with rest between), then the next.`
                 : `Do all moves once, then repeat the whole circuit — ${rounds} rounds.`}
@@ -153,75 +153,71 @@ export function HomeScreen(p: Props) {
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, marginBottom: 2 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '.4px' }}>{style === 'stations' ? 'The moves' : 'The circuit'}</span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-hint)' }}>{style === 'stations' ? `${rounds} sets each` : `repeat ${rounds}×`}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, marginBottom: 2 }}>
+          <span className="t-label">{style === 'stations' ? 'The moves' : 'The circuit'}</span>
+          <span className="t-hint" style={{ fontWeight: 600 }}>{style === 'stations' ? `${rounds} sets each` : `repeat ${rounds}×`}</span>
         </div>
         <WorkoutPreview workout={p.workout} detailed={detailed} onOpenMove={p.onOpenMove} />
 
         {cores.length > 0 && (() => {
           const cc = catColor('core');
           return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 11, background: cc.soft, border: `1px solid ${cc.ink}22`, borderRadius: 14, padding: '11px 12px', marginTop: 12 }}>
-              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', background: '#fff', color: cc.ink, boxShadow: `0 0 0 3px ${cc.ink}1a`, flexShrink: 0 }}>
-                <i className="ti ti-flame" aria-hidden="true" style={{ fontSize: 20 }} />
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid var(--divider)', paddingTop: 12, marginTop: 12 }}>
+              <i className="ti ti-flame" aria-hidden="true" style={{ fontSize: 20, color: cc.ink, flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 18, fontWeight: 700, color: cc.ink }}>Core finisher</div>
-                <div style={{ fontSize: 14, color: 'var(--text-hint)' }}>
+                <div style={{ fontSize: 16, fontWeight: 700 }}>Core finisher</div>
+                <div className="t-hint">
                   {detailed ? cores.map((m) => m.exercise.name).join(' · ') : `${cores.length} ${cores.length === 1 ? 'move' : 'moves'} · to finish`}
                 </div>
               </div>
-              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 15, fontWeight: 700, color: cc.ink }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 14, fontWeight: 600, color: 'var(--text-muted)' }}>
                 <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 15 }} />~{Math.round(coreSec / 60)} min
               </span>
             </div>
           );
         })()}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 12, borderTop: '1px solid #f1ebf7', fontSize: 14, color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--divider)', fontSize: 14, color: 'var(--text-muted)' }}>
           <i className="ti ti-clock" aria-hidden="true" style={{ fontSize: 16 }} />About {total(p.workout)} minutes · {style === 'stations' ? `${rounds} sets each · rest between sets` : `${rounds} rounds · a longer rest between each`}
         </div>
 
-        <button className="btn btn-soft" onClick={p.onReroll} style={{ width: '100%', marginTop: 12, fontSize: 16, padding: '12px' }}>
+        <button className="btn btn-soft" onClick={p.onReroll} style={{ width: '100%', marginTop: 16, fontSize: 15, padding: '12px' }}>
           <i className="ti ti-refresh" aria-hidden="true" />Different mix
         </button>
       </div>
 
       {p.onSore && (
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 8, marginLeft: 2 }}>
+        <div style={{ marginBottom: 24 }}>
+          <div className="t-label" style={{ marginBottom: 8, marginLeft: 2 }}>
             Anything sore today? <span style={{ color: 'var(--text-hint)', fontWeight: 500 }}>· we'll work around it</span>
           </div>
-          <div role="radiogroup" aria-label="Sore area" style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          <div role="radiogroup" aria-label="Sore area" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {SORES.map(({ id, label }) => {
               const selected = sore === id;
               const isSug = p.soreSuggested === id && id !== 'none';
               return (
                 <button key={id} role="radio" aria-checked={selected} onClick={() => p.onSore!(id)}
-                  style={{ fontSize: 14, fontWeight: selected ? 700 : 600, padding: '9px 14px', borderRadius: 99, cursor: 'pointer', font: 'inherit', transition: 'transform .12s',
-                    border: selected ? 0 : '1px solid #e7def2', background: selected ? 'var(--accent)' : '#fff', color: selected ? '#fff' : 'var(--accent)',
-                    boxShadow: selected ? '0 5px 14px -5px rgba(115,56,176,.45)' : 'none' }}>
+                  style={{ fontSize: 14, fontWeight: 600, padding: '9px 14px', borderRadius: 99, cursor: 'pointer', font: 'inherit', transition: 'transform .12s ease',
+                    border: selected ? '1px solid var(--accent)' : '1px solid var(--border)', background: selected ? 'var(--accent)' : '#fff', color: selected ? '#fff' : 'var(--text-muted)' }}>
                   {label}{isSug ? ' ★' : ''}
                 </button>
               );
             })}
           </div>
           {p.soreSuggested && p.soreSuggested !== 'none' && suggestedLabel && (
-            <div style={{ fontSize: 12, color: 'var(--text-hint)', margin: '7px 2px 0' }}>
+            <div style={{ fontSize: 12, color: 'var(--text-hint)', margin: '8px 2px 0' }}>
               ★ Suggested — rest your {suggestedLabel.toLowerCase()} after last time. Tap to change.
             </div>
           )}
         </div>
       )}
 
-      <div role="radiogroup" aria-label="Workout length" style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      <div role="radiogroup" aria-label="Workout length" style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         {KINDS.map((k) => (
           <button key={k} role="radio" aria-checked={p.kind === k} onClick={() => p.onKind(k)}
-            style={{ flex: 1, fontSize: 17, padding: '13px 0', borderRadius: 14, cursor: 'pointer', font: 'inherit', transition: 'transform .12s',
-              border: p.kind === k ? 0 : '1px solid #e7def2', fontWeight: p.kind === k ? 700 : 500,
-              background: p.kind === k ? 'var(--accent)' : '#fff', color: p.kind === k ? '#fff' : 'var(--accent)',
-              boxShadow: p.kind === k ? '0 6px 16px -5px rgba(115,56,176,.45)' : 'none' }}>
+            style={{ flex: 1, fontSize: 16, padding: '13px 0', borderRadius: 'var(--radius-btn)', cursor: 'pointer', font: 'inherit', transition: 'transform .12s ease',
+              border: p.kind === k ? '1px solid var(--accent)' : '1px solid var(--border)', fontWeight: p.kind === k ? 600 : 500,
+              background: p.kind === k ? 'var(--accent)' : '#fff', color: p.kind === k ? '#fff' : 'var(--text-muted)' }}>
             {k.replace('min', ' minutes')}
           </button>
         ))}
@@ -231,7 +227,7 @@ export function HomeScreen(p: Props) {
         <i className="ti ti-player-play" aria-hidden="true" />Start workout
       </button>
 
-      <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center' }}>
+      <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
         <VoicePicker voices={voices} value={voiceURI} onChange={handleVoiceChange} />
       </div>
     </main>

@@ -43,21 +43,21 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
     : (ri.round > 0 ? `Round ${ri.round} of ${ri.totalRounds}` : '');
   const showRoundChip = !!chipLabel && !isRoundRest && !isCelebrate;
   const cc = seg?.exercise ? catColor(seg.exercise.category) : catColor('warmup');
-  const ringColor = isRest ? '#3b82c4' : isCelebrate ? '#1aa772' : cc.ink;
+  const ringColor = isRest ? '#5b7fa6' : isCelebrate ? '#2e7d5b' : cc.ink;
 
   return (
-    <main className="screen" style={{ display: 'flex', flexDirection: 'column', background: isRest ? '#eef3fb' : 'var(--bg)' }}>
+    <main className="screen" style={{ display: 'flex', flexDirection: 'column', background: isRest ? '#f3f5f8' : 'var(--bg)' }}>
       <p className="sr-only" aria-live="assertive">{isRoundRest ? `Round ${ri.round} of ${ri.totalRounds} complete. Rest.` : `Now: ${title}`}</p>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
-        <div style={{ flex: 1, height: 8, background: '#ece2f7', borderRadius: 99, overflow: 'hidden' }}>
-          <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: cc.ink, borderRadius: 99, transition: 'width .4s cubic-bezier(.21,1.02,.45,1), background .3s' }} />
+        <div style={{ flex: 1, height: 8, background: 'var(--control-bg)', borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: cc.ink, borderRadius: 99, transition: 'width .4s ease, background .3s' }} />
         </div>
         {phaseLabel && <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
         {musicAvailable && onToggleMusic && (
           <button onClick={onToggleMusic} aria-label={musicOn ? 'Mute background beats' : 'Play background beats'} aria-pressed={musicOn}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', border: 0, cursor: 'pointer', flexShrink: 0,
-              background: musicOn ? 'var(--accent-soft)' : '#f1ebf7', color: musicOn ? 'var(--accent)' : 'var(--text-hint)' }}>
+              background: musicOn ? 'var(--accent-soft)' : 'var(--control-bg)', color: musicOn ? 'var(--accent)' : 'var(--text-hint)' }}>
             <i className={`ti ${musicOn ? 'ti-music' : 'ti-music-off'}`} aria-hidden="true" style={{ fontSize: 18 }} />
           </button>
         )}
@@ -67,7 +67,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
         {showRoundChip && <span className="pill">{chipLabel}</span>}
         {!isRest && !isCelebrate && seg?.exercise && <span className="pill" style={{ color: cc.ink, background: cc.soft }}>{cc.label}</span>}
       </div>
-      <div style={{ textAlign: 'center', fontSize: 34, fontWeight: 700, letterSpacing: '-.3px', marginBottom: 7 }}>{title}</div>
+      <div style={{ textAlign: 'center', fontSize: 30, fontWeight: 700, letterSpacing: '-.3px', marginBottom: 7 }}>{title}</div>
       {!isRest && !isCelebrate && move && (
         <div style={{ textAlign: 'center', fontSize: 17, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 16 }}>{move.target}</div>
       )}

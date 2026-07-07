@@ -19,26 +19,26 @@ export function WorkoutPreview({ workout, detailed, onOpenMove }: Props) {
             key={m.firstSegment}
             onClick={() => onOpenMove(prepIdx)}
             className="move-row"
-            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 6px', width: '100%', background: 'none', border: 0, borderTop: i === 0 ? 0 : '1px solid #f1ebf7', textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'var(--text)', animation: 'pop-in .45s cubic-bezier(.21,1.02,.45,1) both', animationDelay: `${i * 55}ms` }}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 6px', width: '100%', background: 'none', border: 0, borderTop: i === 0 ? 0 : '1px solid var(--divider)', textAlign: 'left', cursor: 'pointer', font: 'inherit', color: 'var(--text)' }}
             aria-label={`${m.exercise.name}, ${m.target}`}
           >
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ fontSize: 19, fontWeight: 700 }}>{m.exercise.name}</span>
+              <span style={{ fontSize: 16, fontWeight: 600 }}>{m.exercise.name}</span>
               {detailed && (
                 <span style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 5 }}>
                   <span className="cat" style={{ color: c.ink, background: c.soft }}>{c.label}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 15, color: 'var(--text-muted)' }}>
-                    <i className={`ti ${isTime(m.target) ? 'ti-clock' : 'ti-repeat'}`} aria-hidden="true" style={{ fontSize: 16 }} />{m.target}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, color: 'var(--text-muted)' }}>
+                    <i className={`ti ${isTime(m.target) ? 'ti-clock' : 'ti-repeat'}`} aria-hidden="true" style={{ fontSize: 15 }} />{m.target}
                   </span>
                   {stations && (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: c.ink, background: c.soft, padding: '3px 9px', borderRadius: 99 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: c.ink, background: c.soft, padding: '3px 9px', borderRadius: 99 }}>
                       ×{workout.rounds} sets
                     </span>
                   )}
                 </span>
               )}
             </span>
-            <i className="ti ti-chevron-right" aria-hidden="true" style={{ fontSize: 22, color: c.ink, opacity: .55 }} />
+            <i className="ti ti-chevron-right" aria-hidden="true" style={{ fontSize: 20, color: 'var(--text-hint)' }} />
           </button>
         );
       })}

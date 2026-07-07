@@ -10,13 +10,13 @@ export function VoicePicker({ voices, value, onChange }: Props) {
     (a, b) => Number(b.lang.startsWith('en')) - Number(a.lang.startsWith('en')),
   );
   return (
-    <label className="flex items-center gap-2 text-sm text-slate-400">
+    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: 'var(--text-muted)' }}>
       Coach voice
       <select
         aria-label="Coach voice"
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-slate-800 text-slate-200 rounded-lg px-2 py-1 max-w-[12rem]"
+        style={{ font: 'inherit', color: 'var(--text)', background: 'var(--control-bg)', border: '1px solid var(--border)', borderRadius: 10, padding: '4px 8px', maxWidth: '12rem' }}
       >
         <option value="">Default</option>
         {sorted.map((v) => (

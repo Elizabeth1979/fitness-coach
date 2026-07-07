@@ -9,23 +9,23 @@ export interface CatColor {
   label: string;
 }
 
-// A cheerful, distinct hue per movement type — turns the all-purple circuit
-// into a colorful map of the body. Inks are darkened to stay AA-readable on
-// their pale `soft` backgrounds.
+// A muted, distinct hue per movement type — the category coding whispers
+// rather than shouts. Inks are darkened to stay AA-readable on their
+// near-white `soft` backgrounds.
 const COLORS: Record<Category, CatColor> = {
-  warmup:   { ink: '#c2255c', soft: '#ffe1ee', label: 'Warm-up' },
-  push:     { ink: '#e8454f', soft: '#ffe7e7', label: 'Push' },
-  pull:     { ink: '#1c7ed6', soft: '#e1f0fd', label: 'Pull' },
-  legs:     { ink: '#2f9e44', soft: '#e3f8ea', label: 'Legs' },
-  hinge:    { ink: '#7048e8', soft: '#ece5fc', label: 'Hinge' },
-  carry:    { ink: '#e8830c', soft: '#fff1db', label: 'Carry' },
-  crawl:    { ink: '#0c8599', soft: '#d8f3f7', label: 'Crawl' },
-  core:     { ink: '#d6336c', soft: '#ffe3ee', label: 'Core' },
-  balance:  { ink: '#3b5bdb', soft: '#e6ebff', label: 'Balance' },
-  mobility: { ink: '#9c36b5', soft: '#f8e6fb', label: 'Mobility' },
+  warmup:   { ink: '#9c4a67', soft: '#f9f1f4', label: 'Warm-up' },
+  push:     { ink: '#a3524d', soft: '#faf1f0', label: 'Push' },
+  pull:     { ink: '#46688f', soft: '#eff3f8', label: 'Pull' },
+  legs:     { ink: '#4a7354', soft: '#f0f5f1', label: 'Legs' },
+  hinge:    { ink: '#6a5b9e', soft: '#f3f1f9', label: 'Hinge' },
+  carry:    { ink: '#8a5c25', soft: '#f9f3ea', label: 'Carry' },
+  crawl:    { ink: '#3f7079', soft: '#eef5f6', label: 'Crawl' },
+  core:     { ink: '#9d4f72', soft: '#f9f0f4', label: 'Core' },
+  balance:  { ink: '#4d5d99', soft: '#f0f2f9', label: 'Balance' },
+  mobility: { ink: '#84518f', soft: '#f7f1f8', label: 'Mobility' },
 };
 
-const FALLBACK: CatColor = { ink: '#7338b0', soft: '#f0e7fb', label: 'Move' };
+const FALLBACK: CatColor = { ink: '#5d4a7e', soft: '#f2f0f6', label: 'Move' };
 
 export function catColor(category: string): CatColor {
   return COLORS[category as Category] ?? FALLBACK;

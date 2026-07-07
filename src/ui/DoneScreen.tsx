@@ -40,16 +40,16 @@ export function DoneScreen({ categories, streak, workout, onHome }: Props) {
             <span key={i} className="confetti" style={{ left: p.left, background: p.color, animationDelay: p.delay }} />
           ))}
         </div>
-        <div style={{ width: 66, height: 66, margin: '0 auto 13px', borderRadius: '50%', background: 'var(--success-soft)', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 22px rgba(26,167,114,.32)', animation: 'pop-check .6s cubic-bezier(.34,1.56,.64,1) both' }}><i className="ti ti-check" aria-hidden="true" style={{ fontSize: 36 }} /></div>
-        <div style={{ fontSize: 29, fontWeight: 800 }}>Great job, Elli <span aria-hidden="true">🎉</span></div>
-        <div style={{ fontSize: 17, fontWeight: 500, color: 'var(--text-muted)', marginTop: 5 }}>You're more capable than yesterday.</div>
+        <div style={{ width: 66, height: 66, margin: '0 auto 13px', borderRadius: '50%', background: 'var(--success-soft)', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'check-in .35s ease-out both' }}><i className="ti ti-check" aria-hidden="true" style={{ fontSize: 36 }} /></div>
+        <div style={{ fontSize: 24, fontWeight: 700 }}>Great job, Elli <span aria-hidden="true">🎉</span></div>
+        <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-muted)', marginTop: 5 }}>You're more capable than yesterday.</div>
       </div>
 
       <div className="card" style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 600, color: 'var(--text-muted)' }}><i className="ti ti-clock" aria-hidden="true" />{mins} minutes</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 600, color: 'var(--text-muted)' }}><i className="ti ti-list-check" aria-hidden="true" />{practiced.length} moves</span>
-          {streak > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--warm-soft)', color: 'var(--warm)', fontSize: 14, fontWeight: 700, padding: '6px 11px', borderRadius: 99 }}><i className="ti ti-flame" aria-hidden="true" />{streak}-day streak</span>}
+          {streak > 0 && <span style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--warm-soft)', color: 'var(--warm)', fontSize: 14, fontWeight: 600, padding: '6px 11px', borderRadius: 99 }}><i className="ti ti-flame" aria-hidden="true" />{streak}-day streak</span>}
         </div>
         <div style={{ fontSize: 15, color: 'var(--text-hint)', marginBottom: 9 }}>You practiced</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
