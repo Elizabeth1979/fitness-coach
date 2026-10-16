@@ -19,7 +19,7 @@ npm run test:run     # one-shot test run (CI uses this)
 npm test             # vitest watch mode
 npx vitest run src/generator/generateWorkout.test.ts   # a single test file
 npx vitest run -t "deterministic"                       # tests matching a name
-npx oxlint           # lint (config in .oxlintrc.json; not wired to an npm script)
+npm run lint         # oxlint --deny-warnings (config in .oxlintrc.json) — warnings fail the deploy
 ```
 
 ## Verification gotchas (these have bitten before)
@@ -153,8 +153,14 @@ TDD is the established pattern (tests are committed alongside implementation). P
 wake-lock) can't be unit-tested — verify those manually in the browser.
 
 Vercel auto-deploys on push to `main` (Git integration); branches/PRs get preview URLs. The Vercel
-build runs `npm run test:run && npm run build` (see `vercel.json`), so the full test suite **and**
-the `tsc -b` type-check must pass before a deploy is promoted.
+build runs `npm run lint && npm run test:run && npm run build` (see `vercel.json`; guarded by
+`src/deployGate.test.ts`), so lint with zero warnings, the full test suite **and** the `tsc -b`
+type-check must pass before a deploy is promoted.
+
+**Dependencies:** Dependabot (`.github/dependabot.yml`) opens grouped minor/patch updates monthly; each
+gets a Vercel preview that runs the gate above. `npm audit` should stay at 0. npm 10.9.4's
+`npm audit fix` crashes (`edgesOut` of null, an npm resolver bug) — use `npx npm@11 audit fix`;
+the lockfile format is the same.
 
 Design specs and the TDD implementation plans live in `docs/superpowers/`; the roadmap and polish
 backlog are in `docs/NEXT-STEPS.md`.
