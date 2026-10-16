@@ -1,31 +1,31 @@
 import type { Category } from '../domain/types';
 
 export interface CatColor {
-  /** vivid foreground for text + accents (AA-readable on `soft`) */
+  /** vivid SOLID colour — dark enough to carry white text at AA contrast */
   ink: string;
-  /** pale tinted background */
+  /** a faint tint of `ink`, only for the rare soft fill we still keep */
   soft: string;
   /** display label */
   label: string;
 }
 
-// A cheerful, distinct hue per movement type — turns the all-purple circuit
-// into a colorful map of the body. Inks are darkened to stay AA-readable on
-// their pale `soft` backgrounds.
+// One vivid, SOLID, high-contrast hue per movement type — a colourful map of
+// the body. No pinks, no pastels: every `ink` is saturated yet dark enough to
+// hold white text (AA, ≥4.5:1), so category tags read as bold colour blocks.
 const COLORS: Record<Category, CatColor> = {
-  warmup:   { ink: '#c2255c', soft: '#ffe1ee', label: 'Warm-up' },
-  push:     { ink: '#e8454f', soft: '#ffe7e7', label: 'Push' },
-  pull:     { ink: '#1c7ed6', soft: '#e1f0fd', label: 'Pull' },
-  legs:     { ink: '#2f9e44', soft: '#e3f8ea', label: 'Legs' },
-  hinge:    { ink: '#7048e8', soft: '#ece5fc', label: 'Hinge' },
-  carry:    { ink: '#e8830c', soft: '#fff1db', label: 'Carry' },
-  crawl:    { ink: '#0c8599', soft: '#d8f3f7', label: 'Crawl' },
-  core:     { ink: '#d6336c', soft: '#ffe3ee', label: 'Core' },
-  balance:  { ink: '#3b5bdb', soft: '#e6ebff', label: 'Balance' },
-  mobility: { ink: '#9c36b5', soft: '#f8e6fb', label: 'Mobility' },
+  warmup:   { ink: '#c2410c', soft: '#fbe7da', label: 'Warm-up' },  // burnt orange
+  push:     { ink: '#c81e1e', soft: '#fbdede', label: 'Push' },     // red
+  pull:     { ink: '#1d4ed8', soft: '#dde6fb', label: 'Pull' },     // blue
+  legs:     { ink: '#15803d', soft: '#dbf0e2', label: 'Legs' },     // green
+  hinge:    { ink: '#6d28d9', soft: '#e7defb', label: 'Hinge' },    // violet
+  carry:    { ink: '#b45309', soft: '#f8e8d4', label: 'Carry' },    // amber
+  crawl:    { ink: '#0e7490', soft: '#d7eef4', label: 'Crawl' },    // cyan
+  core:     { ink: '#4338ca', soft: '#e0def7', label: 'Core' },     // indigo
+  balance:  { ink: '#4d7c0f', soft: '#e6f0d6', label: 'Balance' },  // lime
+  mobility: { ink: '#0f766e', soft: '#d6eeeb', label: 'Mobility' }, // teal
 };
 
-const FALLBACK: CatColor = { ink: '#7338b0', soft: '#f0e7fb', label: 'Move' };
+const FALLBACK: CatColor = { ink: '#1a1c22', soft: '#e7e9ee', label: 'Move' };
 
 export function catColor(category: string): CatColor {
   return COLORS[category as Category] ?? FALLBACK;

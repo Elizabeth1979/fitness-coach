@@ -3,6 +3,7 @@ import type { Workout } from '../domain/types';
 import { TimerRing } from './TimerRing';
 import { sessionMoves, currentMoveIndex, roundInfo, stationInfo } from './format';
 import { catColor } from './categoryColor';
+import { catVars } from './catVars';
 
 interface Props {
   state: SessionState; workout: Workout;
@@ -43,21 +44,17 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
     : (ri.round > 0 ? `Round ${ri.round} of ${ri.totalRounds}` : '');
   const showRoundChip = !!chipLabel && !isRoundRest && !isCelebrate;
   const cc = seg?.exercise ? catColor(seg.exercise.category) : catColor('warmup');
-  const ringColor = isRest ? '#3b82c4' : isCelebrate ? '#1aa772' : cc.ink;
+  const ringColor = isRest ? '#1d4ed8' : isCelebrate ? '#15803d' : cc.ink;
 
   return (
-    <main className="screen" style={{ display: 'flex', flexDirection: 'column', background: isRest ? '#eef3fb' : 'var(--bg)' }}>
+    <main className="screen" style={{ ...catVars(cc), display: 'flex', flexDirection: 'column', background: isRest ? '#e9f0fb' : 'var(--bg)' }}>
       <p className="sr-only" aria-live="assertive">{isRoundRest ? `Round ${ri.round} of ${ri.totalRounds} complete. Rest.` : `Now: ${title}`}</p>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
-        <div style={{ flex: 1, height: 8, background: '#ece2f7', borderRadius: 99, overflow: 'hidden' }}>
-          <div style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%`, height: '100%', background: cc.ink, borderRadius: 99, transition: 'width .4s cubic-bezier(.21,1.02,.45,1), background .3s' }} />
-        </div>
-        {phaseLabel && <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
+      <div className="row" style={{ marginBottom: 22 }}>
+        <div className="progress"><div className="progress-fill" style={{ width: `${moves.length > 0 ? Math.round(((mi + 1) / moves.length) * 100) : 0}%` }} /></div>
+        {phaseLabel && <div className="muted" style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
         {musicAvailable && onToggleMusic && (
-          <button onClick={onToggleMusic} aria-label={musicOn ? 'Mute background beats' : 'Play background beats'} aria-pressed={musicOn}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, borderRadius: '50%', border: 0, cursor: 'pointer', flexShrink: 0,
-              background: musicOn ? 'var(--accent-soft)' : '#f1ebf7', color: musicOn ? 'var(--accent)' : 'var(--text-hint)' }}>
+          <button onClick={onToggleMusic} aria-label={musicOn ? 'Mute background beats' : 'Play background beats'} aria-pressed={musicOn} className="icon-toggle">
             <i className={`ti ${musicOn ? 'ti-music' : 'ti-music-off'}`} aria-hidden="true" style={{ fontSize: 18 }} />
           </button>
         )}
@@ -65,11 +62,11 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 7, minHeight: 24 }}>
         {showRoundChip && <span className="pill">{chipLabel}</span>}
-        {!isRest && !isCelebrate && seg?.exercise && <span className="pill" style={{ color: cc.ink, background: cc.soft }}>{cc.label}</span>}
+        {!isRest && !isCelebrate && seg?.exercise && <span className="pill pill-cat">{cc.label}</span>}
       </div>
-      <div style={{ textAlign: 'center', fontSize: 34, fontWeight: 700, letterSpacing: '-.3px', marginBottom: 7 }}>{title}</div>
+      <div className="t-display" style={{ textAlign: 'center', marginBottom: 7 }}>{title}</div>
       {!isRest && !isCelebrate && move && (
-        <div style={{ textAlign: 'center', fontSize: 17, fontWeight: 600, color: 'var(--text-muted)', marginBottom: 16 }}>{move.target}</div>
+        <div className="muted" style={{ textAlign: 'center', fontSize: 17, marginBottom: 16 }}>{move.target}</div>
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0 18px' }}>
@@ -79,13 +76,13 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
       {next && !isCelebrate && (() => {
         const nc = catColor(next.category);
         return (
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', marginBottom: 18 }}>
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: '50%', background: nc.soft, color: nc.ink }}><i className="ti ti-arrow-right" aria-hidden="true" /></span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, color: 'var(--text-hint)' }}>Next up</div>
-              <div style={{ fontSize: 18, fontWeight: 700 }}>{next.exercise.name}</div>
+          <div className="card row" style={{ ...catVars(nc), gap: 11, padding: '11px 13px', marginBottom: 18 }}>
+            <span className="icon-badge"><i className="ti ti-player-track-next" aria-hidden="true" /></span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="eyebrow" style={{ fontSize: 'var(--fs-2xs)' }}>Next up</div>
+              <div className="t-panel">{next.exercise.name}</div>
             </div>
-            <div style={{ fontSize: 15, color: 'var(--text-muted)', textAlign: 'right' }}><span style={{ color: nc.ink, fontWeight: 700 }}>{nc.label}</span><br />{next.target}</div>
+            <div className="muted" style={{ fontSize: 'var(--fs-xs)', textAlign: 'right' }}><span style={{ color: 'var(--cat)', fontWeight: 800 }}>{nc.label}</span><br />{next.target}</div>
           </div>
         );
       })()}
@@ -93,9 +90,9 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
       <div style={{ display: 'flex', gap: 9, marginTop: 'auto' }}>
         {state.status === 'paused'
           ? <button className="btn btn-primary" style={{ flex: 1 }} onClick={onResume}><i className="ti ti-player-play" aria-hidden="true" />Resume</button>
-          : <button className="btn btn-primary" style={{ flex: 1 }} onClick={onPause}><i className="ti ti-player-pause" aria-hidden="true" />Pause</button>}
+          : <button className="btn btn-dark" style={{ flex: 1 }} onClick={onPause}><i className="ti ti-player-pause" aria-hidden="true" />Pause</button>}
         <button className="btn btn-soft" style={{ flex: 1 }} onClick={onSkip}><i className="ti ti-player-skip-forward" aria-hidden="true" />Skip</button>
-        <button className="btn btn-ghost" onClick={onEnd} aria-label="End workout"><i className="ti ti-x" aria-hidden="true" /></button>
+        <button className="btn btn-ghost" onClick={onEnd} aria-label="End workout" style={{ minWidth: 56 }}><i className="ti ti-x" aria-hidden="true" style={{ fontSize: 20 }} /></button>
       </div>
     </main>
   );

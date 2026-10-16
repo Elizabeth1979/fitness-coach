@@ -1,63 +1,184 @@
 @import 'tailwindcss';
 @import '@tabler/icons-webfont/dist/tabler-icons.min.css';
-@import '@fontsource-variable/baloo-2';
+@import '@fontsource-variable/lexend';
+
+/* ============================================================================
+   MOVE WITH ELLI — DESIGN SYSTEM
+   This file is the single source of truth for the "basic stuff":
+   colour, typography, borders, radii, shadows, and every reusable shape
+   (cards, panels, buttons, pills, badges, toggles, rows).
+   Change a token in :root and it cascades through the whole app.
+   Components should only carry *layout* (flex/grid) and *dynamic* values
+   (a category's colour, passed in as --cat) inline — nothing basic.
+   ========================================================================== */
 
 :root {
   color-scheme: light;
-  --bg:#f6f1fc; --surface:#fff; --surface-border:#efe6f8; --surface-shadow:0 10px 30px rgba(120,60,180,.10);
-  --accent:#7338b0; --accent-soft:#f0e7fb; --accent-ink:#42206a;
-  --text:#241636; --text-muted:#6f6588; --text-hint:#a08bbd;
-  --success:#1aa772; --success-soft:#e3f7ee; --warm:#d97706; --warm-soft:#ffedd6;
-  --glow:0 12px 26px -8px rgba(115,56,176,.45);
+
+  /* — Colour ————————————————————————————————————————————————— */
+  --bg:#eef1f6; --surface:#fff; --surface-2:#f3f6fb; --surface-3:#e6eaf1;
+  --surface-border:#dfe4ec;
+  --text:#15171c; --text-muted:#454b59; --text-hint:#5d6473;
+  --brand:#15803d; --brand-press:#11622f;
+  --accent:#1a1c22;                 /* dark neutral chrome (selected states) */
+  --ink-btn:#1a1c22;                /* dark neutral button (Pause)           */
+  --danger:#d12626; --danger-border:#f1c9c9;
+  --warm:#c2410c; --warm-soft:#ffe6d6;
+  --success:#15803d; --success-soft:#dbf3e2;
+  /* per-category colour — set inline as --cat / --cat-soft on a wrapper.
+     Defaults keep anything that forgets to set them legible. */
+  --cat:#1a1c22; --cat-soft:#e7e9ee;
+
+  /* — Typography ——————————————————————————————————————————————— */
+  --font:'Lexend Variable', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --fs-display:34px; --fs-hero:30px; --fs-xl:27px; --fs-lg:19px; --fs-md:18px;
+  --fs-base:18px; --fs-sm:15px; --fs-xs:14px; --fs-2xs:13px; --fs-3xs:12px;
+
+  /* — Borders & radii ————————————————————————————————————————————— */
+  --bd:1.5px solid var(--surface-border);
+  --bd-2:2px solid var(--surface-border);
+  --r-sm:9px; --r-md:14px; --r-lg:20px; --r-pill:99px;
+
+  /* — Elevation ————————————————————————————————————————————————— */
+  --shadow:0 4px 16px rgba(20,24,40,.07);
+  --shadow-pop:0 8px 24px rgba(20,24,40,.10);
 }
+
+/* ============================================================================
+   BASE / RESET — element defaults that inherit down the tree
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body {
-  margin: 0; color: var(--text); background: var(--bg); font-size: 18px;
-  font-family: 'Baloo 2 Variable', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  font-weight: 500;
+  line-height: 1.3;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
-/* slow-drifting soft color blobs for a lively, never-boring backdrop (solid color, blurred — no gradient) */
-body::before, body::after {
-  content:""; position: fixed; z-index: 0; border-radius: 50%; filter: blur(55px); opacity:.32; pointer-events: none;
-}
-body::before { width: 280px; height: 280px; left:-80px; top:8%;  background: #d97aff; animation: float-a 17s ease-in-out infinite; }
-body::after  { width: 320px; height: 320px; right:-100px; top:46%; background: #6db4ff; animation: float-b 21s ease-in-out infinite; }
+h1, h2, h3, h4 { margin: 0; font-weight: 800; line-height: 1.1; letter-spacing: -.3px; color: var(--text); }
+p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--brand) 22%, transparent); }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 
-.screen { position: relative; z-index: 1; max-width: 460px; margin-inline: auto; min-height: 100%; padding: 18px 18px 28px; box-sizing: border-box; }
+/* ============================================================================
+   TYPOGRAPHY ROLES — semantic text styles, used everywhere
+   ========================================================================== */
+.t-hero    { font-size: var(--fs-hero);    font-weight: 800; letter-spacing: -.4px; line-height: 1.05; }
+.t-display { font-size: var(--fs-display); font-weight: 800; letter-spacing: -.3px; }
+.t-title   { font-size: var(--fs-xl);      font-weight: 800; }
+.t-section { font-size: var(--fs-lg);      font-weight: 800; }
+.t-panel   { font-size: var(--fs-md);      font-weight: 800; }
+.t-move    { font-size: var(--fs-lg);      font-weight: 700; }
+.eyebrow   { font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
+.muted     { color: var(--text-muted); font-weight: 600; }
+.hint      { color: var(--text-muted); font-weight: 600; font-size: var(--fs-2xs); }
 
-.card {
-  background: var(--surface); border: 1px solid var(--surface-border); border-radius: 22px; box-shadow: var(--surface-shadow);
-  padding: 16px; animation: pop-in .5s cubic-bezier(.21,1.02,.45,1) both;
-}
-.pill { display:inline-flex; align-items:center; gap:5px; background: var(--accent-soft); color: var(--accent); font-size:14px; font-weight:600; padding:6px 12px; border-radius:99px; }
-.cat { display:inline-flex; align-items:center; font-size:13px; font-weight:700; letter-spacing:.2px; color: var(--accent); background: var(--accent-soft); padding:4px 11px; border-radius:9px; }
-.chip { display:inline-flex; align-items:center; gap:5px; font-size:15px; font-weight:700; color: var(--accent-ink); background: var(--accent-soft); padding:7px 14px; border-radius:99px; }
+/* ============================================================================
+   LAYOUT
+   ========================================================================== */
+.screen { position: relative; z-index: 1; max-width: 460px; margin-inline: auto; min-height: 100%; padding: 18px 18px 30px; }
+.row    { display: flex; align-items: center; gap: 10px; }
+.row-between { display: flex; align-items: center; justify-content: space-between; }
 
-.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:0; cursor:pointer; font: inherit; font-weight:700; border-radius:18px; padding:16px; transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, filter .2s; }
-.btn-primary { background: var(--accent); color:#fff; font-size:20px; box-shadow: var(--glow); animation: cta-breathe 3.6s ease-in-out infinite; }
-.btn-primary:hover { filter: brightness(1.06); }
-.btn-soft { background: var(--accent-soft); color: var(--accent); }
-.btn-ghost { background:#f3edfa; color: var(--text-muted); }
-.btn:active { transform: scale(0.96); }
-.btn-primary:active { transform: scale(0.97); }
+/* ============================================================================
+   SURFACES
+   ========================================================================== */
+.card  { background: var(--surface); border: var(--bd); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 16px; animation: pop-in .45s cubic-bezier(.21,1.02,.45,1) both; }
+/* white panel with a thick category-coloured rail (warm-up / core finisher) */
+.panel { background: var(--surface); border: var(--bd); border-left: 6px solid var(--cat); border-radius: var(--r-md); padding: 12px 13px; }
 
-.hero-title {
-  font-size:31px; font-weight:800; letter-spacing:-.3px; line-height:1.05; color: var(--accent);
-}
+/* ============================================================================
+   BUTTONS — base + variants
+   ========================================================================== */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:9px; font-weight:800; border-radius:16px; padding:16px; min-height:56px; transition: transform .1s ease, box-shadow .15s, filter .15s; }
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--brand); color:#fff; font-size: 21px; box-shadow: 0 5px 0 var(--brand-press); }
+.btn-primary:hover  { filter: brightness(1.05); }
+.btn-primary:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--brand-press); }
+.btn-dark  { background: var(--ink-btn); color:#fff; }
+.btn-soft  { background: var(--surface); color: var(--text); border: var(--bd); }
+.btn-ghost { background: var(--surface); color: var(--danger); border: 1.5px solid var(--danger-border); }
+.btn-warm  { background: var(--warm-soft); color: var(--warm); border: 2px solid var(--warm); }
+/* bordered button tinted to the current category colour (Different warm-up) */
+.btn-cat   { background: var(--surface); color: var(--cat); border: 1.5px solid var(--cat); min-height: 0; padding: 11px; border-radius: 12px; font-size: var(--fs-sm); }
 
-/* tappable list rows get a friendly lift */
-.move-row { transition: background .15s, transform .12s; border-radius:12px; }
-.move-row:hover { background:#faf6ff; }
+/* ============================================================================
+   BADGES · PILLS · TAGS  (colour comes from --cat where relevant)
+   ========================================================================== */
+.cat      { display:inline-flex; align-items:center; background: var(--cat); color:#fff; font-size: var(--fs-3xs); font-weight:800; letter-spacing:.4px; text-transform:uppercase; padding:4px 10px; border-radius:8px; }
+.chip     { display:inline-flex; align-items:center; gap:6px; background: var(--cat); color:#fff; font-size: var(--fs-sm); font-weight:800; padding:7px 14px; border-radius: var(--r-pill); }
+.pill     { display:inline-flex; align-items:center; gap:5px; background: var(--surface); color: var(--text); border: var(--bd); font-size: var(--fs-xs); font-weight:700; padding:6px 12px; border-radius: var(--r-pill); }
+.pill-cat { background: var(--cat); color:#fff; border:0; font-weight:800; text-transform:uppercase; letter-spacing:.3px; }
+.pill-warm{ background: var(--warm-soft); color: var(--warm); border:0; font-weight:700; }
+/* "Swap" affordance on a move row — says what it does */
+.swap-pill{ display:inline-flex; align-items:center; gap:5px; flex-shrink:0; background: var(--cat-soft); color: var(--cat); border:1.5px solid var(--cat); font-size: var(--fs-2xs); font-weight:800; padding:6px 11px; border-radius: var(--r-pill); }
+/* solid round category icon badge */
+.icon-badge{ display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background: var(--cat); color:#fff; flex-shrink:0; }
+/* small numbered circle */
+.num-badge{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background: var(--cat); color:#fff; font-size: var(--fs-2xs); font-weight:800; flex-shrink:0; }
+
+/* ============================================================================
+   SEGMENTED TOGGLES — Compact/Detailed, Circuit/Stations.
+   Selected state keys off the aria-* attribute already on the button.
+   ========================================================================== */
+.seg     { display:flex; gap:5px; background: var(--surface-3); border-radius: var(--r-md); padding:4px; }
+.seg-btn { flex:1; padding:9px 0; border-radius: var(--r-sm); font-size: var(--fs-sm); font-weight:500; color: var(--text-muted); background: transparent; }
+.seg-btn[aria-pressed="true"], .seg-btn[aria-checked="true"] { background: var(--surface); color: var(--text); font-weight:800; }
+
+/* round icon toggle (background-beats button) */
+.icon-toggle { display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; flex-shrink:0; background: var(--surface); color: var(--text-muted); border: var(--bd-2); }
+.icon-toggle[aria-pressed="true"] { background: var(--accent); color:#fff; border:0; }
+
+/* native select (coach voice) */
+.select { background: var(--surface); color: var(--text); border: var(--bd-2); border-radius:12px; padding:8px 12px; font: inherit; font-weight:500; font-size: var(--fs-xs); max-width:12rem; }
+
+/* CHOICE PILLS — sore area + workout length (fill in when selected) */
+.choice { font-size: var(--fs-sm); font-weight:600; padding:10px 16px; border-radius: var(--r-pill); border: var(--bd-2); background: var(--surface); color: var(--text); transition: transform .12s; }
+.choice[aria-checked="true"] { background: var(--accent); color:#fff; border-color: var(--accent); font-weight:800; }
+.choice--block { flex:1; padding:14px 0; border-radius: var(--r-md); font-size:17px; }
+
+/* ============================================================================
+   BOTTOM SHEET (move detail)
+   ========================================================================== */
+.sheet-backdrop { position:absolute; inset:0; background: rgba(15,17,28,.55); display:flex; align-items:flex-end; justify-content:center; }
+.sheet { width:100%; max-width:460px; background: var(--surface); border-radius:24px 24px 0 0; padding:20px 20px 28px; }
+/* coaching-cue callout — white with a thick category rail */
+.cue { font-size:17px; line-height:1.55; font-weight:500; color: var(--text); background: var(--surface); border: var(--bd); border-left:6px solid var(--cat); border-radius: var(--r-md); padding:15px; }
+
+/* ============================================================================
+   LIST ROWS
+   ========================================================================== */
+/* progress bar (active screen) — fill colour comes from --cat */
+.progress { flex:1; height:10px; background: var(--surface-3); border-radius: var(--r-pill); overflow:hidden; }
+.progress-fill { height:100%; background: var(--cat); border-radius: var(--r-pill); transition: width .4s cubic-bezier(.21,1.02,.45,1), background .3s; }
+
+.move-row { display:flex; align-items:center; gap:12px; width:100%; padding:12px 8px; text-align:left; color: var(--text); border-radius: var(--r-md); transition: background .15s, transform .1s; }
+.move-row:not(:first-child) { border-top: 1px solid var(--surface-border); }
+.move-row:hover  { background: var(--surface-2); }
 .move-row:active { transform: scale(.99); }
+/* divided rows inside a panel (warm-up flow) */
+.flow-row { display:flex; align-items:center; gap:10px; padding:8px 2px; }
+.flow-row:not(:first-child) { border-top: 1px solid var(--surface-border); }
 
+/* week-streak dots — state via data attributes */
+.daydot { width:32px; height:32px; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; background: var(--surface-3); color:#fff; }
+.daydot[data-done="true"]  { background: var(--brand); }
+.daydot[data-today="true"] { box-shadow: 0 0 0 3px #bfe6cd; }
+
+/* ============================================================================
+   ANIMATION
+   ========================================================================== */
 .confetti { position:absolute; top:-12px; width:9px; height:14px; border-radius:2px; opacity:0; animation: confetti-fall 2.4s ease-in forwards; }
-
-@keyframes float-a { 0%,100%{ transform: translate(0,0) scale(1); } 50%{ transform: translate(34px,40px) scale(1.12); } }
-@keyframes float-b { 0%,100%{ transform: translate(0,0) scale(1); } 50%{ transform: translate(-40px,-30px) scale(1.08); } }
-@keyframes pop-in { from{ opacity:0; transform: translateY(10px) scale(.985); } to{ opacity:1; transform: none; } }
-@keyframes cta-breathe { 0%,100%{ box-shadow:0 10px 24px -8px rgba(115,56,176,.4); } 50%{ box-shadow:0 16px 32px -6px rgba(115,56,176,.6); } }
+@keyframes pop-in    { from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform:none; } }
 @keyframes pop-check { 0%{ transform: scale(0) rotate(-25deg); } 60%{ transform: scale(1.18) rotate(6deg); } 100%{ transform: scale(1) rotate(0); } }
 @keyframes confetti-fall { 0%{ opacity:0; transform: translateY(0) rotate(0); } 12%{ opacity:1; } 100%{ opacity:0; transform: translateY(440px) rotate(540deg); } }
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
 }
