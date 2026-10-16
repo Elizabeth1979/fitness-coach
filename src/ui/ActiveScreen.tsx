@@ -3,6 +3,7 @@ import type { Workout } from '../domain/types';
 import { TimerRing } from './TimerRing';
 import { sessionMoves, currentMoveIndex, roundInfo, stationInfo } from './format';
 import { catColor } from './categoryColor';
+import { phrases } from '../coach/phrases';
 
 interface Props {
   state: SessionState; workout: Workout;
@@ -74,7 +75,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
       </div>
 
       {!isRest && !isCelebrate && seg?.exercise && (
-        <div className="cue" style={{ marginBottom: 14 }}>{seg.exercise.cue}</div>
+        <div className="cue" style={{ marginBottom: 14 }}>{phrases.form(seg.exercise)}</div>
       )}
 
       {next && !isCelebrate && (() => {
