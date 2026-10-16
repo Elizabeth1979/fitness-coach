@@ -27,7 +27,10 @@ export function swapMove(workout: Workout, prepareIndex: number, equipment: Equi
       return { ...seg, exercise: next, cues };
     }
     if (seg.kind === 'work' && seg.exercise?.id === currentId) {
-      return { ...seg, exercise: next };
+      // Re-word the first set's spoken how-to for the new move.
+      const oldHowTo = phrases.beginHowTo(current);
+      const cues = seg.cues.map((c) => (c.say === oldHowTo ? { ...c, say: phrases.beginHowTo(next) } : c));
+      return { ...seg, exercise: next, cues };
     }
     return seg;
   });

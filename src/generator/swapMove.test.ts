@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { swapMove } from './swapMove';
 import { generateWorkout } from './generateWorkout';
 import { createRng } from './rng';
+import { phrases } from '../coach/phrases';
 import type { Equipment } from '../domain/types';
 
 const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
@@ -17,6 +18,11 @@ describe('swapMove', () => {
     const w2 = swapMove(w, prepIdx, ALL, createRng(1));
     expect(w2.segments[prepIdx].exercise!.id).not.toBe(oldId);
     expect(w2.segments[prepIdx].exercise!.category).toBe(oldCat);
+  });
+  it('re-words the spoken how-to for the new move', () => {
+    const w2 = swapMove(w, prepIdx, ALL, createRng(1));
+    const firstWork = w2.segments[prepIdx + 1];
+    expect(firstWork.cues[0].say).toBe(phrases.beginHowTo(firstWork.exercise!));
   });
   it('keeps total duration unchanged (durations reused)', () => {
     const total = (x: typeof w) => x.segments.reduce((s, seg) => s + seg.durationSec, 0);

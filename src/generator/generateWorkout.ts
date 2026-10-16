@@ -125,8 +125,9 @@ function prepareSegment(ex: Exercise, lead: string, round: number): Segment {
   return { kind: 'prepare', exercise: ex, durationSec: PREPARE_SEC, cues, round };
 }
 
-function workSegment(u: Unit, round: number, rng: () => number): Segment {
-  const cues: Cue[] = [{ atSec: 0, say: phrases.begin(), haptic: 'start' }];
+// `explain` = the move's first set: say how to do it (later sets just "Begin").
+function workSegment(u: Unit, round: number, rng: () => number, explain: boolean): Segment {
+  const cues: Cue[] = [{ atSec: 0, say: explain ? phrases.beginHowTo(u.ex) : phrases.begin(), haptic: 'start' }];
   if (u.dur >= 25) cues.push({ atSec: Math.floor(u.dur / 2), say: phrases.encourage(rng) });
   cues.push({ atSec: Math.max(1, u.dur - 5), haptic: 'countdown' });
   return { kind: 'work', exercise: u.ex, side: u.side, durationSec: u.dur, cues, round };
@@ -193,7 +194,7 @@ function buildAbsFinisher(equipment: Equipment[], absBudget: number, recent: str
   const segs: Segment[] = [];
   for (let i = 0; i < n; i++) {
     const ex = order[i % order.length];
-    const lead = i === 0 ? `${phrases.coreFinisher()} ${phrases.exercise(ex.name)}` : phrases.next(ex.name);
+    const lead = i === 0 ? `${phrases.coreFinisher()} ${phrases.howTo(ex)}` : `${phrases.next(ex.name)} ${phrases.form(ex)}`;
     const cues: Cue[] = [
       { atSec: 0, say: lead, haptic: 'start' },
       { atSec: Math.floor(CORE_BOUT_SEC / 2), say: phrases.encourage(rng) },
@@ -230,7 +231,7 @@ function buildWarmup(flow: WarmupFlow, focus: Focus, target: number, rng: () => 
   const dur = flow.free ? freeDanceSec(target) : WARMUP_MOVE_SEC;
   const intro = `${phrases.welcome(focus)} ${phrases.warmupAnnounce(flow.name)}`;
   return moves.map((ex, i) => {
-    const say = i === 0 ? `${intro} ${phrases.exercise(ex.name)}` : phrases.exercise(ex.name);
+    const say = i === 0 ? `${intro} ${phrases.howTo(ex)}` : phrases.howTo(ex);
     return warmupSegment(ex, dur, say, rng);
   });
 }
@@ -302,7 +303,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
       u += sides;
       segments.push(prepareSegment(ex, phrases.next(ex.name), 1));
       for (let set = 1; set <= rounds; set++) {
-        exUnits.forEach((un) => segments.push(workSegment(un, set, rng)));
+        exUnits.forEach((un, s) => segments.push(workSegment(un, set, rng, set === 1 && s === 0)));
         if (set < rounds) segments.push(setRestSegment(set, focus));
       }
     });
@@ -313,7 +314,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
       circuit.forEach((ex) => {
         segments.push(prepareSegment(ex, phrases.next(ex.name), r));
         const sides = ex.unilateral ? 2 : 1;
-        for (let s = 0; s < sides; s++) segments.push(workSegment(units[u++], r, rng));
+        for (let s = 0; s < sides; s++) segments.push(workSegment(units[u++], r, rng, r === 1 && s === 0));
         segments.push(shortRestSegment(r));
       });
       if (r < rounds) segments.push(roundRestSegment(r, rounds, focus));

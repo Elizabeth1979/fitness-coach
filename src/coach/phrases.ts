@@ -1,4 +1,4 @@
-import type { Category, Focus } from '../domain/types';
+import type { Category, Exercise, Focus } from '../domain/types';
 
 const FOCUS_LABEL: Record<Focus, string> = {
   strength: 'strength and mobility',
@@ -15,6 +15,14 @@ const ENCOURAGEMENTS = [
   'Lovely control.',
 ];
 
+// The how-to part of an exercise cue. Most cues open by repeating the move's
+// name ("Hip circles. Hands on hips…"); drop that so the name isn't said twice.
+function form(ex: Pick<Exercise, 'name' | 'cue'>): string {
+  const [first, ...rest] = ex.cue.split('. ');
+  const isName = rest.length > 0 && first.toLowerCase().replace(/s$/, '') === ex.name.toLowerCase().replace(/s$/, '');
+  return isName ? rest.join('. ') : ex.cue;
+}
+
 const CATEGORY_LABEL: Partial<Record<Category, string>> = {
   push: 'push', pull: 'pull', legs: 'legs', hinge: 'hinge',
   carry: 'carry', crawl: 'crawl', core: 'core', balance: 'balance',
@@ -25,7 +33,12 @@ export const phrases = {
   welcome: (focus: Focus): string =>
     `Welcome back, Elli. Today's focus is ${FOCUS_LABEL[focus]}. Let's begin.`,
   exercise: (name: string): string => `${name}.`,
+  // Name + how to do it, for moves announced as they start (warm-up, core).
+  howTo: (ex: Pick<Exercise, 'name' | 'cue'>): string => `${phrases.exercise(ex.name)} ${form(ex)}`,
+  form,
   begin: (): string => 'Begin.',
+  // "Begin" + how to do it, for the first set of a prepared move.
+  beginHowTo: (ex: Pick<Exercise, 'name' | 'cue'>): string => `${phrases.begin()} ${form(ex)}`,
   rest: (): string => 'Rest. Take a deep breath.',
   next: (name: string): string => `Next exercise. ${name}.`,
   warmupAnnounce: (flowName: string): string => `Today's warm-up: ${flowName}.`,
