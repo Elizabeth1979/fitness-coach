@@ -81,7 +81,11 @@ shows the capability checklist.
 `store` (localStorage repo), `streak`, `week` (pure) · `generator/swapMove` (swap one move) · `ui/`
 hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekView` + `format`
 (pure: `formatTarget`/`sessionMoves`) · `pwa/` wakeLock + update. The design system (tokens +
-reusable classes `.card`/`.btn`/`.pill`/…) lives in `src/index.css`. Icons are inline SVGs from
+reusable classes `.card`/`.btn`/`.pill`/…) lives in `src/index.css`; components hold **no colour
+literals** — add a `:root` token and switch states with `data-*`/`aria-*` selectors (e.g. the timer
+and rest screen use `data-tone="rest"`). Every bottom sheet uses `src/ui/Sheet.tsx` (focus in, Tab
+trapped, Escape closes, focus returns). Tailwind is imported, so **don't name a class after a
+Tailwind utility** (`ring`, `shadow`, `block`, …) — it silently inherits that utility's styles. Icons are inline SVGs from
 `@tabler/icons-react`, all listed in `src/ui/Icon.tsx` (`<Icon name="clock" />` — add new ones to
 its map; never re-add the 5,000-icon webfont).
 
@@ -115,7 +119,8 @@ its map; never re-add the 5,000-icon webfont).
   (`maxOneSided`: 0 in the 10-min — two-sided moves only — 2 otherwise, a soft cap). `swapMove`
   reshapes a bout when sidedness changes (merge sides / split into left·switch·right) so a switch
   segment only ever sits between the two sides of a one-sided move, and only swaps a one-sided move
-  in when every bout has room (≥ switch + 2 × MIN_WORK_SEC).
+  in when every bout has room (≥ switch + 2 × MIN_WORK_SEC). `canSwap()` uses the same rule
+  (`swapChoices`), so the UI hides "Swap" exactly when `swapMove` would change nothing.
 - **Completion semantics:** the engine's `finished` event carries `completed: boolean` (true only on
   natural finish; the ✕ "end" button → `completed: false`). `App` records a completion ONLY when
   `completed` is true. The `useWorkoutSession` hook also resets its state to idle when `workout`

@@ -47,9 +47,9 @@ is `/` (root) — see `base` in `vite.config.ts` and `scope`/`start_url` in the 
 
 **UI follow-ups:**
 - ✓ Icon font trimmed: the 17 icons used are inline SVGs (`src/ui/Icon.tsx`); offline download 1,003 KB → 364 KB, CSS 216 KB → 21 KB.
-- Tokenize the last inline colours (timer-ring greys/green, rest background in `ActiveScreen`/`TimerRing`) into `:root` variables.
-- MoveDetail and the Change sheet: trap focus + auto-focus on open (`aria-modal` is already set).
-- Hide/disable **Swap** when a move has no alternative (rare: bodyweight-only + 10-min + hinge).
+- ✓ No hard-coded colours left in components: timer ring, rest background, confetti, shadows are `:root` tokens; the ring and rest screen switch via `data-tone="rest"`. Confetti is now the "done" greens + near-black (no rainbow).
+- ✓ Sheets behave like real dialogs (`src/ui/Sheet.tsx`): focus moves in on open, Tab stays inside, Escape closes, focus returns to the opener.
+- ✓ **Swap** only shows when there's something to swap to (`canSwap` in `swapMove.ts`); otherwise the move sheet says "No other move like this fits today" and offers "Got it".
 
 ## Shipped since v1
 
