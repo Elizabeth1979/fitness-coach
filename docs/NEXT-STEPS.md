@@ -46,7 +46,7 @@ is `/` (root) — see `base` in `vite.config.ts` and `scope`/`start_url` in the 
 - Consolidate the test-only localStorage shim via a jsdom URL in `vite.config.ts`.
 
 **UI follow-ups:**
-- Trim the icon font: only the 457 KB `woff2` is precached, but `.woff`/`.ttf` (~3.6 MB) ship in `dist` unused — drop them, or replace the ~20 icons used with inline SVGs.
+- ✓ Icon font trimmed: the 17 icons used are inline SVGs (`src/ui/Icon.tsx`); offline download 1,003 KB → 364 KB, CSS 216 KB → 21 KB.
 - Tokenize the last inline colours (timer-ring greys/green, rest background in `ActiveScreen`/`TimerRing`) into `:root` variables.
 - MoveDetail and the Change sheet: trap focus + auto-focus on open (`aria-modal` is already set).
 - Hide/disable **Swap** when a move has no alternative (rare: bodyweight-only + 10-min + hinge).

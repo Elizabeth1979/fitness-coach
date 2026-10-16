@@ -80,8 +80,10 @@ shows the capability checklist.
 `coach` (SpeechSynthesis adapter) · `feedback/` vibrate + Web-Audio earcon fallback · `storage/`
 `store` (localStorage repo), `streak`, `week` (pure) · `generator/swapMove` (swap one move) · `ui/`
 hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekView` + `format`
-(pure: `formatTarget`/`sessionMoves`) · `pwa/` wakeLock. The warm light theme + reusable classes
-(`.card`/`.btn`/`.pill`/…) live in `src/index.css`; icons are the bundled Tabler webfont.
+(pure: `formatTarget`/`sessionMoves`) · `pwa/` wakeLock + update. The design system (tokens +
+reusable classes `.card`/`.btn`/`.pill`/…) lives in `src/index.css`. Icons are inline SVGs from
+`@tabler/icons-react`, all listed in `src/ui/Icon.tsx` (`<Icon name="clock" />` — add new ones to
+its map; never re-add the 5,000-icon webfont).
 
 ## Conventions & invariants
 

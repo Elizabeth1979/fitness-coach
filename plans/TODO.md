@@ -15,8 +15,8 @@ versions now arrive on their own when she returns to the app.)
       `python3 design/render_icons.py`.
 - [ ] **Swap with no alternative** — hide/disable "Swap" (home row pill + MoveDetail button)
       when `swapMove` would return the workout unchanged (e.g. bodyweight-only + 10-min + hinge).
-- [ ] **Trim the icon font** — only the `woff2` is precached; drop the unused `.woff`/`.ttf`
-      (~3.6 MB in `dist`) or replace the ~20 icons used with inline SVGs.
+- [x] **Trim the icon font** — done 2026-10-16: 17 inline SVG icons via `src/ui/Icon.tsx`
+      (offline download 1,003 KB → 364 KB).
 - [ ] **Tokenize leftover inline colours** — timer-ring greys/green and the rest background in
       `ActiveScreen.tsx` / `TimerRing.tsx` → `:root` variables in `src/index.css`.
 - [ ] **Sheet accessibility** — trap focus + auto-focus in MoveDetail and the Change sheet.
