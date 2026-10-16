@@ -12,14 +12,12 @@ import { createRng } from './generator/rng';
 import { recordCompletion, currentStreak, getPrefs, setPrefs, getCheckpoint, getRecentThemes, pushRecentTheme, suggestedSore } from './storage/store';
 import type { Checkpoint } from './storage/store';
 import { setBusy } from './pwa/update';
-
-function todayStr(): string { return new Date().toISOString().slice(0, 10); }
-function daySeed(): number { return Math.floor(Date.now() / 86_400_000); }
+import { localDate, localDayNumber } from './domain/date';
 
 export default function App() {
   const [phase, setPhase] = useState<'home' | 'active' | 'done'>('home');
   const initialKind: WorkoutKind = '20min';
-  const initialSeed = daySeed();
+  const initialSeed = localDayNumber(new Date());
   const [kind, setKind] = useState<WorkoutKind>(initialKind);
   const [seed, setSeed] = useState<number>(initialSeed);
   const initialStyle: WorkoutStyle = getPrefs().style ?? 'circuit';
@@ -63,7 +61,7 @@ export default function App() {
   useEffect(() => { setBusy(phase !== 'home'); }, [phase]);
 
   useEffect(() => {
-    setStreak(currentStreak(todayStr()));
+    setStreak(currentStreak(localDate(new Date())));
     if (phase === 'home') setCheckpoint(getCheckpoint());
   }, [phase]);
 
@@ -92,7 +90,7 @@ export default function App() {
   useEffect(() => {
     if (phase === 'active' && state.status === 'done' && workout) {
       if (completed) {
-        recordCompletion({ date: todayStr(), kind: workout.kind, focus: workout.focus,
+        recordCompletion({ date: localDate(new Date()), kind: workout.kind, focus: workout.focus,
           exerciseIds: [...new Set(workout.segments.flatMap((s) => (s.exercise ? [s.exercise.id] : [])))],
           durationSec: workout.segments.reduce((a, s) => a + s.durationSec, 0), sore });
         setPhase('done');

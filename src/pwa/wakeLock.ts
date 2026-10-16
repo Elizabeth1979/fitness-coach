@@ -1,26 +1,40 @@
-type Sentinel = { release: () => Promise<void> } | null;
-let sentinel: Sentinel = null;
-let listening = false;
+// Keeps the screen on during a workout.
+//
+// The browser drops the lock on its own whenever the page is hidden (screen
+// locked, another app in front), so we listen for that release and take the
+// lock again when the page is visible — for as long as a workout wants it.
 
-export async function requestWakeLock(): Promise<void> {
-  try {
-    const nav = navigator as Navigator & { wakeLock?: { request: (t: 'screen') => Promise<Sentinel> } };
-    if (!nav.wakeLock) return;
-    sentinel = await nav.wakeLock.request('screen');
-    if (!listening) {
-      document.addEventListener('visibilitychange', onVisible);
-      listening = true;
-    }
-  } catch { /* wake lock denied; the workout still runs */ }
+let wanted = false;                       // between requestWakeLock() and releaseWakeLock()
+let sentinel: WakeLockSentinel | null = null;
+let pending: Promise<void> | null = null; // a request in flight
+
+function acquire(): Promise<void> {
+  if (!('wakeLock' in navigator) || sentinel) return Promise.resolve();
+  pending ??= navigator.wakeLock.request('screen')
+    .then(async (s) => {
+      if (!wanted) { await s.release(); return; } // released while the request was in flight
+      sentinel = s;
+      s.addEventListener('release', () => { if (sentinel === s) sentinel = null; });
+    })
+    .catch(() => { /* wake lock denied; the workout still runs */ })
+    .finally(() => { pending = null; });
+  return pending;
 }
 
-async function onVisible(): Promise<void> {
-  if (document.visibilityState === 'visible' && sentinel === null) await requestWakeLock();
+function onVisibilityChange(): void {
+  if (wanted && document.visibilityState === 'visible') void acquire();
+}
+
+export async function requestWakeLock(): Promise<void> {
+  wanted = true;
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  await acquire();
 }
 
 export async function releaseWakeLock(): Promise<void> {
-  document.removeEventListener('visibilitychange', onVisible);
-  listening = false;
-  try { await sentinel?.release(); } catch { /* ignore */ }
+  wanted = false;
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+  const s = sentinel;
   sentinel = null;
+  try { await s?.release(); } catch { /* already released */ }
 }

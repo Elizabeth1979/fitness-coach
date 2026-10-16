@@ -13,6 +13,12 @@ export class FakeClock implements Clock {
   tick(dtSec: number): void { if (this.running && this.cb) this.cb(dtSec); }
 }
 
+// Longest gap one frame may report. Browsers stop animation frames while the
+// page is hidden (screen locked, another app in front); without this cap the
+// whole time away would arrive as one giant tick that fires every remaining
+// cue at once and cuts the move short. Time away is not workout time.
+export const MAX_FRAME_SEC = 0.25;
+
 export class RafClock implements Clock {
   private cb: ((dt: number) => void) | null = null;
   private raf = 0;
@@ -21,7 +27,7 @@ export class RafClock implements Clock {
   start(): void {
     this.last = performance.now();
     const loop = (now: number) => {
-      const dt = (now - this.last) / 1000;
+      const dt = Math.min((now - this.last) / 1000, MAX_FRAME_SEC);
       this.last = now;
       this.cb?.(dt);
       this.raf = requestAnimationFrame(loop);

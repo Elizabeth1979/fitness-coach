@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { generateWorkout } from '../generator/generateWorkout';
 import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore, saveCheckpoint, getCheckpoint, clearCheckpoint, getRecentThemes, pushRecentTheme, suggestedSore } from './store';
 
 const makeMemStorage = (): Storage => {
@@ -19,6 +20,11 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllGlobals());
 
+const KEY = 'mwe.store.v1';
+const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight'], seed: 1 });
+const completion = { date: '2026-06-24', kind: '20min', focus: 'movement', exerciseIds: ['pushup'], durationSec: 1200 };
+const saveRaw = (data: unknown): void => localStorage.setItem(KEY, JSON.stringify(data));
+
 describe('store', () => {
   it('records completions and computes the streak', () => {
     recordCompletion({ date: '2026-06-23', kind: '20min', focus: 'strength', exerciseIds: ['pushup'], durationSec: 1200 });
@@ -34,7 +40,6 @@ describe('store', () => {
   });
 
   it('saves, reads, and clears a checkpoint', () => {
-    const w = { id: 'x', kind: '10min', focus: 'movement', segments: [] } as unknown as import('../domain/types').Workout;
     expect(getCheckpoint()).toBeNull();
     saveCheckpoint({ workout: w, segmentIndex: 3, elapsedSec: 0 });
     expect(getCheckpoint()?.segmentIndex).toBe(3);
@@ -62,5 +67,73 @@ describe('store', () => {
     expect(suggestedSore()).toBe('shoulders');
     recordCompletion({ date: '2026-06-26', kind: '20min', focus: 'movement', exerciseIds: ['x'], durationSec: 1200, sore: 'none' });
     expect(suggestedSore()).toBe('none'); // a balanced session → no strong suggestion
+  });
+
+  it('round-trips a real checkpoint unchanged', () => {
+    saveCheckpoint({ workout: w, segmentIndex: 2, elapsedSec: 4.5 });
+    expect(getCheckpoint()).toEqual({ workout: w, segmentIndex: 2, elapsedSec: 4.5 });
+  });
+});
+
+describe('store — damaged or outdated saved data', () => {
+  it.each([['not JSON', '{oops'], ['a number', '42'], ['a list', '[]'], ['null', 'null']])(
+    'starts from defaults when the saved data is %s', (_label, raw) => {
+      localStorage.setItem(KEY, raw);
+      const s = loadStore();
+      expect(s.completions).toEqual([]);
+      expect(s.prefs.equipment).toEqual(['bodyweight', 'pullup_bar', 'weights', 'blocks_bands']);
+      expect(s.checkpoint).toBeUndefined();
+    });
+
+  it('keeps valid completions and drops broken ones', () => {
+    saveRaw({ completions: [completion, { date: 'yesterday' }, null, { ...completion, durationSec: '20' }, { ...completion, sore: 'elbow' }] });
+    expect(loadStore().completions).toEqual([completion]);
+  });
+
+  it('replaces prefs it does not recognise with defaults', () => {
+    saveRaw({ prefs: { equipment: ['kettlebell'], style: 'tabata', music: 'yes', voiceURI: 7 } });
+    expect(getPrefs()).toEqual({ equipment: ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'] });
+  });
+
+  it('keeps valid prefs', () => {
+    const prefs = { equipment: ['bodyweight' as const], style: 'stations' as const, music: false, voiceURI: 'v1' };
+    saveRaw({ prefs });
+    expect(getPrefs()).toEqual(prefs);
+  });
+
+  it('drops a checkpoint written by an older app version (segment shape changed)', () => {
+    const old = { ...w, segments: w.segments.map(({ cues: _cues, ...rest }) => rest) };
+    saveRaw({ checkpoint: { workout: old, segmentIndex: 0, elapsedSec: 0 } });
+    expect(getCheckpoint()).toBeNull();
+  });
+
+  it.each([
+    ['index past the end', { workout: w, segmentIndex: w.segments.length, elapsedSec: 0 }],
+    ['fractional index', { workout: w, segmentIndex: 1.5, elapsedSec: 0 }],
+    ['negative time', { workout: w, segmentIndex: 0, elapsedSec: -1 }],
+    ['no segments', { workout: { ...w, segments: [] }, segmentIndex: 0, elapsedSec: 0 }],
+    ['unknown workout kind', { workout: { ...w, kind: '45min' }, segmentIndex: 0, elapsedSec: 0 }],
+  ])('drops a checkpoint with %s', (_label, checkpoint) => {
+    saveRaw({ checkpoint });
+    expect(getCheckpoint()).toBeNull();
+  });
+
+  it('ignores a non-list of recent themes', () => {
+    saveRaw({ recentThemes: 'hip-flow' });
+    expect(getRecentThemes()).toEqual([]);
+  });
+});
+
+describe('store — storage that refuses to work', () => {
+  it('keeps going when storage is full', () => {
+    vi.stubGlobal('localStorage', { ...makeMemStorage(), setItem: () => { throw new DOMException('full', 'QuotaExceededError'); } });
+    expect(() => recordCompletion(completion)).not.toThrow();
+    expect(() => saveCheckpoint({ workout: w, segmentIndex: 0, elapsedSec: 0 })).not.toThrow();
+  });
+
+  it('starts from defaults when storage is blocked', () => {
+    vi.stubGlobal('localStorage', { ...makeMemStorage(), getItem: () => { throw new DOMException('blocked', 'SecurityError'); } });
+    expect(loadStore().completions).toEqual([]);
+    expect(currentStreak('2026-06-24')).toBe(0);
   });
 });

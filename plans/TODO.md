@@ -2,9 +2,17 @@
 
 ## ▶ RESUME HERE (last session: 2026-10-16)
 
-Everything from 2026-10-16 is **done, merged, pushed and live** on
-https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md`](sessions/2026-10-16.md).
-There is **no half-finished work**. GitHub: only `main` + `gh-pages` (redirect, keep it), no open PRs.
+Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md`](sessions/2026-10-16.md).
+**Open:** draft PR from `claude/gracious-lovelace-cher3h` — four bug fixes from the evening review
+(leave-the-app pause + Pause/Resume, wake lock, local dates, storage safety). Merge when green; then
+check on Elli's phone: lock the screen mid-workout → comes back paused, screen stays on after.
+`gh-pages` is a redirect — keep it.
+
+### Next — from the 2026-10-16 review plan (see the session log's "Evening" section)
+- [ ] Security headers in `vercel.json` (CSP, nosniff, Referrer-Policy, Permissions-Policy, frame-ancestors).
+- [ ] `npm audit fix` (dev-only issues), Dependabot, `lint` script in the Vercel build.
+- [ ] Resume: same day only, from the exact second. "Bodyweight only today" toggle.
+- [ ] Read prefs once in `App`; inline styles → `index.css` classes; ask Elli which Change-sheet options she uses.
 
 **First, check with Elli:** did re-adding the app to her home screen from the Vercel address
 show the new design **and the new green play-button icon**? (Old installs from `github.io` now

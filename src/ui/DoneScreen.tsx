@@ -4,8 +4,7 @@ import { loadStore } from '../storage/store';
 import { WeekView } from './WeekView';
 import { catColor } from './categoryColor';
 import { Icon } from './Icon';
-
-const today = () => new Date().toISOString().slice(0, 10);
+import { localDate } from '../domain/date';
 
 // A fixed confetti burst (no RNG — keeps things deterministic & calm). Its colours
 // come from index.css (--confetti-*): the "done" greens plus near-black, no rainbow.
@@ -56,7 +55,7 @@ export function DoneScreen({ categories, streak, workout, onHome }: Props) {
         </div>
       </div>
 
-      <WeekView dates={dates} today={today()} />
+      <WeekView dates={dates} today={localDate(new Date())} />
 
       <button className="btn btn-primary" onClick={onHome} style={{ width: '100%' }}><Icon name="home" />Done</button>
     </main>
