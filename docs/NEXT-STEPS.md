@@ -35,7 +35,7 @@ is `/` (root) — see `base` in `vite.config.ts` and `scope`/`start_url` in the 
 
 ## Before sharing publicly
 
-- **Replace the placeholder app icons** — `public/icons/icon-192.png` and `icon-512.png` are 1×1 placeholders, so the home-screen icon is blank. Drop in real 192×192 and 512×512 art.
+- ✓ **App icons** — the green "Start" play button (white play triangle on `#15803d`): `favicon.svg`, manifest icons (incl. an Android *maskable* one) and an iPhone `apple-touch-icon.png`. Redraw with `python3 design/render_icons.py` (no dependencies).
 
 ## Polish backlog (small, non-blocking — found during code review)
 

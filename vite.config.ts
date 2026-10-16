@@ -13,7 +13,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       // We register the worker ourselves (src/pwa/update.ts) so updates apply reliably.
       injectRegister: false,
-      includeAssets: ['icons/icon-192.png', 'icons/icon-512.png'],
+      // Icons are drawn by design/render_icons.py (green "Start" play button).
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png'],
       manifest: {
         name: 'Move With Elli',
         short_name: 'Move',
@@ -26,6 +27,7 @@ export default defineConfig({
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       // A new version takes over straight away; src/pwa/update.ts then reloads into it

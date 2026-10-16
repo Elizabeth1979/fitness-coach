@@ -11,9 +11,8 @@ show the new design? (Old installs from `github.io` now forward + clear their ca
 versions now arrive on their own when she returns to the app.)
 
 ### NOT YET STARTED — next steps
-- [ ] **Real app icons** — `public/icons/icon-192.png` / `icon-512.png` are 1×1 placeholders,
-      so the home-screen icon is blank. Needs artwork (ask Elli for a direction, or propose one
-      in the high-contrast style — see memory `design-preferences`).
+- [x] **Real app icons** — done 2026-10-16: green "Start" play button; redraw with
+      `python3 design/render_icons.py`.
 - [ ] **Swap with no alternative** — hide/disable "Swap" (home row pill + MoveDetail button)
       when `swapMove` would return the workout unchanged (e.g. bodyweight-only + 10-min + hinge).
 - [ ] **Trim the icon font** — only the `woff2` is precached; drop the unused `.woff`/`.ttf`

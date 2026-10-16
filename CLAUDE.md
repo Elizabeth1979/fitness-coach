@@ -39,6 +39,9 @@ npx oxlint           # lint (config in .oxlintrc.json; not wired to an npm scrip
   without them a new version waits forever). It checks for updates whenever the app returns to the
   foreground and reloads into a new version once it takes over, but never mid-workout: `App` calls
   `setBusy(phase !== 'home')`.
+- **App icons** are drawn by `design/render_icons.py` (stdlib-only Python; geometry mirrors
+  `public/favicon.svg`): manifest icons (+ an Android maskable one) and `public/apple-touch-icon.png`
+  for iPhone. Change the design there and re-run it rather than hand-editing PNGs.
 - **The `gh-pages` branch is NOT stale — don't delete it.** It serves the old GitHub Pages address
   (`elizabeth1979.github.io/fitness-coach`) as a redirect to Vercel plus a `sw.js` that clears old
   offline copies on phones that installed the app from there before the move.

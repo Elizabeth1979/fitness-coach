@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full-bleed square for phone home screens (iOS/Android round the corners
+       themselves). The play mark stays inside Android's maskable safe zone
+       (a centred circle, 80% of the width). Rendered to public/apple-touch-icon.png
+       and public/icons/maskable-512.png. -->
+  <rect width="512" height="512" fill="#15803d"/>
+  <path d="M206 158 L370 256 L206 354 Z" fill="#fff" stroke="#fff" stroke-width="40" stroke-linejoin="round"/>
+</svg>
