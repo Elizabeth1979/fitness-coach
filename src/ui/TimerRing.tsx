@@ -1,19 +1,20 @@
-interface Props { remaining: number; total: number; color?: string }
-export function TimerRing({ remaining, total, color = '#15803d' }: Props) {
+interface Props { remaining: number; total: number; tone?: 'work' | 'rest' }
+
+/** Countdown ring. Colours come from index.css: green while you work, grey while you rest. */
+export function TimerRing({ remaining, total, tone = 'work' }: Props) {
   const r = 86, c = 2 * Math.PI * r;
   const frac = total > 0 ? Math.max(0, Math.min(1, remaining / total)) : 0;
   const mm = Math.floor(remaining / 60), ss = Math.floor(remaining % 60).toString().padStart(2, '0');
   return (
-    <div style={{ position: 'relative', width: 200, height: 200 }}>
+    <div className="timer-ring" data-tone={tone}>
       <svg width="200" height="200" viewBox="0 0 200 200" role="img" aria-label={`${Math.round(remaining)} seconds remaining`}>
-        <circle cx="100" cy="100" r={r} fill="#fff" stroke="#e4e8ef" strokeWidth="15" />
-        <circle cx="100" cy="100" r={r} fill="none" stroke={color} strokeWidth="15" strokeLinecap="round"
-          strokeDasharray={c} strokeDashoffset={c * (1 - frac)} transform="rotate(-90 100 100)"
-          style={{ transition: 'stroke-dashoffset .35s linear, stroke .3s', filter: 'drop-shadow(0 3px 7px rgba(20,24,40,.16))' }} />
+        <circle className="timer-track" cx="100" cy="100" r={r} strokeWidth="15" />
+        <circle className="timer-fill" cx="100" cy="100" r={r} strokeWidth="15" strokeLinecap="round"
+          strokeDasharray={c} strokeDashoffset={c * (1 - frac)} transform="rotate(-90 100 100)" />
       </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontSize: 54, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1 }}>{mm}:{ss}</div>
-        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-hint)', marginTop: 4 }}>remaining</div>
+      <div className="timer-readout">
+        <div className="timer-time">{mm}:{ss}</div>
+        <div className="timer-label">remaining</div>
       </div>
     </div>
   );

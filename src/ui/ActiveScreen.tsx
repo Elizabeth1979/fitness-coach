@@ -47,14 +47,12 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
     : (ri.round > 0 ? `Round ${ri.round} of ${ri.totalRounds}` : '');
   const showRoundChip = !!chipLabel && !isRoundRest && !isCelebrate;
   const cc = seg?.exercise ? catColor(seg.exercise.category) : catColor('warmup');
-  // Green = the clock you're working against. Rest is calm grey.
-  const ringColor = isRest || isSwitch ? '#8a909c' : '#15803d';
   const subtitle = isSwitch ? `${seg?.exercise?.name ?? ''} · right side next`
     : seg?.side && move ? `${move.target} · ${seg.side} side`
     : move?.target;
 
   return (
-    <main className="screen" style={{ display: 'flex', flexDirection: 'column', background: isRest ? '#e9f0fb' : 'var(--bg)' }}>
+    <main className="screen screen-active" data-tone={isRest ? 'rest' : undefined}>
       <p className="sr-only" aria-live="assertive">{isRoundRest ? `Round ${ri.round} of ${ri.totalRounds} complete. Rest.` : `Now: ${title}`}</p>
 
       <div className="row" style={{ marginBottom: 22 }}>
@@ -77,7 +75,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0 18px' }}>
-        <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} color={ringColor} />
+        <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} tone={isRest || isSwitch ? 'rest' : 'work'} />
       </div>
 
       {!isRest && !isCelebrate && seg?.exercise && (

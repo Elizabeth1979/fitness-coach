@@ -19,10 +19,20 @@
   --bg:#eef1f6; --surface:#fff; --surface-2:#f3f6fb; --surface-3:#e6eaf1;
   --surface-border:#dfe4ec;
   --text:#15171c; --text-muted:#454b59; --text-hint:#5d6473;
+  --on-dark:#fff;                   /* text/icons on green or near-black     */
   --brand:#15803d; --brand-press:#11622f; --brand-soft:#dbf3e2;  /* "do this" / done */
+  --brand-ring:#bfe6cd;             /* "today" ring on the week dots         */
   --accent:#1a1c22;                 /* dark neutral (selected states, Pause) */
   --danger:#d12626; --danger-border:#f1c9c9;
   --warm:#c2410c;                   /* streak flame icon only                */
+  --scrim:rgba(15,17,28,.55);       /* dims the page behind a sheet          */
+
+  /* — Workout screen ——————————————————————————————————————————— */
+  --rest-bg:#e9f0fb;                /* calm background while resting         */
+  --ring-track:#e4e8ef;             /* the empty part of the timer ring      */
+  --ring-rest:#8a909c;              /* timer while resting / switching sides */
+  /* "Done" confetti stays in the done colours: greens + near-black, no rainbow */
+  --confetti-1:var(--brand); --confetti-2:#22c55e; --confetti-3:var(--accent);
 
   /* — Typography ——————————————————————————————————————————————— */
   --font:'Lexend Variable', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -36,6 +46,8 @@
 
   /* — Elevation ————————————————————————————————————————————————— */
   --shadow:0 4px 16px rgba(20,24,40,.07);
+  --shadow-ring:drop-shadow(0 3px 7px rgba(20,24,40,.16));
+  --shadow-done:0 8px 22px rgba(21,128,61,.28);
 }
 
 /* ============================================================================
@@ -79,6 +91,9 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
    LAYOUT
    ========================================================================== */
 .screen { position: relative; max-width: 460px; margin-inline: auto; min-height: 100%; padding: 18px 18px 30px; }
+/* the workout screen: a column that fills the phone; rest gets a calmer background */
+.screen-active { display: flex; flex-direction: column; background: var(--bg); }
+.screen-active[data-tone="rest"] { background: var(--rest-bg); }
 .row    { display: flex; align-items: center; gap: 10px; }
 .row-between { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 /* a labelled group inside a sheet */
@@ -100,10 +115,10 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
    ========================================================================== */
 .btn { display:inline-flex; align-items:center; justify-content:center; gap:9px; font-weight:800; border-radius:16px; padding:16px; min-height:56px; transition: transform .1s ease, box-shadow .15s, filter .15s; }
 .btn:active { transform: scale(.98); }
-.btn-primary { background: var(--brand); color:#fff; font-size: 21px; box-shadow: 0 5px 0 var(--brand-press); }
+.btn-primary { background: var(--brand); color: var(--on-dark); font-size: 21px; box-shadow: 0 5px 0 var(--brand-press); }
 .btn-primary:hover  { filter: brightness(1.05); }
 .btn-primary:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--brand-press); }
-.btn-dark  { background: var(--accent); color:#fff; }
+.btn-dark  { background: var(--accent); color: var(--on-dark); }
 .btn-soft  { background: var(--surface); color: var(--text); border: var(--bd-2); }
 .btn-ghost { background: var(--surface); color: var(--danger); border: 1.5px solid var(--danger-border); }
 .btn-sm    { min-height: 48px; padding: 12px; font-size: var(--fs-sm); }
@@ -117,7 +132,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* move number */
 .num { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background: var(--surface-3); color: var(--text); font-size: var(--fs-xs); font-weight:800; flex-shrink:0; }
 /* solid round icon badge (next-up) */
-.icon-badge { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background: var(--accent); color:#fff; flex-shrink:0; }
+.icon-badge { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background: var(--accent); color: var(--on-dark); flex-shrink:0; }
 
 /* ============================================================================
    CONTROLS — selected state keys off the aria-* attribute already present
@@ -127,21 +142,31 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .seg-btn[aria-pressed="true"], .seg-btn[aria-checked="true"] { background: var(--surface); color: var(--text); font-weight:800; }
 
 .choice { font-size: var(--fs-sm); font-weight:600; padding:11px 16px; border-radius: var(--r-pill); border: var(--bd-2); background: var(--surface); color: var(--text); }
-.choice[aria-checked="true"] { background: var(--accent); color:#fff; border-color: var(--accent); font-weight:800; }
+.choice[aria-checked="true"] { background: var(--accent); color: var(--on-dark); border-color: var(--accent); font-weight:800; }
 .choice--block { flex:1; padding:14px 0; border-radius: var(--r-md); font-size:17px; }
 
 .icon-toggle { display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; flex-shrink:0; background: var(--surface); color: var(--text-muted); border: var(--bd-2); }
-.icon-toggle[aria-pressed="true"] { background: var(--accent); color:#fff; border:0; }
+.icon-toggle[aria-pressed="true"] { background: var(--accent); color: var(--on-dark); border:0; }
 
 .select { background: var(--surface); color: var(--text); border: var(--bd-2); border-radius:12px; padding:8px 12px; font: inherit; font-weight:500; font-size: var(--fs-xs); max-width:12rem; }
 
 .progress { flex:1; height:10px; background: var(--surface-3); border-radius: var(--r-pill); overflow:hidden; }
 .progress-fill { height:100%; width:100%; background: var(--brand); transform-origin: left center; transition: transform .4s cubic-bezier(.21,1.02,.45,1); }
 
+/* timer ring — green while you work, grey while you rest (data-tone="rest") */
+.timer-ring    { position:relative; width:200px; height:200px; }
+.timer-track   { fill: var(--surface); stroke: var(--ring-track); }
+.timer-fill    { fill:none; stroke: var(--brand); filter: var(--shadow-ring); transition: stroke-dashoffset .35s linear, stroke .3s; }
+.timer-ring[data-tone="rest"] .timer-fill { stroke: var(--ring-rest); }
+.timer-readout { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.timer-time    { font-size:54px; font-weight:800; letter-spacing:-1px; line-height:1; }
+.timer-label   { font-size: var(--fs-sm); font-weight:600; color: var(--text-hint); margin-top:4px; }
+
 /* ============================================================================
    BOTTOM SHEET (move detail, change workout) — fixed to the viewport
    ========================================================================== */
-.sheet-backdrop { position:fixed; inset:0; z-index:30; background: rgba(15,17,28,.55); display:flex; align-items:flex-end; justify-content:center; }
+.sheet-backdrop { position:fixed; inset:0; z-index:30; background: var(--scrim); display:flex; align-items:flex-end; justify-content:center; }
+.sheet:focus { outline:none; } /* focused only as a fallback, when it has no buttons */
 .sheet { width:100%; max-width:460px; max-height:88vh; overflow-y:auto; background: var(--surface); border-radius:24px 24px 0 0; padding:20px 20px calc(24px + env(safe-area-inset-bottom)); }
 .cue { font-size:17px; line-height:1.55; font-weight:500; color: var(--text); background: var(--surface-2); border: var(--bd); border-radius: var(--r-md); padding:15px; }
 
@@ -152,13 +177,16 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .move-row:not(:first-child) { border-top: 1px solid var(--surface-border); }
 .move-row:hover { background: var(--surface-2); }
 
-.daydot { width:32px; height:32px; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; background: var(--surface-3); color:#fff; }
+.daydot { width:32px; height:32px; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; background: var(--surface-3); color: var(--on-dark); }
 .daydot[data-done="true"]  { background: var(--brand); }
-.daydot[data-today="true"] { box-shadow: 0 0 0 3px #bfe6cd; }
+.daydot[data-today="true"] { box-shadow: 0 0 0 3px var(--brand-ring); }
 
 /* ============================================================================
    ANIMATION
    ========================================================================== */
+.confetti:nth-child(3n+1) { background: var(--confetti-1); }
+.confetti:nth-child(3n+2) { background: var(--confetti-2); }
+.confetti:nth-child(3n)   { background: var(--confetti-3); }
 .confetti { position:absolute; top:-12px; width:9px; height:14px; border-radius:2px; opacity:0; animation: confetti-fall 2.4s ease-in forwards; }
 @keyframes pop-in    { from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform:none; } }
 @keyframes pop-check { 0%{ transform: scale(0) rotate(-25deg); } 60%{ transform: scale(1.18) rotate(6deg); } 100%{ transform: scale(1) rotate(0); } }

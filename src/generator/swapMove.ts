@@ -15,22 +15,9 @@ import { SWITCH_SEC, annotateChangeovers, switchSegment, workCues } from './chan
 // Same sidedness keeps every duration and cue. Afterwards the rests are
 // re-announced, so "Next up: …" names the new move.
 export function swapMove(workout: Workout, prepareIndex: number, equipment: Equipment[], rng: () => number): Workout {
-  const prep = workout.segments[prepareIndex];
-  const current = prep?.exercise;
-  if (!prep || prep.kind !== 'prepare' || !current) return workout;
-
-  // Respect the day's one-sided budget (none in the 10-min session).
-  const others = new Set(workout.segments
-    .filter((s) => s.kind === 'work' && s.side && s.exercise && s.exercise.id !== current.id)
-    .map((s) => s.exercise!.id));
-  // A one-sided move needs room for two sides plus the switch in every bout.
-  const roomForTwoSides = boutTotals(workout.segments, current.id)
-    .every((t) => t >= SWITCH_SEC + 2 * MIN_WORK_SEC);
-  const all = candidatesFor(current.category, equipment)
-    .filter((e) => e.id !== current.id && (!e.unilateral || roomForTwoSides));
-  const twoSided = all.filter((e) => !e.unilateral);
-  const pool = others.size >= maxOneSided(workout.kind) && twoSided.length > 0 ? twoSided : all;
-  if (pool.length === 0) return workout;
+  const current = workout.segments[prepareIndex]?.exercise;
+  const pool = swapChoices(workout, prepareIndex, equipment);
+  if (!current || pool.length === 0) return workout;
   const next = pick(rng, pool);
   const cheer = phrases.encouragementDeck(rng);
 
@@ -50,6 +37,30 @@ export function swapMove(workout: Workout, prepareIndex: number, equipment: Equi
   }
 
   return { ...workout, segments: annotateChangeovers(out, workout.rounds) };
+}
+
+/** Whether the move at `prepareIndex` has anything to swap to — so the UI can hide "Swap" when it would do nothing. */
+export function canSwap(workout: Workout, prepareIndex: number, equipment: Equipment[]): boolean {
+  return swapChoices(workout, prepareIndex, equipment).length > 0;
+}
+
+/** The exercises the move at `prepareIndex` could become (empty if it isn't a move, or nothing else fits). */
+function swapChoices(workout: Workout, prepareIndex: number, equipment: Equipment[]): Exercise[] {
+  const prep = workout.segments[prepareIndex];
+  const current = prep?.exercise;
+  if (!prep || prep.kind !== 'prepare' || !current) return [];
+
+  // Respect the day's one-sided budget (none in the 10-min session).
+  const others = new Set(workout.segments
+    .filter((s) => s.kind === 'work' && s.side && s.exercise && s.exercise.id !== current.id)
+    .map((s) => s.exercise!.id));
+  // A one-sided move needs room for two sides plus the switch in every bout.
+  const roomForTwoSides = boutTotals(workout.segments, current.id)
+    .every((t) => t >= SWITCH_SEC + 2 * MIN_WORK_SEC);
+  const all = candidatesFor(current.category, equipment)
+    .filter((e) => e.id !== current.id && (!e.unilateral || roomForTwoSides));
+  const twoSided = all.filter((e) => !e.unilateral);
+  return others.size >= maxOneSided(workout.kind) && twoSided.length > 0 ? twoSided : all;
 }
 
 /** Total seconds of each bout (work, or left · switch · right) of one exercise. */

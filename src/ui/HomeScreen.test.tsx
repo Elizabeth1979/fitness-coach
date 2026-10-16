@@ -16,4 +16,13 @@ describe('HomeScreen', () => {
     expect(screen.getAllByText(/\d+ rounds/).length).toBeGreaterThan(0);
     expect(screen.getByRole('button', { name: /start workout/i })).toBeInTheDocument();
   });
+
+  it('shows the Swap pill only on moves that have something to swap to', () => {
+    const moves = circuitMoves(w);
+    const blocked = moves[0].firstSegment - 1;
+    render(<HomeScreen workout={w} kind="10min" onKind={vi.fn()} streak={0} onReroll={vi.fn()} onStart={vi.fn()} onOpenMove={vi.fn()}
+      canSwap={(i) => i !== blocked} />);
+    expect(screen.getAllByText('Swap')).toHaveLength(moves.length - 1);
+    expect(screen.getByRole('button', { name: new RegExp(`^${moves[0].exercise.name}.*see how to do it`) })).toBeInTheDocument();
+  });
 });

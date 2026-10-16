@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { swapMove } from './swapMove';
+import { canSwap, swapMove } from './swapMove';
 import { generateWorkout } from './generateWorkout';
 import { createRng } from './rng';
 import type { Equipment, Workout } from '../domain/types';
@@ -42,6 +42,42 @@ describe('swapMove', () => {
     expect(out.segments[1].exercise!.id).not.toBe('exA');                       // round 1 swapped
     expect(out.segments[4].exercise!.id).toBe(out.segments[1].exercise!.id);    // round 2 swapped to the SAME new exercise
     expect(out.segments[3].exercise!.id).toBe(out.segments[1].exercise!.id);    // round 2 prepare updated too
+  });
+
+  describe('canSwap', () => {
+    it('is false when nothing else fits, and then swapMove changes nothing', () => {
+      // Bodyweight-only hinge: the only alternative is one-sided, and a 20s bout has no room for two sides.
+      const gb = { id: 'glute-bridge', name: 'Glute bridge', category: 'hinge', equipment: ['bodyweight'], goals: ['strength'], unilateral: false, measure: 'reps', defaultReps: 10, cue: '' };
+      const synthetic = { id: 't', kind: '20min', focus: 'movement', rounds: 1, segments: [
+        { kind: 'prepare', exercise: gb, durationSec: 5, cues: [], round: 1 },
+        { kind: 'work', exercise: gb, durationSec: 20, cues: [], round: 1 },
+      ] } as unknown as Workout;
+      expect(canSwap(synthetic, 0, ['bodyweight'])).toBe(false);
+      expect(swapMove(synthetic, 0, ['bodyweight'], createRng(1))).toBe(synthetic);
+      expect(canSwap(synthetic, 0, ALL)).toBe(true); // with weights, a Romanian deadlift fits
+    });
+
+    it('is false for anything that is not a move (rests, work segments, out of range)', () => {
+      const rest = w.segments.findIndex((s) => s.kind === 'rest');
+      expect(canSwap(w, rest, ALL)).toBe(false);
+      expect(canSwap(w, prepIdx + 1, ALL)).toBe(false);
+      expect(canSwap(w, 9999, ALL)).toBe(false);
+    });
+
+    it('always agrees with swapMove', () => {
+      for (const equipment of [ALL, ['bodyweight'] as Equipment[]]) {
+        for (const kind of ['10min', '20min', '30min'] as const) {
+          for (let seed = 0; seed < 8; seed++) {
+            const x = generateWorkout({ kind, date: WED, equipment, seed });
+            x.segments.forEach((seg, idx) => {
+              if (seg.kind !== 'prepare') return;
+              expect(canSwap(x, idx, equipment), `${kind}/${seed}/${seg.exercise?.name}`)
+                .toBe(swapMove(x, idx, equipment, createRng(seed)) !== x);
+            });
+          }
+        }
+      }
+    });
   });
 
   describe('one-sided and two-sided moves', () => {

@@ -6,7 +6,7 @@ import { HomeScreen } from './ui/HomeScreen';
 import { ActiveScreen } from './ui/ActiveScreen';
 import { DoneScreen } from './ui/DoneScreen';
 import { MoveDetail } from './ui/MoveDetail';
-import { swapMove } from './generator/swapMove';
+import { canSwap, swapMove } from './generator/swapMove';
 import { WARMUP_FLOWS } from './generator/warmupFlows';
 import { createRng } from './generator/rng';
 import { recordCompletion, currentStreak, getPrefs, setPrefs, getCheckpoint, getRecentThemes, pushRecentTheme, suggestedSore } from './storage/store';
@@ -106,9 +106,10 @@ export default function App() {
         style={style} onStyle={handleStyle} onSwapWarmup={handleSwapWarmup}
         sore={sore} onSore={handleSore} soreSuggested={initialSore}
         canResume={!!checkpoint} onResume={handleResume} onReroll={handleReroll}
-        onStart={handleStart} onOpenMove={setOpenPrepare} />
+        onStart={handleStart} onOpenMove={setOpenPrepare}
+        canSwap={(i) => canSwap(preview, i, getPrefs().equipment)} />
       {openPrepare !== null && (
-        <MoveDetail workout={preview} prepareIndex={openPrepare}
+        <MoveDetail workout={preview} prepareIndex={openPrepare} canSwap={canSwap(preview, openPrepare, getPrefs().equipment)}
           onSwap={() => { handleSwap(openPrepare); setOpenPrepare(null); }} onClose={() => setOpenPrepare(null)} />
       )}
     </>
