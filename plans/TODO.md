@@ -3,13 +3,13 @@
 ## ▶ RESUME HERE (last session: 2026-10-16)
 
 Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md`](sessions/2026-10-16.md).
-**Open:** draft PR from `claude/gracious-lovelace-cher3h` — four bug fixes from the evening review
-(leave-the-app pause + Pause/Resume, wake lock, local dates, storage safety). Merge when green; then
-check on Elli's phone: lock the screen mid-workout → comes back paused, screen stays on after.
+**Merged:** PR #13 — four bug fixes (leave-the-app pause + Pause/Resume, wake lock, local dates, storage
+safety). Check on Elli's phone: lock the screen mid-workout → comes back paused, screen stays on after.
+**Open:** draft PR for the security headers (`vercel.json`).
 `gh-pages` is a redirect — keep it.
 
 ### Next — from the 2026-10-16 review plan (see the session log's "Evening" section)
-- [ ] Security headers in `vercel.json` (CSP, nosniff, Referrer-Policy, Permissions-Policy, frame-ancestors).
+- [x] Security headers in `vercel.json` (CSP, nosniff, Referrer-Policy, COOP, Permissions-Policy) — PR open.
 - [ ] `npm audit fix` (dev-only issues), Dependabot, `lint` script in the Vercel build.
 - [ ] Resume: same day only, from the exact second. "Bodyweight only today" toggle.
 - [ ] Read prefs once in `App`; inline styles → `index.css` classes; ask Elli which Change-sheet options she uses.

@@ -42,6 +42,11 @@ npx oxlint           # lint (config in .oxlintrc.json; not wired to an npm scrip
 - **App icons** are drawn by `design/render_icons.py` (stdlib-only Python; geometry mirrors
   `public/favicon.svg`): manifest icons (+ an Android maskable one) and `public/apple-touch-icon.png`
   for iPhone. Change the design there and re-run it rather than hand-editing PNGs.
+- **Security headers live in `vercel.json`** (strict CSP `default-src 'self'`, nosniff, no referrer,
+  COOP, Permissions-Policy), guarded by `src/securityHeaders.test.ts`. Everything is self-hosted, so
+  nothing may load from another origin and no inline `<script>`/`<style>` tags or `eval` (React
+  `style={{}}` props are fine — they're set through the CSSOM, which CSP doesn't block). Adding an
+  external resource means widening the CSP on purpose. Vercel's preview toolbar is blocked by it.
 - **The `gh-pages` branch is NOT stale — don't delete it.** It serves the old GitHub Pages address
   (`elizabeth1979.github.io/fitness-coach`) as a redirect to Vercel plus a `sw.js` that clears old
   offline copies on phones that installed the app from there before the move.
