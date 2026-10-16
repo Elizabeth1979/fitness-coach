@@ -73,6 +73,20 @@ describe('changeovers between exercises', () => {
     }
   });
 
+  it('every exercise gets encouragement, without repeating a line until the list runs out', () => {
+    const cheers = new Set(phrases.encouragements);
+    for (const [kind, style] of variants) {
+      const said: string[] = [];
+      for (const s of build(kind, style, 4).segments.filter((x) => x.kind === 'work')) {
+        const mine = s.cues.filter((c) => c.say && cheers.has(c.say));
+        expect(mine.length, `${kind}/${style} ${s.exercise?.name} (${s.durationSec}s)`).toBeGreaterThanOrEqual(1);
+        said.push(...mine.map((c) => c.say!));
+      }
+      const firstRun = said.slice(0, phrases.encouragements.length);
+      expect(new Set(firstRun).size, `${kind}/${style}`).toBe(firstRun.length);
+    }
+  });
+
   it('gives about 20 seconds to get from one main exercise to the next', () => {
     for (const [kind, style] of variants) {
       const segs = build(kind, style, 4).segments;

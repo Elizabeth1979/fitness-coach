@@ -12,7 +12,7 @@ describe('phrases', () => {
     const lines = [
       phrases.welcome('movement'), phrases.rest(), phrases.begin(),
       phrases.celebrate(['push', 'pull', 'hinge', 'carry', 'mobility']),
-      phrases.encourage(() => 0),
+      ...phrases.encouragements,
     ];
     const banned = /calorie|weight loss|burn|fat|harder|no excuses|guilt/i;
     for (const l of lines) expect(l).not.toMatch(banned);
@@ -30,6 +30,32 @@ describe('phrases', () => {
     const banned = /calorie|weight loss|burn|fat|harder|no excuses|guilt/i;
     for (const l of [phrases.roundComplete(1, 3), phrases.roundStart(2)]) {
       expect(l).not.toMatch(banned);
+    }
+  });
+
+  it('has a big, varied encouragement list: short, kind, no duplicates', () => {
+    const list = phrases.encouragements;
+    expect(list.length).toBeGreaterThanOrEqual(30);
+    // Short enough to finish well before an exercise's closing "three-two-one".
+    for (const l of list) {
+      expect(l.trim(), 'empty line').not.toBe('');
+      expect(l.split(/\s+/).length, l).toBeLessThanOrEqual(8);
+    }
+    expect(new Set(list.map((l) => l.toLowerCase())).size).toBe(list.length);
+  });
+
+  it('deals encouragements like a shuffled deck: no repeats until all are used, never twice in a row', () => {
+    let seed = 1;
+    const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const next = phrases.encouragementDeck(rng);
+    const n = phrases.encouragements.length;
+    const firstPass = Array.from({ length: n }, next);
+    expect(new Set(firstPass).size).toBe(n);
+    let prev = firstPass[n - 1];
+    for (let i = 0; i < 3 * n; i++) {
+      const line = next();
+      expect(line).not.toBe(prev);
+      prev = line;
     }
   });
 });

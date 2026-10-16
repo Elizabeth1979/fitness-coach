@@ -74,7 +74,7 @@ hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekVie
 
 ## Conventions & invariants
 
-- **All spoken copy lives in `src/coach/phrases.ts`.** Tone is calm, encouraging, present-tense —
+- **All spoken copy lives in `src/coach/phrases.ts`** (encouragement lines in `src/coach/encouragements.json`, dealt like a shuffled deck from their own RNG stream so editing the list never changes exercise selection; every exercise gets ≥1, kept ≥6s clear of the closing countdown). Tone is calm, encouraging, present-tense —
   **never** calorie / weight-loss / "burn" / guilt / military wording. The user's name "Elli" is
   hard-coded. There is a test asserting banned words don't appear.
 - **Determinism:** `generateWorkout` is pure and seeded by `createRng(seed)` (seed defaults to the
