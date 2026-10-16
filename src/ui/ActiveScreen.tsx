@@ -73,6 +73,10 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
         <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} color={ringColor} />
       </div>
 
+      {!isRest && !isCelebrate && seg?.exercise && (
+        <div className="cue" style={{ marginBottom: 14 }}>{seg.exercise.cue}</div>
+      )}
+
       {next && !isCelebrate && (() => {
         const nc = catColor(next.category);
         return (

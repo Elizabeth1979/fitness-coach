@@ -16,6 +16,11 @@ describe('ActiveScreen', () => {
     expect(screen.getByText(/Round \d+ of \d+/)).toBeInTheDocument();
   });
 
+  it('shows how to do the current move', () => {
+    render(<ActiveScreen state={state} workout={w} onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
+    expect(screen.getByText(w.segments[firstCircuit].exercise!.cue)).toBeInTheDocument();
+  });
+
   it('shows a round-rest screen between rounds', () => {
     const rrIndex = w.segments.findIndex((s) => s.kind === 'roundrest');
     const rrState: SessionState = { status: 'running', segmentIndex: rrIndex, segment: w.segments[rrIndex], segmentRemainingSec: 20 };
