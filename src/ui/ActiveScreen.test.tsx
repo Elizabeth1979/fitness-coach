@@ -35,4 +35,14 @@ describe('ActiveScreen', () => {
     render(<ActiveScreen state={at(swIdx - 1)} workout={one} onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
     expect(screen.getByText(/left side/i)).toBeInTheDocument();
   });
+
+  it('during the left side, "Next up" is the right side, not the next exercise', () => {
+    const one = generateWorkout({ kind: '20min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'], seed: 4 });
+    const leftIdx = one.segments.findIndex((s) => s.kind === 'work' && s.side === 'left');
+    const nextExercise = one.segments.slice(leftIdx + 1).find((s) => s.kind === 'prepare')!.exercise!.name;
+    const state: SessionState = { status: 'running', segmentIndex: leftIdx, segment: one.segments[leftIdx], segmentRemainingSec: 5 };
+    render(<ActiveScreen state={state} workout={one} onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
+    expect(screen.getByText('Right side')).toBeInTheDocument();
+    expect(screen.queryByText(nextExercise)).not.toBeInTheDocument();
+  });
 });

@@ -78,16 +78,21 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
         <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} color={ringColor} />
       </div>
 
-      {next && !isCelebrate && !isSwitch && (() => {
-        const nc = catColor(next.category);
+      {!isCelebrate && !isSwitch && (() => {
+        // On the left side of a one-sided move, what comes next is its right side.
+        const rightSideNext = seg?.kind === 'work' && seg.side === 'left' && move;
+        const up = rightSideNext
+          ? { name: 'Right side', label: cc.label, target: move.target }
+          : next && { name: next.exercise.name, label: catColor(next.category).label, target: next.target };
+        if (!up) return null;
         return (
           <div className="card row" style={{ gap: 11, padding: '11px 13px', marginBottom: 18 }}>
             <span className="icon-badge"><i className="ti ti-player-track-next" aria-hidden="true" /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="eyebrow" style={{ fontSize: 'var(--fs-2xs)' }}>Next up</div>
-              <div className="t-panel">{next.exercise.name}</div>
+              <div className="t-panel">{up.name}</div>
             </div>
-            <div className="muted" style={{ fontSize: 'var(--fs-xs)', textAlign: 'right' }}><span style={{ color: 'var(--text)', fontWeight: 800 }}>{nc.label}</span><br />{next.target}</div>
+            <div className="muted" style={{ fontSize: 'var(--fs-xs)', textAlign: 'right' }}><span style={{ color: 'var(--text)', fontWeight: 800 }}>{up.label}</span><br />{up.target}</div>
           </div>
         );
       })()}
