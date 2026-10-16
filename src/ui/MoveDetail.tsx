@@ -1,7 +1,6 @@
 import type { Workout } from '../domain/types';
 import { formatTarget } from './format';
 import { catColor } from './categoryColor';
-import { catVars } from './catVars';
 
 interface Props { workout: Workout; prepareIndex: number; onSwap: () => void; onClose: () => void }
 
@@ -14,9 +13,9 @@ export function MoveDetail({ workout, prepareIndex, onSwap, onClose }: Props) {
   const c = catColor(ex.category);
   return (
     <div onClick={onClose} className="sheet-backdrop">
-      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={ex.name} className="sheet" style={catVars(c)}>
+      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={ex.name} className="sheet">
         <div className="row-between" style={{ marginBottom: 12 }}>
-          <span className="cat">{c.label}</span>
+          <span className="eyebrow">{c.label}</span>
           <button className="btn btn-soft" onClick={onClose} aria-label="Close" style={{ padding: 9, minHeight: 44, borderRadius: 12 }}><i className="ti ti-x" aria-hidden="true" style={{ fontSize: 20 }} /></button>
         </div>
         <div className="t-title" style={{ marginBottom: 6 }}>{ex.name}</div>

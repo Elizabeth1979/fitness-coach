@@ -3,7 +3,6 @@ import type { Category, Workout } from '../domain/types';
 import { loadStore } from '../storage/store';
 import { WeekView } from './WeekView';
 import { catColor } from './categoryColor';
-import { catVars } from './catVars';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -22,12 +21,11 @@ interface Props { categories: Category[]; streak: number; workout: Workout | nul
 export function DoneScreen({ categories, streak, workout, onHome }: Props) {
   const practiced = useMemo(() => {
     const seen = new Set<string>();
-    const out: { key: string; ink: string; soft: string; label: string }[] = [];
+    const out: { key: string; label: string }[] = [];
     for (const c of categories) {
       if (c === 'warmup' || seen.has(c)) continue;
       seen.add(c);
-      const col = catColor(c);
-      out.push({ key: c, ink: col.ink, soft: col.soft, label: col.label });
+      out.push({ key: c, label: catColor(c).label });
     }
     return out;
   }, [categories]);
@@ -41,7 +39,7 @@ export function DoneScreen({ categories, streak, workout, onHome }: Props) {
             <span key={i} className="confetti" style={{ left: p.left, background: p.color, animationDelay: p.delay }} />
           ))}
         </div>
-        <div style={{ width: 66, height: 66, margin: '0 auto 13px', borderRadius: '50%', background: 'var(--success-soft)', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 22px rgba(21,128,61,.28)', animation: 'pop-check .6s cubic-bezier(.34,1.56,.64,1) both' }}><i className="ti ti-check" aria-hidden="true" style={{ fontSize: 36 }} /></div>
+        <div style={{ width: 66, height: 66, margin: '0 auto 13px', borderRadius: '50%', background: 'var(--brand-soft)', color: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 22px rgba(21,128,61,.28)', animation: 'pop-check .6s cubic-bezier(.34,1.56,.64,1) both' }}><i className="ti ti-check" aria-hidden="true" style={{ fontSize: 36 }} /></div>
         <h1 className="t-hero" style={{ fontSize: 29 }}>Great job, Elli <span aria-hidden="true">🎉</span></h1>
         <div className="muted" style={{ fontSize: 17, marginTop: 5 }}>You're more capable than yesterday.</div>
       </div>
@@ -50,11 +48,11 @@ export function DoneScreen({ categories, streak, workout, onHome }: Props) {
         <div className="row-between" style={{ marginBottom: 14 }}>
           <span className="row muted" style={{ gap: 6, fontSize: 'var(--fs-sm)' }}><i className="ti ti-clock" aria-hidden="true" />{mins} minutes</span>
           <span className="row muted" style={{ gap: 6, fontSize: 'var(--fs-sm)' }}><i className="ti ti-list-check" aria-hidden="true" />{practiced.length} moves</span>
-          {streak > 0 && <span className="pill pill-warm" style={{ padding: '6px 11px' }}><i className="ti ti-flame" aria-hidden="true" />{streak}-day streak</span>}
+          {streak > 0 && <span className="pill" style={{ padding: '6px 11px' }}><i className="ti ti-flame" aria-hidden="true" style={{ color: 'var(--warm)' }} />{streak}-day streak</span>}
         </div>
         <div className="hint" style={{ fontSize: 'var(--fs-sm)', marginBottom: 9 }}>You practiced</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-          {practiced.map((p) => <span key={p.key} className="chip" style={catVars(p)}><i className="ti ti-check" aria-hidden="true" style={{ fontSize: 15, color: '#fff' }} />{p.label}</span>)}
+          {practiced.map((p) => <span key={p.key} className="pill" style={{ fontSize: 'var(--fs-sm)', padding: '7px 13px' }}><i className="ti ti-check" aria-hidden="true" style={{ fontSize: 16, color: 'var(--brand)' }} />{p.label}</span>)}
         </div>
       </div>
 

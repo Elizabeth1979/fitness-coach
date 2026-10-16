@@ -3,7 +3,6 @@ import type { Workout } from '../domain/types';
 import { TimerRing } from './TimerRing';
 import { sessionMoves, currentMoveIndex, roundInfo, stationInfo } from './format';
 import { catColor } from './categoryColor';
-import { catVars } from './catVars';
 
 interface Props {
   state: SessionState; workout: Workout;
@@ -44,10 +43,11 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
     : (ri.round > 0 ? `Round ${ri.round} of ${ri.totalRounds}` : '');
   const showRoundChip = !!chipLabel && !isRoundRest && !isCelebrate;
   const cc = seg?.exercise ? catColor(seg.exercise.category) : catColor('warmup');
-  const ringColor = isRest ? '#1d4ed8' : isCelebrate ? '#15803d' : cc.ink;
+  // Green = the clock you're working against. Rest is calm grey.
+  const ringColor = isRest ? '#8a909c' : '#15803d';
 
   return (
-    <main className="screen" style={{ ...catVars(cc), display: 'flex', flexDirection: 'column', background: isRest ? '#e9f0fb' : 'var(--bg)' }}>
+    <main className="screen" style={{ display: 'flex', flexDirection: 'column', background: isRest ? '#e9f0fb' : 'var(--bg)' }}>
       <p className="sr-only" aria-live="assertive">{isRoundRest ? `Round ${ri.round} of ${ri.totalRounds} complete. Rest.` : `Now: ${title}`}</p>
 
       <div className="row" style={{ marginBottom: 22 }}>
@@ -62,7 +62,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 7, minHeight: 24 }}>
         {showRoundChip && <span className="pill">{chipLabel}</span>}
-        {!isRest && !isCelebrate && seg?.exercise && <span className="pill pill-cat">{cc.label}</span>}
+        {!isRest && !isCelebrate && seg?.exercise && <span className="pill">{cc.label}</span>}
       </div>
       <div className="t-display" style={{ textAlign: 'center', marginBottom: 7 }}>{title}</div>
       {!isRest && !isCelebrate && move && (
@@ -76,13 +76,13 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
       {next && !isCelebrate && (() => {
         const nc = catColor(next.category);
         return (
-          <div className="card row" style={{ ...catVars(nc), gap: 11, padding: '11px 13px', marginBottom: 18 }}>
+          <div className="card row" style={{ gap: 11, padding: '11px 13px', marginBottom: 18 }}>
             <span className="icon-badge"><i className="ti ti-player-track-next" aria-hidden="true" /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="eyebrow" style={{ fontSize: 'var(--fs-2xs)' }}>Next up</div>
               <div className="t-panel">{next.exercise.name}</div>
             </div>
-            <div className="muted" style={{ fontSize: 'var(--fs-xs)', textAlign: 'right' }}><span style={{ color: 'var(--cat)', fontWeight: 800 }}>{nc.label}</span><br />{next.target}</div>
+            <div className="muted" style={{ fontSize: 'var(--fs-xs)', textAlign: 'right' }}><span style={{ color: 'var(--text)', fontWeight: 800 }}>{nc.label}</span><br />{next.target}</div>
           </div>
         );
       })()}
