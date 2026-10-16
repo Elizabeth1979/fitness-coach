@@ -34,6 +34,14 @@ npx oxlint           # lint (config in .oxlintrc.json; not wired to an npm scrip
   with a typed `Storage` via `vi.stubGlobal`; `src/test-setup.ts` also has a conditional polyfill.
   Don't "fix" this with an `as any` cast — keep it typed.
 - **Strict mode, no `any`** in committed code.
+- **Installed-app updates (`src/pwa/update.ts`):** we register the service worker ourselves
+  (`injectRegister: false`, with `skipWaiting`/`clientsClaim` set explicitly in `vite.config.ts` —
+  without them a new version waits forever). It checks for updates whenever the app returns to the
+  foreground and reloads into a new version once it takes over, but never mid-workout: `App` calls
+  `setBusy(phase !== 'home')`.
+- **The `gh-pages` branch is NOT stale — don't delete it.** It serves the old GitHub Pages address
+  (`elizabeth1979.github.io/fitness-coach`) as a redirect to Vercel plus a `sw.js` that clears old
+  offline copies on phones that installed the app from there before the move.
 - **Base path is `/`** (root) — deployed on Vercel, which serves at the domain root. Set in
   `vite.config.ts` (`base`) and the PWA manifest `scope`/`start_url`. (History: was `/fitness-coach/`
   for GitHub Pages project-site hosting, which serves under `/<repo>/`.)
