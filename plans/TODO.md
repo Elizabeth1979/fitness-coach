@@ -5,12 +5,13 @@
 Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md`](sessions/2026-10-16.md).
 **Merged:** PR #13 — four bug fixes (leave-the-app pause + Pause/Resume, wake lock, local dates, storage
 safety). Check on Elli's phone: lock the screen mid-workout → comes back paused, screen stays on after.
-**Open:** draft PR for the security headers (`vercel.json`).
+**Merged:** PR #14 — security headers (served on Vercel, checked). **Open:** draft PR — audit fix, Dependabot, lint gate.
 `gh-pages` is a redirect — keep it.
 
 ### Next — from the 2026-10-16 review plan (see the session log's "Evening" section)
-- [x] Security headers in `vercel.json` (CSP, nosniff, Referrer-Policy, COOP, Permissions-Policy) — PR open.
-- [ ] `npm audit fix` (dev-only issues), Dependabot, `lint` script in the Vercel build.
+- [x] Security headers in `vercel.json` (CSP, nosniff, Referrer-Policy, COOP, Permissions-Policy) — merged, PR #14.
+- [x] `npm audit fix` (0 vulnerabilities), Dependabot (monthly, grouped), `lint` (warnings fail) in the Vercel build — PR open.
+- [ ] Elli: turn on **Dependabot alerts + security updates** in GitHub → Settings → Code security (a repo setting, not a file).
 - [ ] Resume: same day only, from the exact second. "Bodyweight only today" toggle.
 - [ ] Read prefs once in `App`; inline styles → `index.css` classes; ask Elli which Change-sheet options she uses.
 
