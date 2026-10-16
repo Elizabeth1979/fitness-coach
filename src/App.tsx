@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Category, SoreArea, Workout, WorkoutKind, WorkoutStyle } from './domain/types';
+import type { Category, Equipment, SoreArea, Workout, WorkoutKind, WorkoutStyle } from './domain/types';
 import { generateWorkout } from './generator/generateWorkout';
 import { useWorkoutSession } from './ui/useWorkoutSession';
 import { HomeScreen } from './ui/HomeScreen';
@@ -14,6 +14,8 @@ import type { Checkpoint } from './storage/store';
 import { setBusy } from './pwa/update';
 import { localDate, localDayNumber } from './domain/date';
 
+const today = (): string => localDate(new Date());
+
 export default function App() {
   const [phase, setPhase] = useState<'home' | 'active' | 'done'>('home');
   const initialKind: WorkoutKind = '20min';
@@ -26,18 +28,19 @@ export default function App() {
   // Pre-select today's sore area from the last session (recover what you trained).
   const initialSore: SoreArea = suggestedSore();
   const [sore, setSore] = useState<SoreArea>(initialSore);
+  const [equipment, setEquipment] = useState<Equipment[]>(() => getPrefs().equipment);
   const [preview, setPreview] = useState<Workout>(() =>
-    generateWorkout({ kind: initialKind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed: initialSeed, style: initialStyle, sore: initialSore }));
+    generateWorkout({ kind: initialKind, date: new Date(), equipment, recentThemeIds: getRecentThemes(), seed: initialSeed, style: initialStyle, sore: initialSore }));
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [streak, setStreak] = useState(0);
   const [resumeFrom, setResumeFrom] = useState<{ index: number; elapsedSec: number } | null>(null);
-  const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(() => getCheckpoint());
+  const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(() => getCheckpoint(today()));
   const [openPrepare, setOpenPrepare] = useState<number | null>(null);
   const { state, completed, start, pause, resume, skip, end, musicOn, toggleMusic, musicAvailable } = useWorkoutSession(workout);
 
   useEffect(() => {
-    setPreview(generateWorkout({ kind, date: new Date(), equipment: getPrefs().equipment, recentThemeIds: getRecentThemes(), seed, style, warmupThemeId: warmupTheme, sore }));
-  }, [kind, seed, style, warmupTheme, sore]);
+    setPreview(generateWorkout({ kind, date: new Date(), equipment, recentThemeIds: getRecentThemes(), seed, style, warmupThemeId: warmupTheme, sore }));
+  }, [kind, seed, style, warmupTheme, sore, equipment]);
 
   function handleSore(s: SoreArea) { setWarmupTheme(undefined); setSore(s); }
 
@@ -45,6 +48,10 @@ export default function App() {
   // Lottery picks fresh again.
   function handleKind(k: WorkoutKind) { setWarmupTheme(undefined); setKind(k); }
   function handleReroll() { setWarmupTheme(undefined); setSeed((s) => s + 1); }
+  function handleEquipment(e: Equipment[]) {
+    setEquipment(e);
+    setPrefs({ ...getPrefs(), equipment: e });
+  }
   function handleStyle(s: WorkoutStyle) {
     setWarmupTheme(undefined);
     setStyle(s);
@@ -61,8 +68,8 @@ export default function App() {
   useEffect(() => { setBusy(phase !== 'home'); }, [phase]);
 
   useEffect(() => {
-    setStreak(currentStreak(localDate(new Date())));
-    if (phase === 'home') setCheckpoint(getCheckpoint());
+    setStreak(currentStreak(today()));
+    if (phase === 'home') setCheckpoint(getCheckpoint(today()));
   }, [phase]);
 
   const categories = useMemo<Category[]>(
@@ -75,10 +82,10 @@ export default function App() {
     setPhase('active');
   }
   function handleSwap(prepareIndex: number) {
-    setPreview((w) => swapMove(w, prepareIndex, getPrefs().equipment, createRng(Math.floor(Math.random() * 1e9))));
+    setPreview((w) => swapMove(w, prepareIndex, equipment, createRng(Math.floor(Math.random() * 1e9))));
   }
   function handleResume() {
-    const cp = getCheckpoint(); if (!cp) return;
+    const cp = getCheckpoint(today()); if (!cp) return;
     setResumeFrom({ index: cp.segmentIndex, elapsedSec: cp.elapsedSec });
     setWorkout(cp.workout); setPhase('active');
   }
@@ -90,7 +97,7 @@ export default function App() {
   useEffect(() => {
     if (phase === 'active' && state.status === 'done' && workout) {
       if (completed) {
-        recordCompletion({ date: localDate(new Date()), kind: workout.kind, focus: workout.focus,
+        recordCompletion({ date: today(), kind: workout.kind, focus: workout.focus,
           exerciseIds: [...new Set(workout.segments.flatMap((s) => (s.exercise ? [s.exercise.id] : [])))],
           durationSec: workout.segments.reduce((a, s) => a + s.durationSec, 0), sore });
         setPhase('done');
@@ -105,9 +112,10 @@ export default function App() {
         sore={sore} onSore={handleSore} soreSuggested={initialSore}
         canResume={!!checkpoint} onResume={handleResume} onReroll={handleReroll}
         onStart={handleStart} onOpenMove={setOpenPrepare}
-        canSwap={(i) => canSwap(preview, i, getPrefs().equipment)} />
+        equipment={equipment} onEquipment={handleEquipment}
+        canSwap={(i) => canSwap(preview, i, equipment)} />
       {openPrepare !== null && (
-        <MoveDetail workout={preview} prepareIndex={openPrepare} canSwap={canSwap(preview, openPrepare, getPrefs().equipment)}
+        <MoveDetail workout={preview} prepareIndex={openPrepare} canSwap={canSwap(preview, openPrepare, equipment)}
           onSwap={() => { handleSwap(openPrepare); setOpenPrepare(null); }} onClose={() => setOpenPrepare(null)} />
       )}
     </>

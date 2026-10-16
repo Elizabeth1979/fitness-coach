@@ -1,4 +1,6 @@
-import type { Category, Exercise } from './types';
+import type { Category, Equipment, Exercise } from './types';
+
+export const ALL_EQUIPMENT: readonly Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 
 export const EXERCISES: Exercise[] = [
   // --- Warmup / mobility flows ---
@@ -37,6 +39,8 @@ export const EXERCISES: Exercise[] = [
   { id: 'dead-hang', name: 'Dead Hang', category: 'pull', equipment: ['pullup_bar'], goals: ['strength', 'skill'], unilateral: false, measure: 'time', cue: 'Dead Hang. Relax your shoulders and just hang.', defaultDurationSec: 30 },
   { id: 'scap-pull', name: 'Scapular Pull-up', category: 'pull', equipment: ['pullup_bar'], goals: ['strength', 'skill'], unilateral: false, measure: 'reps', cue: 'Scapular Pull-ups. Pull your shoulder blades down, small range.', defaultReps: 8 },
   { id: 'negative-pullup', name: 'Negative Pull-up', category: 'pull', equipment: ['pullup_bar'], goals: ['strength', 'skill'], unilateral: false, measure: 'reps', cue: 'Negative Pull-ups. Jump to the top, lower as slowly as you can.', defaultReps: 5 },
+  // The one pull with no bar: works the upper back and shoulder blades lying face down.
+  { id: 'prone-ytw', name: 'Prone Y-T-W Raises', category: 'pull', equipment: ['bodyweight'], goals: ['strength', 'mobility'], unilateral: false, measure: 'reps', cue: 'Y-T-W raises. Lie face down, lift your arms in a Y, a T, then a W.', defaultReps: 6 },
   { id: 'band-pull', name: 'Band-Assisted Pull-up', category: 'pull', equipment: ['pullup_bar', 'blocks_bands'], goals: ['strength', 'skill'], unilateral: false, measure: 'reps', cue: 'Band-assisted Pull-ups. Drive your elbows down.', defaultReps: 6 },
 
   // --- Legs ---

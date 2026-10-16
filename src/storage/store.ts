@@ -1,5 +1,6 @@
 import type { Equipment, Segment, SegmentKind, SoreArea, Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
 import { computeStreak } from './streak';
+import { ALL_EQUIPMENT } from '../domain/exercises';
 
 export interface Completion {
   date: string;        // YYYY-MM-DD
@@ -20,7 +21,8 @@ export interface Prefs {
 export interface Checkpoint {
   workout: Workout;
   segmentIndex: number;
-  elapsedSec: number;
+  elapsedSec: number;  // how far into that segment (to the second, when saved on pause)
+  date: string;        // YYYY-MM-DD it was saved: only a same-day workout is offered for resume
 }
 
 export interface Store {
@@ -32,7 +34,6 @@ export interface Store {
 }
 
 const KEY = 'mwe.store.v1';
-const EQUIPMENT: readonly Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 const STYLES: readonly WorkoutStyle[] = ['circuit', 'stations'];
 const SORE_AREAS: readonly SoreArea[] = ['none', 'shoulders', 'back', 'legs'];
 const WORKOUT_KINDS: readonly WorkoutKind[] = ['10min', '20min', '30min', 'free'];
@@ -50,9 +51,10 @@ const isString = (v: unknown): v is string => typeof v === 'string';
 const isStringArray = (v: unknown): v is string[] => Array.isArray(v) && v.every(isString);
 const isOneOf = <T extends string>(options: readonly T[], v: unknown): v is T =>
   options.some((o) => o === v);
+const isDate = (v: unknown): v is string => isString(v) && /^\d{4}-\d{2}-\d{2}$/.test(v);
 
 function isCompletion(v: unknown): v is Completion {
-  return isRecord(v) && isString(v.date) && /^\d{4}-\d{2}-\d{2}$/.test(v.date)
+  return isRecord(v) && isDate(v.date)
     && isString(v.kind) && isString(v.focus) && isStringArray(v.exerciseIds) && isNumber(v.durationSec)
     && (v.sore === undefined || isOneOf(SORE_AREAS, v.sore));
 }
@@ -60,8 +62,8 @@ function isCompletion(v: unknown): v is Completion {
 function readPrefs(v: unknown): Prefs {
   const p = isRecord(v) ? v : {};
   const prefs: Prefs = {
-    equipment: Array.isArray(p.equipment) && p.equipment.every((e) => isOneOf(EQUIPMENT, e))
-      ? p.equipment : [...EQUIPMENT],
+    equipment: Array.isArray(p.equipment) && p.equipment.every((e) => isOneOf(ALL_EQUIPMENT, e))
+      ? p.equipment : [...ALL_EQUIPMENT],
   };
   if (isString(p.voiceURI)) prefs.voiceURI = p.voiceURI;
   if (isOneOf(STYLES, p.style)) prefs.style = p.style;
@@ -84,7 +86,7 @@ function isCheckpoint(v: unknown): v is Checkpoint {
   if (!Array.isArray(w.segments) || w.segments.length === 0 || !w.segments.every(isSegment)) return false;
   return isNumber(v.segmentIndex) && Number.isInteger(v.segmentIndex)
     && v.segmentIndex >= 0 && v.segmentIndex < w.segments.length
-    && isNumber(v.elapsedSec) && v.elapsedSec >= 0;
+    && isNumber(v.elapsedSec) && v.elapsedSec >= 0 && isDate(v.date);
 }
 
 function readStore(v: unknown): Store {
@@ -151,8 +153,10 @@ export function saveCheckpoint(c: Checkpoint): void {
   saveStore(s);
 }
 
-export function getCheckpoint(): Checkpoint | null {
-  return loadStore().checkpoint ?? null;
+/** Today's unfinished workout, if any. One left over from an earlier day isn't offered. */
+export function getCheckpoint(today: string): Checkpoint | null {
+  const cp = loadStore().checkpoint;
+  return cp && cp.date === today ? cp : null;
 }
 
 export function clearCheckpoint(): void {

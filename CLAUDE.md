@@ -137,6 +137,13 @@ its map; never re-add the 5,000-icon webfont).
   frames while hidden; one giant tick would fire every remaining cue at once), and the hook pauses on
   `visibilitychange` → hidden. `pause()`/`resume()` emit `statusChanged` so the UI shows Resume. The
   wake lock (`src/pwa/wakeLock.ts`) re-takes itself on return because the browser drops it when hidden.
+- **Resume:** the hook saves a `Checkpoint` when each segment starts and **to the second on pause**
+  (so leaving the app, which pauses, keeps the exact spot even if the phone then closes the app).
+  `Checkpoint.date` is the local day; `getCheckpoint(today)` only offers a same-day workout.
+- **Equipment:** the Change sheet's "Everything / Bodyweight only" toggle sets `Prefs.equipment`
+  (`ALL_EQUIPMENT` lives in `domain/exercises.ts`). Bodyweight only is guarded for every length and
+  style in `generateWorkout.test.ts`, including that every such workout has a Pull — `prone-ytw`
+  (Prone Y-T-W Raises) is the one bar-free pull; keep at least one.
 - **Saved data is untrusted:** `storage/store.ts` checks every field on load (old app versions, corrupt
   JSON) and falls back to defaults; a checkpoint that doesn't fit the current `Workout` shape is dropped.
   Saves never throw (full / blocked storage). `src/ui/ErrorBoundary.tsx` wraps `App`: a render crash
@@ -157,8 +164,11 @@ build runs `npm run lint && npm run test:run && npm run build` (see `vercel.json
 `src/deployGate.test.ts`), so lint with zero warnings, the full test suite **and** the `tsc -b`
 type-check must pass before a deploy is promoted.
 
-**Dependencies:** Dependabot (`.github/dependabot.yml`) opens grouped minor/patch updates monthly; each
-gets a Vercel preview that runs the gate above. `npm audit` should stay at 0. npm 10.9.4's
+**Dependencies:** Dependabot (`.github/dependabot.yml`) opens grouped minor/patch updates monthly and
+one PR per major version; each gets a Vercel preview that runs the gate above. Before merging, run each
+branch through `npm ci` + the gate locally, and re-check `main` the same way after merging several
+(their lockfile edits are merged as text). `@types/node` majors are ignored: keep it on Vercel's Node
+major (24.x). `npm audit` should stay at 0. npm 10.9.4's
 `npm audit fix` crashes (`edgesOut` of null, an npm resolver bug) — use `npx npm@11 audit fix`;
 the lockfile format is the same.
 

@@ -21,6 +21,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 const KEY = 'mwe.store.v1';
+const TODAY = '2026-06-24';
 const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight'], seed: 1 });
 const completion = { date: '2026-06-24', kind: '20min', focus: 'movement', exerciseIds: ['pushup'], durationSec: 1200 };
 const saveRaw = (data: unknown): void => localStorage.setItem(KEY, JSON.stringify(data));
@@ -40,11 +41,11 @@ describe('store', () => {
   });
 
   it('saves, reads, and clears a checkpoint', () => {
-    expect(getCheckpoint()).toBeNull();
-    saveCheckpoint({ workout: w, segmentIndex: 3, elapsedSec: 0 });
-    expect(getCheckpoint()?.segmentIndex).toBe(3);
+    expect(getCheckpoint(TODAY)).toBeNull();
+    saveCheckpoint({ workout: w, segmentIndex: 3, elapsedSec: 0, date: TODAY });
+    expect(getCheckpoint(TODAY)?.segmentIndex).toBe(3);
     clearCheckpoint();
-    expect(getCheckpoint()).toBeNull();
+    expect(getCheckpoint(TODAY)).toBeNull();
   });
 
   it('tracks recent warm-up themes — newest last, de-duped, capped', () => {
@@ -70,8 +71,14 @@ describe('store', () => {
   });
 
   it('round-trips a real checkpoint unchanged', () => {
-    saveCheckpoint({ workout: w, segmentIndex: 2, elapsedSec: 4.5 });
-    expect(getCheckpoint()).toEqual({ workout: w, segmentIndex: 2, elapsedSec: 4.5 });
+    saveCheckpoint({ workout: w, segmentIndex: 2, elapsedSec: 4.5, date: TODAY });
+    expect(getCheckpoint(TODAY)).toEqual({ workout: w, segmentIndex: 2, elapsedSec: 4.5, date: TODAY });
+  });
+
+  it('only offers to resume a workout from the same day', () => {
+    saveCheckpoint({ workout: w, segmentIndex: 2, elapsedSec: 4.5, date: '2026-06-23' });
+    expect(getCheckpoint('2026-06-23')).not.toBeNull();
+    expect(getCheckpoint('2026-06-24')).toBeNull();
   });
 });
 
@@ -103,19 +110,20 @@ describe('store — damaged or outdated saved data', () => {
 
   it('drops a checkpoint written by an older app version (segment shape changed)', () => {
     const old = { ...w, segments: w.segments.map(({ cues: _cues, ...rest }) => rest) };
-    saveRaw({ checkpoint: { workout: old, segmentIndex: 0, elapsedSec: 0 } });
-    expect(getCheckpoint()).toBeNull();
+    saveRaw({ checkpoint: { workout: old, segmentIndex: 0, elapsedSec: 0, date: TODAY } });
+    expect(getCheckpoint(TODAY)).toBeNull();
   });
 
   it.each([
-    ['index past the end', { workout: w, segmentIndex: w.segments.length, elapsedSec: 0 }],
-    ['fractional index', { workout: w, segmentIndex: 1.5, elapsedSec: 0 }],
-    ['negative time', { workout: w, segmentIndex: 0, elapsedSec: -1 }],
-    ['no segments', { workout: { ...w, segments: [] }, segmentIndex: 0, elapsedSec: 0 }],
-    ['unknown workout kind', { workout: { ...w, kind: '45min' }, segmentIndex: 0, elapsedSec: 0 }],
+    ['index past the end', { workout: w, segmentIndex: w.segments.length, elapsedSec: 0, date: TODAY }],
+    ['fractional index', { workout: w, segmentIndex: 1.5, elapsedSec: 0, date: TODAY }],
+    ['negative time', { workout: w, segmentIndex: 0, elapsedSec: -1, date: TODAY }],
+    ['no segments', { workout: { ...w, segments: [] }, segmentIndex: 0, elapsedSec: 0, date: TODAY }],
+    ['unknown workout kind', { workout: { ...w, kind: '45min' }, segmentIndex: 0, elapsedSec: 0, date: TODAY }],
+    ['no date (older app version)', { workout: w, segmentIndex: 0, elapsedSec: 0 }],
   ])('drops a checkpoint with %s', (_label, checkpoint) => {
     saveRaw({ checkpoint });
-    expect(getCheckpoint()).toBeNull();
+    expect(getCheckpoint(TODAY)).toBeNull();
   });
 
   it('ignores a non-list of recent themes', () => {
@@ -128,7 +136,7 @@ describe('store — storage that refuses to work', () => {
   it('keeps going when storage is full', () => {
     vi.stubGlobal('localStorage', { ...makeMemStorage(), setItem: () => { throw new DOMException('full', 'QuotaExceededError'); } });
     expect(() => recordCompletion(completion)).not.toThrow();
-    expect(() => saveCheckpoint({ workout: w, segmentIndex: 0, elapsedSec: 0 })).not.toThrow();
+    expect(() => saveCheckpoint({ workout: w, segmentIndex: 0, elapsedSec: 0, date: TODAY })).not.toThrow();
   });
 
   it('starts from defaults when storage is blocked', () => {

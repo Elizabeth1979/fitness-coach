@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { SoreArea, Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
+import type { Equipment, SoreArea, Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
+import { ALL_EQUIPMENT } from '../domain/exercises';
 import { focusForDate } from '../generator/schedule';
 import { getPrefs, setPrefs } from '../storage/store';
 import { useVoices } from './useVoices';
@@ -22,6 +23,7 @@ interface Props {
   style?: WorkoutStyle; onStyle?: (s: WorkoutStyle) => void;
   onSwapWarmup?: () => void;
   sore?: SoreArea; onSore?: (s: SoreArea) => void; soreSuggested?: SoreArea;
+  equipment?: Equipment[]; onEquipment?: (e: Equipment[]) => void;
   canResume?: boolean; onResume?: () => void; onReroll: () => void; onStart: () => void;
   onOpenMove: (prepareIndex: number) => void;
   canSwap?: (prepareIndex: number) => boolean;
@@ -31,6 +33,11 @@ const SORES: { id: SoreArea; label: string }[] = [
   { id: 'none', label: 'All good' }, { id: 'shoulders', label: 'Shoulders' },
   { id: 'back', label: 'Back' }, { id: 'legs', label: 'Legs' },
 ];
+const EQUIPMENT_CHOICES: { label: string; equipment: Equipment[] }[] = [
+  { label: 'Everything', equipment: [...ALL_EQUIPMENT] },
+  { label: 'Bodyweight only', equipment: ['bodyweight'] },
+];
+const isBodyweightOnly = (e: readonly Equipment[]) => e.length === 1 && e[0] === 'bodyweight';
 const total = (w: Workout) => Math.round(w.segments.reduce((s, x) => s + x.durationSec, 0) / 60);
 
 // Home is one screen with one job: show today's workout and a big Start.
@@ -179,6 +186,23 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
             {style === 'stations'
               ? `All ${rounds} sets of one move, then the next.`
               : `All moves once, then repeat — ${rounds} rounds.`}
+          </div>
+        </div>
+      )}
+
+      {p.onEquipment && (
+        <div className="field">
+          <span className="eyebrow">Equipment</span>
+          <div role="radiogroup" aria-label="Equipment" className="seg">
+            {EQUIPMENT_CHOICES.map((c) => (
+              <button key={c.label} role="radio" className="seg-btn" onClick={() => p.onEquipment!(c.equipment)}
+                aria-checked={isBodyweightOnly(c.equipment) === isBodyweightOnly(p.equipment ?? ALL_EQUIPMENT)}>{c.label}</button>
+            ))}
+          </div>
+          <div className="hint" style={{ marginTop: 8 }}>
+            {isBodyweightOnly(p.equipment ?? ALL_EQUIPMENT)
+              ? 'No bar, weights or bands — handy when you travel.'
+              : 'Uses your pull-up bar, weights and bands.'}
           </div>
         </div>
       )}
