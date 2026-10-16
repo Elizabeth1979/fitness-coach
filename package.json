@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@fontsource-variable/lexend": "^5.2.11",
-    "@tabler/icons-webfont": "^3.44.0",
+    "@tabler/icons-react": "^3.49.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

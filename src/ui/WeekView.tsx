@@ -1,4 +1,5 @@
 import { weekView } from '../storage/week';
+import { Icon } from './Icon';
 
 interface Props { dates: string[]; today: string }
 export function WeekView({ dates, today }: Props) {
@@ -11,7 +12,7 @@ export function WeekView({ dates, today }: Props) {
           <div key={d.date} style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 13, fontWeight: d.isToday ? 800 : 600, color: d.isToday ? 'var(--brand)' : 'var(--text-muted)', marginBottom: 7 }}>{d.label}</div>
             <div className="daydot" data-done={d.done} data-today={d.isToday}>
-              {d.done && <i className="ti ti-check" aria-hidden="true" style={{ fontSize: 16 }} />}
+              {d.done && <Icon name="check" size={16} />}
             </div>
           </div>
         ))}

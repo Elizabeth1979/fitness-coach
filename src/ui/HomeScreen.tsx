@@ -7,6 +7,7 @@ import { VoicePicker } from './VoicePicker';
 import { WorkoutPreview } from './WorkoutPreview';
 import { warmupMoves, coreMoves } from './format';
 import { warmupFlowName } from '../generator/warmupFlows';
+import { Icon } from './Icon';
 
 function greeting(d: Date): string {
   const h = d.getHours();
@@ -50,13 +51,13 @@ export function HomeScreen(p: Props) {
           <h1 className="t-hero">Move With Elli</h1>
         </div>
         {p.streak > 0 && (
-          <span className="pill"><i className="ti ti-flame" aria-hidden="true" style={{ fontSize: 17, color: 'var(--warm)' }} />{p.streak}-day streak</span>
+          <span className="pill"><Icon name="flame" size={17} style={{ color: 'var(--warm)' }} />{p.streak}-day streak</span>
         )}
       </div>
 
       {p.canResume && p.onResume && (
         <button className="btn btn-soft" onClick={p.onResume} style={{ width: '100%', marginBottom: 14 }}>
-          <i className="ti ti-player-play" aria-hidden="true" />Resume where you stopped
+          <Icon name="player-play" />Resume where you stopped
         </button>
       )}
 
@@ -68,7 +69,7 @@ export function HomeScreen(p: Props) {
 
         {warmups.length > 0 && (
           <div className="summary-row" style={{ borderBottom: '1px solid var(--surface-border)' }}>
-            <i className="ti ti-stretching" aria-hidden="true" />
+            <Icon name="stretching" />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700 }}>Warm-up{warmName ? ` · ${warmName}` : ''}</div>
               <div className="hint">{warmups.length} {warmups.length === 1 ? 'move' : 'moves'} · first</div>
@@ -85,7 +86,7 @@ export function HomeScreen(p: Props) {
 
         {cores.length > 0 && (
           <div className="summary-row" style={{ borderTop: '1px solid var(--surface-border)' }}>
-            <i className="ti ti-flame" aria-hidden="true" />
+            <Icon name="flame" />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700 }}>Core finisher · ~{Math.round(coreSec / 60)} min</div>
               <div className="hint">{cores.map((m) => m.exercise.name).join(' · ')} · last</div>
@@ -95,12 +96,12 @@ export function HomeScreen(p: Props) {
       </section>
 
       <button className="btn btn-soft" onClick={() => setChanging(true)} style={{ width: '100%', marginBottom: 18 }}>
-        <i className="ti ti-adjustments-horizontal" aria-hidden="true" />Change workout
+        <Icon name="adjustments-horizontal" />Change workout
       </button>
 
       <div className="start-bar">
         <button className="btn btn-primary" onClick={p.onStart} style={{ width: '100%' }} aria-label="Start workout">
-          <i className="ti ti-player-play" aria-hidden="true" />Start workout
+          <Icon name="player-play" />Start workout
         </button>
       </div>
 
@@ -134,7 +135,7 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
         <div className="row-between" style={{ marginBottom: 20 }}>
           <h2 className="t-section">Change workout</h2>
           <button className="btn btn-soft" onClick={p.onClose} aria-label="Close" style={{ padding: 9, minHeight: 44, borderRadius: 12 }}>
-            <i className="ti ti-x" aria-hidden="true" style={{ fontSize: 20 }} />
+            <Icon name="x" size={20} />
           </button>
         </div>
 
@@ -185,9 +186,9 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
           <span className="eyebrow">Mix it up</span>
           <div style={{ display: 'flex', gap: 8 }}>
             {p.onSwapWarmup && (
-              <button className="btn btn-soft btn-sm" onClick={p.onSwapWarmup} style={{ flex: 1 }}><i className="ti ti-refresh" aria-hidden="true" />New warm-up</button>
+              <button className="btn btn-soft btn-sm" onClick={p.onSwapWarmup} style={{ flex: 1 }}><Icon name="refresh" />New warm-up</button>
             )}
-            <button className="btn btn-soft btn-sm" onClick={p.onReroll} style={{ flex: 1 }}><i className="ti ti-refresh" aria-hidden="true" />New moves</button>
+            <button className="btn btn-soft btn-sm" onClick={p.onReroll} style={{ flex: 1 }}><Icon name="refresh" />New moves</button>
           </div>
         </div>
 

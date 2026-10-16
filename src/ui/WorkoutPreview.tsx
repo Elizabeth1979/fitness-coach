@@ -1,6 +1,7 @@
 import type { Workout } from '../domain/types';
 import { circuitMoves } from './format';
 import { catColor } from './categoryColor';
+import { Icon } from './Icon';
 
 interface Props { workout: Workout; onOpenMove: (prepareIndex: number) => void }
 
@@ -25,7 +26,7 @@ export function WorkoutPreview({ workout, onOpenMove }: Props) {
               {catColor(m.category).label} · {m.target}{stations ? ` · ${workout.rounds} sets` : ''}
             </span>
           </span>
-          <span className="swap-pill" aria-hidden="true"><i className="ti ti-arrows-exchange" />Swap</span>
+          <span className="swap-pill" aria-hidden="true"><Icon name="arrows-exchange" />Swap</span>
         </button>
       ))}
     </div>

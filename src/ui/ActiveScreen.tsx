@@ -4,6 +4,7 @@ import { TimerRing } from './TimerRing';
 import { sessionMoves, currentMoveIndex, roundInfo, stationInfo } from './format';
 import { catColor } from './categoryColor';
 import { phrases } from '../coach/phrases';
+import { Icon } from './Icon';
 
 interface Props {
   state: SessionState; workout: Workout;
@@ -61,7 +62,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
         {phaseLabel && <div className="muted" style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
         {musicAvailable && onToggleMusic && (
           <button onClick={onToggleMusic} aria-label={musicOn ? 'Mute background beats' : 'Play background beats'} aria-pressed={musicOn} className="icon-toggle">
-            <i className={`ti ${musicOn ? 'ti-music' : 'ti-music-off'}`} aria-hidden="true" style={{ fontSize: 18 }} />
+            <Icon name={musicOn ? 'music' : 'music-off'} size={18} />
           </button>
         )}
       </div>
@@ -92,7 +93,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
         if (!up) return null;
         return (
           <div className="card row" style={{ gap: 11, padding: '11px 13px', marginBottom: 18 }}>
-            <span className="icon-badge"><i className="ti ti-player-track-next" aria-hidden="true" /></span>
+            <span className="icon-badge"><Icon name="player-track-next" /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="eyebrow" style={{ fontSize: 'var(--fs-2xs)' }}>Next up</div>
               <div className="t-panel">{up.name}</div>
@@ -104,10 +105,10 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
 
       <div style={{ display: 'flex', gap: 9, marginTop: 'auto' }}>
         {state.status === 'paused'
-          ? <button className="btn btn-primary" style={{ flex: 1 }} onClick={onResume}><i className="ti ti-player-play" aria-hidden="true" />Resume</button>
-          : <button className="btn btn-dark" style={{ flex: 1 }} onClick={onPause}><i className="ti ti-player-pause" aria-hidden="true" />Pause</button>}
-        <button className="btn btn-soft" style={{ flex: 1 }} onClick={onSkip}><i className="ti ti-player-skip-forward" aria-hidden="true" />Skip</button>
-        <button className="btn btn-ghost" onClick={onEnd} aria-label="End workout" style={{ minWidth: 56 }}><i className="ti ti-x" aria-hidden="true" style={{ fontSize: 20 }} /></button>
+          ? <button className="btn btn-primary" style={{ flex: 1 }} onClick={onResume}><Icon name="player-play" />Resume</button>
+          : <button className="btn btn-dark" style={{ flex: 1 }} onClick={onPause}><Icon name="player-pause" />Pause</button>}
+        <button className="btn btn-soft" style={{ flex: 1 }} onClick={onSkip}><Icon name="player-skip-forward" />Skip</button>
+        <button className="btn btn-ghost" onClick={onEnd} aria-label="End workout" style={{ minWidth: 56 }}><Icon name="x" size={20} /></button>
       </div>
     </main>
   );

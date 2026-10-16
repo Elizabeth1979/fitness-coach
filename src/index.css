@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import '@tabler/icons-webfont/dist/tabler-icons.min.css';
 @import '@fontsource-variable/lexend';
 
 /* ============================================================================
@@ -59,6 +58,8 @@ h1, h2, h3, h4 { margin: 0; font-weight: 800; line-height: 1.1; letter-spacing: 
 p { margin: 0; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; padding: 0; }
 :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+/* inline SVG icons (src/ui/Icon.tsx) — sized by the surrounding text, coloured by it too */
+.icon { flex-shrink: 0; vertical-align: -0.125em; }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 
 /* ============================================================================
@@ -92,7 +93,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .card { background: var(--surface); border: var(--bd); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 16px; animation: pop-in .35s cubic-bezier(.21,1.02,.45,1) both; }
 /* a summary line inside the card (warm-up, core finisher) */
 .summary-row { display:flex; align-items:center; gap:12px; padding:12px 2px; }
-.summary-row > .ti { font-size: 22px; color: var(--text-muted); width: 28px; text-align: center; flex-shrink: 0; }
+.summary-row > .icon { width: 22px; height: 22px; margin-inline: 3px; color: var(--text-muted); }
 
 /* ============================================================================
    BUTTONS
