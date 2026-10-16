@@ -7,8 +7,9 @@ https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md`](sessi
 There is **no half-finished work**. GitHub: only `main` + `gh-pages` (redirect, keep it), no open PRs.
 
 **First, check with Elli:** did re-adding the app to her home screen from the Vercel address
-show the new design? (Old installs from `github.io` now forward + clear their cache; new
-versions now arrive on their own when she returns to the app.)
+show the new design **and the new green play-button icon**? (Old installs from `github.io` now
+forward + clear their cache; new versions now arrive on their own when she returns to the app.)
+Also ask: keep the green/near-black confetti on the finish screen, or bring the rainbow back?
 
 ### Done 2026-10-16 (the whole list)
 - [x] **Real app icons** — green "Start" play button; redraw with `python3 design/render_icons.py`.
