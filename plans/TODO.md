@@ -5,14 +5,15 @@
 Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md`](sessions/2026-10-16.md).
 **Merged:** PR #13 — four bug fixes (leave-the-app pause + Pause/Resume, wake lock, local dates, storage
 safety). Check on Elli's phone: lock the screen mid-workout → comes back paused, screen stays on after.
-**Merged:** PR #14 — security headers (served on Vercel, checked). **Open:** draft PR — audit fix, Dependabot, lint gate.
+**Merged:** PR #14 (security headers), PR #15 (audit 0, Dependabot, lint gate). **Open:** draft PR — exact-second same-day Resume + equipment toggle.
 `gh-pages` is a redirect — keep it.
 
 ### Next — from the 2026-10-16 review plan (see the session log's "Evening" section)
 - [x] Security headers in `vercel.json` (CSP, nosniff, Referrer-Policy, COOP, Permissions-Policy) — merged, PR #14.
-- [x] `npm audit fix` (0 vulnerabilities), Dependabot (monthly, grouped), `lint` (warnings fail) in the Vercel build — PR open.
+- [x] `npm audit fix` (0 vulnerabilities), Dependabot (monthly, grouped), `lint` (warnings fail) in the Vercel build — merged, PR #15.
 - [ ] Elli: turn on **Dependabot alerts + security updates** in GitHub → Settings → Code security (a repo setting, not a file).
-- [ ] Resume: same day only, from the exact second. "Bodyweight only today" toggle.
+- [x] Resume: same day only, from the exact second. Equipment toggle (Everything / Bodyweight only) — PR open.
+- [ ] Elli decides: add a bodyweight pull move (e.g. prone Y-T-W raises)? Bodyweight-only has no Pull today.
 - [ ] Read prefs once in `App`; inline styles → `index.css` classes; ask Elli which Change-sheet options she uses.
 
 **First, check with Elli:** did re-adding the app to her home screen from the Vercel address

@@ -29,12 +29,12 @@ describe('ErrorBoundary', () => {
 
   it('clears the resume point but keeps the streak history', () => {
     const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight'], seed: 1 });
-    saveCheckpoint({ workout: w, segmentIndex: 0, elapsedSec: 0 });
+    saveCheckpoint({ workout: w, segmentIndex: 0, elapsedSec: 0, date: '2026-06-24' });
     recordCompletion({ date: '2026-06-24', kind: '10min', focus: 'movement', exerciseIds: ['x'], durationSec: 600 });
 
     render(<ErrorBoundary><Flaky /></ErrorBoundary>);
 
-    expect(getCheckpoint()).toBeNull();
+    expect(getCheckpoint('2026-06-24')).toBeNull();
     expect(loadStore().completions).toHaveLength(1);
   });
 });

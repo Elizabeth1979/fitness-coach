@@ -1,4 +1,6 @@
-import type { Category, Exercise } from './types';
+import type { Category, Equipment, Exercise } from './types';
+
+export const ALL_EQUIPMENT: readonly Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 
 export const EXERCISES: Exercise[] = [
   // --- Warmup / mobility flows ---

@@ -36,6 +36,23 @@ describe('generateWorkout', () => {
     expect(generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 1 }).focus).toBe('movement');
   });
 
+  it('bodyweight only: never needs equipment and still fits the time, in every length and style', () => {
+    for (const [kind, target] of [['10min', 600], ['20min', 1200], ['30min', 1800]] as const) {
+      for (const style of ['circuit', 'stations'] as const) {
+        for (const date of [WED, TUE]) {
+          for (let seed = 0; seed <= 40; seed++) {
+            const w = generateWorkout({ kind, date, equipment: ['bodyweight'], seed, style });
+            const label = `${kind} ${style} ${date.toISOString()} seed ${seed}`;
+            expect(Math.abs(total(w.segments) - target), label).toBeLessThanOrEqual(45);
+            for (const seg of w.segments) {
+              if (seg.exercise) expect(seg.exercise.equipment, `${label}: ${seg.exercise.id}`).toEqual(['bodyweight']);
+            }
+          }
+        }
+      }
+    }
+  });
+
   it('total duration stays within 45s of target across many seeds and both focuses', () => {
     for (const [kind, target] of [['10min', 600], ['20min', 1200], ['30min', 1800]] as const) {
       const maxSeed = kind === '10min' ? 400 : 60; // 10-min is the tightest budget — sweep it hard

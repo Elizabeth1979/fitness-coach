@@ -42,7 +42,7 @@ is `/` (root) — see `base` in `vite.config.ts` and `scope`/`start_url` in the 
 - Give the two single-goal mobility moves a second goal; mark `EXERCISES` `readonly`.
 - Add a test for `pick()` throwing on an empty array; tighten a couple of test stubs.
 - `spreadDrift` could redistribute leftover seconds if a work bout ever clamps (doesn't happen with the current exercises).
-- Mid-segment resume: today "Resume" restarts the current exercise from its start (the engine already supports finer resume — just store live elapsed seconds in the checkpoint).
+- ✓ Mid-segment resume: Resume continues from the second you paused or left (same day only).
 - Consolidate the test-only localStorage shim via a jsdom URL in `vite.config.ts`.
 
 **UI follow-ups:**

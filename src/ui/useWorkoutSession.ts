@@ -7,6 +7,7 @@ import { createFeedback } from '../feedback/feedback';
 import { createBeats } from '../feedback/beats';
 import { requestWakeLock, releaseWakeLock } from '../pwa/wakeLock';
 import { getPrefs, setPrefs, saveCheckpoint, clearCheckpoint } from '../storage/store';
+import { localDate } from '../domain/date';
 
 const IDLE: SessionState = { status: 'idle', segmentIndex: 0, segment: null, segmentRemainingSec: 0 };
 
@@ -36,14 +37,22 @@ export function useWorkoutSession(workout: Workout | null) {
     if (!workout) return;
     setCompleted(false);
     const clock = new RafClock();
+    // Where to pick up after leaving: saved when each segment starts, and to the
+    // second on pause (leaving the app pauses too). Not during the celebration.
+    const remember = (s: SessionState) => {
+      if (!s.segment || s.segment.kind === 'celebrate') return;
+      saveCheckpoint({ workout, segmentIndex: s.segmentIndex, elapsedSec: s.segment.durationSec - s.segmentRemainingSec, date: localDate(new Date()) });
+    };
     const session = new WorkoutSession(workout, clock, (e) => {
-      if (e.type === 'tick' || e.type === 'statusChanged') {
+      if (e.type === 'tick') {
         setState(e.state);
+      } else if (e.type === 'statusChanged') {
+        setState(e.state);
+        if (e.state.status === 'paused') remember(e.state);
       } else if (e.type === 'segmentChanged') {
-        setState(session.getState());
-        if (workout && e.segment.kind !== 'celebrate') {
-          saveCheckpoint({ workout, segmentIndex: e.index, elapsedSec: 0 });
-        }
+        const s = session.getState();
+        setState(s);
+        remember(s);
       } else if (e.type === 'cue') {
         if (e.cue.say) { beats.duck(e.cue.say); coach.speak(e.cue.say); }
         if (e.cue.haptic) feedback.fire(e.cue.haptic);

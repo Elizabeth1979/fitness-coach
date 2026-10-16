@@ -137,6 +137,13 @@ its map; never re-add the 5,000-icon webfont).
   frames while hidden; one giant tick would fire every remaining cue at once), and the hook pauses on
   `visibilitychange` → hidden. `pause()`/`resume()` emit `statusChanged` so the UI shows Resume. The
   wake lock (`src/pwa/wakeLock.ts`) re-takes itself on return because the browser drops it when hidden.
+- **Resume:** the hook saves a `Checkpoint` when each segment starts and **to the second on pause**
+  (so leaving the app, which pauses, keeps the exact spot even if the phone then closes the app).
+  `Checkpoint.date` is the local day; `getCheckpoint(today)` only offers a same-day workout.
+- **Equipment:** the Change sheet's "Everything / Bodyweight only" toggle sets `Prefs.equipment`
+  (`ALL_EQUIPMENT` lives in `domain/exercises.ts`). Bodyweight only is guarded for every length and
+  style in `generateWorkout.test.ts`. The library has **no bodyweight pull move**, so bodyweight-only
+  workouts skip Pull (the sheet's hint says so) — add one and drop that hint together.
 - **Saved data is untrusted:** `storage/store.ts` checks every field on load (old app versions, corrupt
   JSON) and falls back to defaults; a checkpoint that doesn't fit the current `Workout` shape is dropped.
   Saves never throw (full / blocked storage). `src/ui/ErrorBoundary.tsx` wraps `App`: a render crash

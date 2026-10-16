@@ -1,7 +1,9 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useWorkoutSession } from './useWorkoutSession';
 import { generateWorkout } from '../generator/generateWorkout';
+import { getCheckpoint } from '../storage/store';
+import { localDate } from '../domain/date';
 
 const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight'], seed: 1 });
 
@@ -11,7 +13,29 @@ function setVisibility(state: DocumentVisibilityState): void {
 }
 
 describe('useWorkoutSession', () => {
-  afterEach(() => setVisibility('visible'));
+  afterEach(() => { setVisibility('visible'); vi.unstubAllGlobals(); localStorage.clear(); });
+
+  it('saves the exact second on pause, so Resume continues mid-move', () => {
+    // Drive animation frames by hand (the hook uses the real-clock adapter).
+    let now = 0;
+    let queued: FrameRequestCallback | null = null;
+    vi.stubGlobal('performance', { now: () => now });
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => { queued = cb; return 1; });
+    vi.stubGlobal('cancelAnimationFrame', () => { queued = null; });
+    const advance = (sec: number) => {
+      for (let i = 0; i < sec * 10; i++) { now += 100; const cb = queued; queued = null; act(() => cb?.(now)); }
+    };
+
+    const { result } = renderHook(() => useWorkoutSession(w));
+    act(() => result.current.start());
+    advance(3);
+    act(() => result.current.pause());
+
+    const cp = getCheckpoint(localDate(new Date()));
+    expect(cp?.segmentIndex).toBe(0);
+    expect(cp?.elapsedSec).toBeCloseTo(3, 5);
+  });
+
 
   it('pause() shows paused and resume() shows running again', () => {
     const { result } = renderHook(() => useWorkoutSession(w));
