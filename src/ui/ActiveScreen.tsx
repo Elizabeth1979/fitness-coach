@@ -3,6 +3,7 @@ import type { Workout } from '../domain/types';
 import { TimerRing } from './TimerRing';
 import { sessionMoves, currentMoveIndex, roundInfo, stationInfo } from './format';
 import { catColor } from './categoryColor';
+import { phrases } from '../coach/phrases';
 
 interface Props {
   state: SessionState; workout: Workout;
@@ -77,6 +78,10 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
       <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0 18px' }}>
         <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} color={ringColor} />
       </div>
+
+      {!isRest && !isCelebrate && seg?.exercise && (
+        <div className="cue" style={{ marginBottom: 14 }}>{phrases.form(seg.exercise)}</div>
+      )}
 
       {!isCelebrate && !isSwitch && (() => {
         // On the left side of a one-sided move, what comes next is its right side.

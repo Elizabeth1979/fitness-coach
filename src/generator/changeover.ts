@@ -74,11 +74,11 @@ export function annotateChangeovers(segments: Segment[], rounds: number): Segmen
     if (seg.kind === 'work' || seg.kind === 'switch') return { ...seg, cues: withClosingCount(seg) };
     if (seg.kind !== 'rest' && seg.kind !== 'roundrest') return seg;
     const next = segments[i + 1];
-    const name = next && (next.kind === 'prepare' || next.kind === 'work') ? next.exercise?.name : undefined;
+    const upNext = next && (next.kind === 'prepare' || next.kind === 'work') ? next.exercise : undefined;
     const base = seg.kind === 'roundrest' ? phrases.roundComplete(seg.round ?? 1, rounds) : phrases.rest();
     const opening: Cue = {
       atSec: 0,
-      say: name ? `${base} ${phrases.nextUp(name)}` : base,
+      say: upNext ? `${base} ${phrases.nextUp(upNext)}` : base,
       haptic: seg.cues.find((c) => c.atSec === 0)?.haptic ?? 'rest',
     };
     const kept = seg.cues.filter((c) => c.atSec !== 0 && !isCount(c));

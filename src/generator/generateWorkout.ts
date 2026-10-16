@@ -223,7 +223,7 @@ function buildWarmup(flow: WarmupFlow, focus: Focus, target: number, cheer: () =
   const dur = flow.free ? freeDanceSec(target) : WARMUP_MOVE_SEC;
   const intro = `${phrases.welcome(focus)} ${phrases.warmupAnnounce(flow.name)}`;
   return moves.map((ex, i) => {
-    const say = i === 0 ? `${intro} ${phrases.exercise(ex.name)}` : phrases.exercise(ex.name);
+    const say = i === 0 ? `${intro} ${phrases.howTo(ex)}` : phrases.howTo(ex);
     return warmupSegment(ex, dur, say, cheer);
   });
 }

@@ -3,6 +3,7 @@ import { generateWorkout } from './generateWorkout';
 import type { Equipment, Segment, Workout } from '../domain/types';
 import { EXERCISES } from '../domain/exercises';
 import { SLOTS_SHORT } from './selectExercises';
+import { phrases } from '../coach/phrases';
 
 const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 const WED = new Date('2026-06-24T08:00:00'); // movement day
@@ -107,6 +108,13 @@ describe('generateWorkout', () => {
     expect(first.kind).toBe('work');
     expect(first.exercise?.category).toBe('warmup');
     expect(first.cues[0].say?.toLowerCase()).toContain("today's warm-up:");
+  });
+
+  it('says how to do each warm-up move as it starts', () => {
+    const w = generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 4 });
+    for (const s of w.segments.filter((x) => x.exercise?.category === 'warmup')) {
+      expect(s.cues[0].say).toContain(phrases.howTo(s.exercise!));
+    }
   });
 
   it('keeps warm-up segments short (not stretched by the time budget)', () => {

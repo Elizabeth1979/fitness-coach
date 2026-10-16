@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { ActiveScreen } from './ActiveScreen';
 import { generateWorkout } from '../generator/generateWorkout';
 import type { SessionState } from '../engine/session';
+import { EXERCISES } from '../domain/exercises';
 
 const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'], seed: 4 });
 const firstCircuit = w.segments.findIndex((s) => s.kind === 'work' && s.round === 1);
@@ -14,6 +15,12 @@ describe('ActiveScreen', () => {
     expect(screen.getByText(w.segments[firstCircuit].exercise!.name)).toBeInTheDocument();
     expect(screen.getByText(/Move \d+ of \d+/)).toBeInTheDocument();
     expect(screen.getByText(/Round \d+ of \d+/)).toBeInTheDocument();
+  });
+
+  it('shows how to do the current move, without repeating its name', () => {
+    const seg = { ...w.segments[firstCircuit], exercise: EXERCISES.find((e) => e.id === 'hip-circles')! };
+    render(<ActiveScreen state={{ ...state, segment: seg }} workout={w} onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
+    expect(screen.getByText('Hands on hips, big slow circles each way.')).toBeInTheDocument();
   });
 
   it('shows a round-rest screen between rounds', () => {
