@@ -131,3 +131,6 @@ the `tsc -b` type-check must pass before a deploy is promoted.
 
 Design specs and the TDD implementation plans live in `docs/superpowers/`; the roadmap and polish
 backlog are in `docs/NEXT-STEPS.md`.
+
+**Session rhythm:** start by reading `plans/TODO.md` (the "resume here" entry); end by writing a
+session log in `plans/sessions/YYYY-MM-DD.md` and refreshing `plans/TODO.md`.

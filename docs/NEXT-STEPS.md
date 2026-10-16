@@ -2,7 +2,11 @@
 
 v1 ("The Spine") is complete on `main`: press Start → a rule-based generator builds a
 timed full-body workout → a voice coach guides you through it → it celebrates what you
-practiced and saves your streak. Offline-capable PWA. 47 tests, clean strict build.
+practiced and saves your streak. Offline-capable PWA that updates itself. 127 tests, clean
+strict build and lint.
+
+> **Resume list:** [`plans/TODO.md`](../plans/TODO.md) · **Latest session log:**
+> [`plans/sessions/2026-10-16.md`](../plans/sessions/2026-10-16.md)
 
 ## Run it locally
 
@@ -12,7 +16,7 @@ npm run dev      # open the printed http://localhost:5173/ URL
 ```
 
 - Tap **Start** (the screen needs one tap to unlock audio — that's a browser rule).
-- Voice uses your device's built-in voices; pick a nicer one with the **Coach voice** control at the bottom of the home screen.
+- Voice uses your device's built-in voices; pick a nicer one under **Change workout → Coach voice**.
 - Haptics buzz on Android; on iPhone you'll hear small tones instead (iOS has no web vibration).
 
 Other commands: `npm run build` (production build + service worker), `npm run test:run` (tests).
@@ -31,7 +35,7 @@ is `/` (root) — see `base` in `vite.config.ts` and `scope`/`start_url` in the 
 
 ## Before sharing publicly
 
-- **Replace the placeholder app icons** — `public/icons/icon-192.png` and `icon-512.png` are 1×1 placeholders. Drop in real 192×192 and 512×512 art so the installed app looks right.
+- **Replace the placeholder app icons** — `public/icons/icon-192.png` and `icon-512.png` are 1×1 placeholders, so the home-screen icon is blank. Drop in real 192×192 and 512×512 art.
 
 ## Polish backlog (small, non-blocking — found during code review)
 
@@ -41,16 +45,26 @@ is `/` (root) — see `base` in `vite.config.ts` and `scope`/`start_url` in the 
 - Mid-segment resume: today "Resume" restarts the current exercise from its start (the engine already supports finer resume — just store live elapsed seconds in the checkpoint).
 - Consolidate the test-only localStorage shim via a jsdom URL in `vite.config.ts`.
 
-**Visual-redesign follow-ups:**
-- Trim the icon font: only the 457 KB `woff2` is precached, but `.woff`/`.ttf` (~3.6 MB) ship in `dist` unused — drop them, or replace the ~15 icons used with inline SVGs (precache is ~900 KB now).
-- Tokenize the few remaining inline hexes (`.btn-ghost` `#f3edfa`, WeekView empty-cell) into `:root` variables.
-- MoveDetail: trap focus + auto-focus on open (`aria-modal` is already set).
-- Home Compact view could show the target inline (it hides it now; Detailed is the default); make the warm-up banner icon theme-appropriate (always a music note today).
+**UI follow-ups:**
+- Trim the icon font: only the 457 KB `woff2` is precached, but `.woff`/`.ttf` (~3.6 MB) ship in `dist` unused — drop them, or replace the ~20 icons used with inline SVGs.
+- Tokenize the last inline colours (timer-ring greys/green, rest background in `ActiveScreen`/`TimerRing`) into `:root` variables.
+- MoveDetail and the Change sheet: trap focus + auto-focus on open (`aria-modal` is already set).
+- Hide/disable **Swap** when a move has no alternative (rare: bodyweight-only + 10-min + hinge).
 
 ## Shipped since v1
 
+- **✓ 2026-10-16 — clear, calm, and enough time to move** ([session log](../plans/sessions/2026-10-16.md)):
+  high-contrast redesign where colour only means "do this" (Lexend, no pastels/gradients/pink,
+  one design system in `src/index.css`); one-button home with a **Change workout** sheet;
+  ~20s changeovers that announce "Next up" + how-to and count a real one-per-second 3-2-1;
+  a 3-2-1 at the end of every exercise; a **"Switch sides"** gap for one-sided moves (10-min
+  now uses two-sided moves; added Bodyweight Squat, Goblet Squat, Glute Bridge); encouragement
+  in every exercise from `src/coach/encouragements.json`; how-to for every move on screen and
+  spoken (PR #12); the installed app updates itself; the old GitHub Pages address forwards to Vercel.
+
 - **✓ Rounds — same circuit, repeated** — a workout is now one fixed circuit of ≤6 exercises
-  (Push·Pull·Legs·Hinge·Carry-or-Crawl·Mobility) repeated for **2 / 3 / 5 rounds** (10 / 20 / 30 min),
+  (Push·Pull·Legs·Hinge·Carry-or-Crawl·Mobility) repeated for **3 / 3 / 5 rounds** (10 / 20 / 30 min;
+  the 10-min later trimmed to a Push·Pull·Legs trio),
   the *same* exercises every round (repetition builds the movement), with a longer **round-rest**
   between rounds (coach: "Round 1 of 3 complete. Rest up." → "Round 2. Here we go."). Home shows the
   circuit **once** with an "N rounds" badge + "The circuit · repeat N×" header; Active shows a
