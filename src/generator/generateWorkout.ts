@@ -5,6 +5,7 @@ import { selectExercises, candidatesFor, slotsForSore, SLOTS, SLOTS_SHORT } from
 import { focusForDate } from './schedule';
 import { createRng, pick } from './rng';
 import { phrases } from '../coach/phrases';
+import { PREPARE_SEC, CHANGE_REST_SEC, prepareCues, annotateChangeovers } from './changeover';
 import { pickWarmupFlow, WARMUP_FLOWS, type WarmupFlow } from './warmupFlows';
 import { exerciseById } from '../domain/exercises';
 
@@ -33,7 +34,6 @@ export const TARGET_SECONDS: Record<Exclude<WorkoutKind, 'free'>, number> = {
 const ROUNDS: Record<WorkoutKind, number> = { '10min': 3, '20min': 3, '30min': 5, free: 3 };
 
 const CELEBRATE_SEC = 18;
-const PREPARE_SEC = 4;
 // NOTE: the 10-min/2-round budget's worst case is every work bout at this floor.
 // It stays within the 45s tolerance only because ≤3 circuit categories are
 // unilateral today (see the "worst-case 10-min floor budget" test). Adding
@@ -45,10 +45,6 @@ const WARMUP_MOVE_SEC = 30;
 // rotating to a different core move every CORE_BOUT_SEC.
 const ABS_TARGET: Record<WorkoutKind, number> = { '10min': 120, '20min': 150, '30min': 180, free: 150 };
 const CORE_BOUT_SEC = 30;
-// Brief catch-your-breath rest between exercises within a round. The real
-// recovery is the longer round-rest; keeping this short is what lets a 10-min
-// two-round circuit fit its budget (12 short rests would otherwise dominate).
-const SHORT_REST_SEC = 12;
 
 const clamp = (v: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, v));
 
@@ -115,26 +111,31 @@ function spreadDrift(units: Unit[], drift: number): void {
   }
 }
 
-function prepareSegment(ex: Exercise, lead: string, round: number): Segment {
-  const cues: Cue[] = [
-    { atSec: 0, say: lead, haptic: 'next' },
-    { atSec: 1, say: phrases.count(3) },
-    { atSec: 2, say: phrases.count(2) },
-    { atSec: 3, say: phrases.count(1) },
-  ];
-  return { kind: 'prepare', exercise: ex, durationSec: PREPARE_SEC, cues, round };
+function prepareSegment(ex: Exercise, round: number): Segment {
+  return { kind: 'prepare', exercise: ex, durationSec: PREPARE_SEC, cues: prepareCues(), round };
 }
 
-// `explain` = the move's first set: say how to do it (later sets just "Begin").
-function workSegment(u: Unit, round: number, rng: () => number, explain: boolean): Segment {
-  const cues: Cue[] = [{ atSec: 0, say: explain ? phrases.beginHowTo(u.ex) : phrases.begin(), haptic: 'start' }];
-  if (u.dur >= 25) cues.push({ atSec: Math.floor(u.dur / 2), say: phrases.encourage(rng) });
+// Encouragement in every exercise: halfway through a short one, about every 30s
+// in a long one. Never later than 6s before the end, so a line has finished
+// before the closing "three-two-one" (speech can't overlap).
+function encouragementCues(dur: number, cheer: () => string): Cue[] {
+  const latest = dur - 6;
+  const times: number[] = [];
+  if (dur < 60) times.push(Math.floor(dur / 2));
+  else for (let t = 30; t <= latest; t += 30) times.push(t);
+  return times.filter((t) => t >= 1 && t <= latest).map((atSec) => ({ atSec, say: cheer() }));
+}
+
+function workSegment(u: Unit, round: number, cheer: () => string): Segment {
+  const cues: Cue[] = [{ atSec: 0, say: phrases.begin(), haptic: 'start' }, ...encouragementCues(u.dur, cheer)];
   cues.push({ atSec: Math.max(1, u.dur - 5), haptic: 'countdown' });
   return { kind: 'work', exercise: u.ex, side: u.side, durationSec: u.dur, cues, round };
 }
 
-function shortRestSegment(round: number): Segment {
-  return { kind: 'rest', durationSec: SHORT_REST_SEC, round, cues: [{ atSec: 0, say: phrases.rest(), haptic: 'rest' }] };
+// A changeover rest. What it says ("Rest. Next up: …") and any closing
+// countdown are filled in by annotateChangeovers once the full order is known.
+function changeRestSegment(round?: number): Segment {
+  return { kind: 'rest', durationSec: CHANGE_REST_SEC, round, cues: [{ atSec: 0, say: phrases.rest(), haptic: 'rest' }] };
 }
 
 function roundRestSegment(round: number, total: number, focus: Focus): Segment {
@@ -150,11 +151,14 @@ function roundRestSegment(round: number, total: number, focus: Focus): Segment {
   };
 }
 
-// Station style: the recovery between two sets of the SAME exercise. Uses the
-// substantial round-rest length (you've just worked one muscle group hard), and
-// leads back in with a countdown haptic so you know when to start the next set.
-function setRestSegment(round: number, focus: Focus): Segment {
-  const dur = roundRestSec(focus);
+// Station style: the recovery between two sets of the SAME exercise. No walking
+// needed, so it's a flat 30s on every day — that's what leaves room for full 20s
+// changeovers between moves. It leads back in with a countdown (haptic + the
+// spoken three-two-one added by annotateChangeovers).
+const SET_REST_SEC = 30;
+
+function setRestSegment(round: number): Segment {
+  const dur = SET_REST_SEC;
   return {
     kind: 'rest', durationSec: dur, round,
     cues: [
@@ -170,15 +174,16 @@ function setRestSegment(round: number, focus: Focus): Segment {
 // different core move every bout (cycling the available, time-based,
 // equipment-matched core moves) with a short rest between, to roughly fill
 // `absBudget`. Tagged block:'core' so it sits outside the numbered rounds.
-function buildAbsFinisher(equipment: Equipment[], absBudget: number, recent: string[], rng: () => number): Segment[] {
+function buildAbsFinisher(equipment: Equipment[], absBudget: number, recent: string[], rng: () => number, cheer: () => string): Segment[] {
   const all = candidatesFor('core', equipment);
   const timed = all.filter((e) => e.measure === 'time');
   const pool = timed.length > 0 ? timed : all;
   if (pool.length === 0) return [];
 
-  // How many 30s bouts fit (each bout carries a short rest except the last).
-  const per = CORE_BOUT_SEC + SHORT_REST_SEC;
-  const n = clamp(Math.floor((absBudget + SHORT_REST_SEC) / per), 1, 8);
+  // How many 30s bouts fit. Each bout carries its own lead-in changeover rest
+  // (the first one is the walk over from the last main move).
+  const per = CORE_BOUT_SEC + CHANGE_REST_SEC;
+  const n = clamp(Math.floor(absBudget / per), 1, 8);
 
   // A distinct ordering (avoiding recent first); we cycle it so consecutive
   // bouts are always different moves when more than one is available.
@@ -194,16 +199,15 @@ function buildAbsFinisher(equipment: Equipment[], absBudget: number, recent: str
   const segs: Segment[] = [];
   for (let i = 0; i < n; i++) {
     const ex = order[i % order.length];
-    const lead = i === 0 ? `${phrases.coreFinisher()} ${phrases.howTo(ex)}` : `${phrases.next(ex.name)} ${phrases.form(ex)}`;
+    // The rest before each bout already named it and counted down, so just go.
+    const lead = i === 0 ? `${phrases.coreFinisher()} ${phrases.begin()}` : phrases.begin();
     const cues: Cue[] = [
       { atSec: 0, say: lead, haptic: 'start' },
-      { atSec: Math.floor(CORE_BOUT_SEC / 2), say: phrases.encourage(rng) },
+      ...encouragementCues(CORE_BOUT_SEC, cheer),
       { atSec: CORE_BOUT_SEC - 5, haptic: 'countdown' },
     ];
+    segs.push({ kind: 'rest', durationSec: CHANGE_REST_SEC, block: 'core', cues: [{ atSec: 0, say: phrases.rest(), haptic: 'rest' }] });
     segs.push({ kind: 'work', exercise: ex, durationSec: CORE_BOUT_SEC, cues, block: 'core' });
-    if (i < n - 1) {
-      segs.push({ kind: 'rest', durationSec: SHORT_REST_SEC, block: 'core', cues: [{ atSec: 0, say: phrases.rest(), haptic: 'rest' }] });
-    }
   }
   return segs;
 }
@@ -216,14 +220,13 @@ function warmupMoveCount(target: number, flow: WarmupFlow): number {
   return clamp(Math.round(warmupTarget / WARMUP_MOVE_SEC), 2, flow.moves.length);
 }
 
-function warmupSegment(ex: Exercise, dur: number, say: string, rng: () => number): Segment {
-  const cues: Cue[] = [{ atSec: 0, say, haptic: 'start' }];
-  if (dur >= 25) cues.push({ atSec: Math.floor(dur / 2), say: phrases.encourage(rng) });
+function warmupSegment(ex: Exercise, dur: number, say: string, cheer: () => string): Segment {
+  const cues: Cue[] = [{ atSec: 0, say, haptic: 'start' }, ...encouragementCues(dur, cheer)];
   cues.push({ atSec: Math.max(1, dur - 5), haptic: 'countdown' });
   return { kind: 'work', exercise: ex, durationSec: dur, cues };
 }
 
-function buildWarmup(flow: WarmupFlow, focus: Focus, target: number, rng: () => number): Segment[] {
+function buildWarmup(flow: WarmupFlow, focus: Focus, target: number, cheer: () => string): Segment[] {
   const count = warmupMoveCount(target, flow);
   const moves = flow.moves.slice(0, count)
     .map((id) => exerciseById(id))
@@ -232,7 +235,7 @@ function buildWarmup(flow: WarmupFlow, focus: Focus, target: number, rng: () => 
   const intro = `${phrases.welcome(focus)} ${phrases.warmupAnnounce(flow.name)}`;
   return moves.map((ex, i) => {
     const say = i === 0 ? `${intro} ${phrases.howTo(ex)}` : phrases.howTo(ex);
-    return warmupSegment(ex, dur, say, rng);
+    return warmupSegment(ex, dur, say, cheer);
   });
 }
 
@@ -240,6 +243,9 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   const focus = focusForDate(opts.date);
   const seed = opts.seed ?? Math.floor(opts.date.getTime() / 86_400_000);
   const rng = createRng(seed);
+  // Encouragement draws come from their OWN stream, so editing the encouragement
+  // list never changes which exercises a given day/seed produces.
+  const cheer = phrases.encouragementDeck(createRng(seed + 7919));
   const recent = opts.recentExerciseIds ?? [];
   const recentThemeIds = opts.recentThemeIds ?? [];
   const target = targetFor(opts.kind);
@@ -257,7 +263,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   // picks a flow that preps the day's work and avoids recent themes.
   const forced = opts.warmupThemeId ? WARMUP_FLOWS.find((f) => f.id === opts.warmupThemeId) : undefined;
   const flow = forced ?? pickWarmupFlow({ workoutCategories: circuit.map((e) => e.category), recentThemeIds, rng });
-  const warmupSegs = buildWarmup(flow, focus, target, rng);
+  const warmupSegs = buildWarmup(flow, focus, target, cheer);
   const warmupTotal = warmupSegs.reduce((s, seg) => s + seg.durationSec, 0);
 
   const units = buildUnits(circuit, focus);
@@ -266,10 +272,18 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   const style: WorkoutStyle = opts.style ?? 'circuit';
   const baseWork = (): number => units.reduce((s, u) => s + u.dur, 0);
 
+  // A changeover rest follows the warm-up, so the first move is announced in time.
+  const postWarmupRest = warmupSegs.length > 0 ? CHANGE_REST_SEC : 0;
+
   // Everything except the main work bouts and the abs block.
+  //  stations: a changeover rest between stations
+  //  circuit:  a changeover rest between moves; the round-rest is the changeover between rounds
+  // (the finisher brings its own lead-in rest; with no finisher, "Great job" follows directly)
   const baseFixed = style === 'stations'
-    ? warmupTotal + CELEBRATE_SEC + items * PREPARE_SEC + items * (rounds - 1) * roundRest
-    : warmupTotal + CELEBRATE_SEC + (rounds - 1) * roundRest + rounds * (items * PREPARE_SEC + items * SHORT_REST_SEC);
+    ? warmupTotal + postWarmupRest + CELEBRATE_SEC + items * PREPARE_SEC + (items - 1) * CHANGE_REST_SEC
+      + items * (rounds - 1) * SET_REST_SEC
+    : warmupTotal + postWarmupRest + CELEBRATE_SEC + (rounds - 1) * roundRest
+      + rounds * items * PREPARE_SEC + rounds * (items - 1) * CHANGE_REST_SEC;
 
   // The abs finisher always closes the session, within the budget. It aims for
   // ABS_TARGET but never takes so much that the main work would be forced below
@@ -277,7 +291,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   // (but still present) finisher rather than overflowing the time budget.
   const minWork = rounds * units.length * MIN_WORK_SEC;
   const absBudget = Math.min(ABS_TARGET[opts.kind], Math.max(0, target - baseFixed - minWork));
-  const absSegs = absBudget >= CORE_BOUT_SEC ? buildAbsFinisher(opts.equipment, absBudget, recent, rng) : [];
+  const absSegs = absBudget >= CORE_BOUT_SEC + CHANGE_REST_SEC ? buildAbsFinisher(opts.equipment, absBudget, recent, rng, cheer) : [];
   const absTotal = absSegs.reduce((s, seg) => s + seg.durationSec, 0);
 
   // Size the main work to fill what's left after warm-up, rests, abs and celebrate.
@@ -293,35 +307,40 @@ export function generateWorkout(opts: GenerateOptions): Workout {
 
   // Lay out the main work, then the abs finisher, then celebrate.
   let segments: Segment[] = [...warmupSegs];
+  if (postWarmupRest > 0) segments.push(changeRestSegment());
   if (style === 'stations') {
     // Per station: prepare → [work × sides → set-rest] × rounds. Each set is
     // tagged with its set number (round), so set 1 of every station is "round 1".
     let u = 0;
-    circuit.forEach((ex) => {
+    circuit.forEach((ex, i) => {
       const sides = ex.unilateral ? 2 : 1;
       const exUnits = units.slice(u, u + sides);
       u += sides;
-      segments.push(prepareSegment(ex, phrases.next(ex.name), 1));
+      segments.push(prepareSegment(ex, 1));
       for (let set = 1; set <= rounds; set++) {
-        exUnits.forEach((un, s) => segments.push(workSegment(un, set, rng, set === 1 && s === 0)));
-        if (set < rounds) segments.push(setRestSegment(set, focus));
+        exUnits.forEach((un) => segments.push(workSegment(un, set, cheer)));
+        if (set < rounds) segments.push(setRestSegment(set));
       }
+      if (i < items - 1) segments.push(changeRestSegment(rounds)); // walk to the next station
     });
   } else {
     // [circuit] × rounds, with a round-rest between rounds.
     for (let r = 1; r <= rounds; r++) {
       let u = 0;
-      circuit.forEach((ex) => {
-        segments.push(prepareSegment(ex, phrases.next(ex.name), r));
+      circuit.forEach((ex, i) => {
+        segments.push(prepareSegment(ex, r));
         const sides = ex.unilateral ? 2 : 1;
-        for (let s = 0; s < sides; s++) segments.push(workSegment(units[u++], r, rng, r === 1 && s === 0));
-        segments.push(shortRestSegment(r));
+        for (let s = 0; s < sides; s++) segments.push(workSegment(units[u++], r, cheer));
+        // Between moves only: the round-rest is the changeover between rounds.
+        if (i < items - 1) segments.push(changeRestSegment(r));
       });
       if (r < rounds) segments.push(roundRestSegment(r, rounds, focus));
     }
   }
   segments.push(...absSegs);
   segments.push(celebrate);
+  // Now that the order is final, every rest can say what's next and count in.
+  segments = annotateChangeovers(segments, rounds);
 
   return { id: `w-${seed}-${opts.kind}-${style}`, kind: opts.kind, focus, rounds, style, warmupThemeId: flow.id, segments };
 }

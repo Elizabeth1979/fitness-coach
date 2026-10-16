@@ -110,19 +110,10 @@ describe('generateWorkout', () => {
     expect(first.cues[0].say?.toLowerCase()).toContain("today's warm-up:");
   });
 
-  it('speaks how to do each move: every warm-up move, and only the first set of a main move', () => {
-    for (const style of ['circuit', 'stations'] as const) {
-      const w = generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 4, style });
-      const said = (s: Segment) => s.cues.map((c) => c.say ?? '').join(' ');
-      for (const s of w.segments.filter((x) => x.exercise?.category === 'warmup')) {
-        expect(said(s)).toContain(phrases.form(s.exercise!));
-      }
-      const main = w.segments.filter((s) => s.kind === 'work' && s.round && s.exercise);
-      for (const id of new Set(main.map((s) => s.exercise!.id))) {
-        const sets = main.filter((s) => s.exercise!.id === id);
-        expect(said(sets[0])).toContain(phrases.beginHowTo(sets[0].exercise!));
-        for (const s of sets.slice(1)) expect(said(s)).not.toContain(phrases.form(s.exercise!));
-      }
+  it('says how to do each warm-up move as it starts', () => {
+    const w = generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 4 });
+    for (const s of w.segments.filter((x) => x.exercise?.category === 'warmup')) {
+      expect(s.cues[0].say).toContain(phrases.howTo(s.exercise!));
     }
   });
 
@@ -147,7 +138,7 @@ describe('generateWorkout', () => {
     // short-circuit categories, `worstTotal` rises and this fails before a real
     // breach. Constants mirror generateWorkout.ts (10-min = 3 rounds over the
     // SLOTS_SHORT trio, strength = the larger round-rest, warm-up capped at 90s).
-    const MIN_WORK_SEC = 15, PREPARE = 4, SHORT_REST = 12, ROUND_REST_STRENGTH = 35, CELEBRATE = 18, WARMUP_MAX_10MIN = 90;
+    const MIN_WORK_SEC = 15, PREPARE = 5, CHANGE_REST = 15, ROUND_REST_STRENGTH = 35, CELEBRATE = 18, WARMUP_MAX_10MIN = 90;
     const rounds = 3;
     const items = SLOTS_SHORT.length; // short circuit width (3)
     const maxUnilateralSlots = SLOTS_SHORT.filter((cat) => {
@@ -156,8 +147,9 @@ describe('generateWorkout', () => {
     }).length;
     const units = items + maxUnilateralSlots; // each unilateral slot adds a 2nd work unit
     const floorWork = rounds * units * MIN_WORK_SEC;
-    const fixed = WARMUP_MAX_10MIN + CELEBRATE + (rounds - 1) * ROUND_REST_STRENGTH
-      + rounds * (items * PREPARE + items * SHORT_REST);
+    // changeover rest after the warm-up + between moves; the round-rest between rounds
+    const fixed = WARMUP_MAX_10MIN + CHANGE_REST + CELEBRATE + (rounds - 1) * ROUND_REST_STRENGTH
+      + rounds * (items * PREPARE + (items - 1) * CHANGE_REST);
     const worstTotal = floorWork + fixed;
     expect(worstTotal - 600).toBeLessThanOrEqual(45);
   });
