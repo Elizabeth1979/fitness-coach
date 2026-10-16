@@ -11,6 +11,7 @@ import { WARMUP_FLOWS } from './generator/warmupFlows';
 import { createRng } from './generator/rng';
 import { recordCompletion, currentStreak, getPrefs, setPrefs, getCheckpoint, getRecentThemes, pushRecentTheme, suggestedSore } from './storage/store';
 import type { Checkpoint } from './storage/store';
+import { setBusy } from './pwa/update';
 
 function todayStr(): string { return new Date().toISOString().slice(0, 10); }
 function daySeed(): number { return Math.floor(Date.now() / 86_400_000); }
@@ -57,6 +58,9 @@ export default function App() {
     if (choices.length === 0) return;
     setWarmupTheme(choices[Math.floor(Math.random() * choices.length)]);
   }
+
+  // A new app version can only reload the page while you're on the home screen.
+  useEffect(() => { setBusy(phase !== 'home'); }, [phase]);
 
   useEffect(() => {
     setStreak(currentStreak(todayStr()));

@@ -11,6 +11,8 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      // We register the worker ourselves (src/pwa/update.ts) so updates apply reliably.
+      injectRegister: false,
       includeAssets: ['icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
         name: 'Move With Elli',
@@ -26,7 +28,9 @@ export default defineConfig({
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
+      // A new version takes over straight away; src/pwa/update.ts then reloads into it
+      // (never mid-workout). Needed explicitly because we register the worker ourselves.
+      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'], skipWaiting: true, clientsClaim: true },
     }),
   ],
   test: {
