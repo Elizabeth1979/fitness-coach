@@ -94,7 +94,9 @@ hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekVie
   so never schedule a long line less than ~2s before a count — it queues and the counts come out in
   a rushed burst (the original bug). Every exercise (work segment) also ends with "three, two,
   one" so you know it's almost done. `annotateChangeovers` is an idempotent post-pass that writes
-  each rest's "Next up" + all closing countdowns from the final segment order; `swapMove` re-runs it.
+  each rest's "Next up" (name + how-to, from the exercise `cue`) + all closing countdowns from the
+  final segment order; `swapMove` re-runs it. The "no spoken line runs into the next one" test in
+  `changeover.test.ts` (2.5 words/s) guards every cue schedule — keep new copy short enough to pass.
 - **One-sided moves:** a unilateral exercise is `left work → 'switch' segment (10s, "Switch sides." +
   three-two-one) → right work`. Each costs two bouts plus a switch every round, so selection caps them
   (`maxOneSided`: 0 in the 10-min — two-sided moves only — 2 otherwise, a soft cap). `swapMove`

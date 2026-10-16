@@ -45,7 +45,7 @@ describe('changeovers between exercises', () => {
       segs.forEach((s, i) => {
         const next = segs[i + 1];
         if (!isRest(s) || !next?.exercise) return;
-        expect(firstSay(s), `${kind}/${style} #${i}`).toContain(phrases.nextUp(next.exercise.name));
+        expect(firstSay(s), `${kind}/${style} #${i}`).toContain(phrases.nextUp(next.exercise));
       });
     }
   });
@@ -136,11 +136,33 @@ describe('changeovers between exercises', () => {
     const w = build('20min', 'circuit', 4);
     const prepIdx = w.segments.findIndex((s) => s.kind === 'prepare' && s.round === 1);
     const w2 = swapMove(w, prepIdx, ALL, createRng(1));
-    const newName = w2.segments[prepIdx].exercise!.name;
+    const newEx = w2.segments[prepIdx].exercise!;
     const oldName = w.segments[prepIdx].exercise!.name;
     const restBefore = w2.segments[prepIdx - 1];
     expect(isRest(restBefore)).toBe(true);
-    expect(firstSay(restBefore)).toContain(phrases.nextUp(newName));
+    expect(firstSay(restBefore)).toContain(phrases.nextUp(newEx));
     expect(firstSay(restBefore)).not.toContain(oldName);
   });
+
+  it('no spoken line runs into the next one (speech queues, so overlap = a late, rushed count)', () => {
+    const WORDS_PER_SEC = 2.5; // a deliberately slow estimate of the coach's speaking rate
+    const secsToSay = (text: string) => text.split(/\s+/).filter(Boolean).length / WORDS_PER_SEC;
+    for (const [kind, style] of variants) {
+      for (const seed of [1, 2, 3, 4, 5, 6]) {
+        const lines: { at: number; say: string; where: string }[] = [];
+        let t0 = 0;
+        for (const s of build(kind, style, seed).segments) {
+          for (const c of s.cues) if (c.say) lines.push({ at: t0 + c.atSec, say: c.say, where: `${s.kind} ${s.exercise?.name ?? ''}` });
+          t0 += s.durationSec;
+        }
+        lines.sort((a, b) => a.at - b.at);
+        for (let i = 0; i + 1 < lines.length; i++) {
+          const gap = lines[i + 1].at - lines[i].at;
+          expect(secsToSay(lines[i].say), `${kind}/${style}/seed${seed} at ${lines[i].at}s (${lines[i].where}): "${lines[i].say}" → next line ${gap}s later: "${lines[i + 1].say}"`)
+            .toBeLessThanOrEqual(gap);
+        }
+      }
+    }
+  });
 });
+
