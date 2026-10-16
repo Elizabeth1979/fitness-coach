@@ -37,8 +37,8 @@ export function useWorkoutSession(workout: Workout | null) {
     setCompleted(false);
     const clock = new RafClock();
     const session = new WorkoutSession(workout, clock, (e) => {
-      if (e.type === 'tick') {
-        setState(session.getState());
+      if (e.type === 'tick' || e.type === 'statusChanged') {
+        setState(e.state);
       } else if (e.type === 'segmentChanged') {
         setState(session.getState());
         if (workout && e.segment.kind !== 'celebrate') {
@@ -76,6 +76,13 @@ export function useWorkoutSession(workout: Workout | null) {
     beats.start();
     beats.setMuted(!musicOnRef.current);
   }, [beats]);
+  // Leaving the app (screen locked, another app in front) pauses the workout, so
+  // you come back to a Resume button instead of a coach who carried on without you.
+  useEffect(() => {
+    const onVisibilityChange = () => { if (document.visibilityState === 'hidden') pause(); };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [pause]);
   const skip = useCallback(() => sessionRef.current?.skip(), []);
   const end = useCallback(() => {
     sessionRef.current?.end();

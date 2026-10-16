@@ -95,7 +95,7 @@ its map; never re-add the 5,000-icon webfont).
   **never** calorie / weight-loss / "burn" / guilt / military wording. The user's name "Elli" is
   hard-coded. There is a test asserting banned words don't appear.
 - **Determinism:** `generateWorkout` is pure and seeded by `createRng(seed)` (seed defaults to the
-  day number). Same `{kind, date, equipment, recentExerciseIds, recentThemeIds, seed}` ⇒ identical
+  local day number). Same `{kind, date, equipment, recentExerciseIds, recentThemeIds, seed}` ⇒ identical
   `Workout`. Never introduce `Math.random()` / `Date.now()` into the generator or engine.
 - **Time budget:** the main circuit (1 each of Push/Pull/Legs/Hinge/Carry-or-Crawl/Mobility,
   repeated per round) is sized by `spreadDrift` to hit the target (10/20/30 min = 600/1200/1800s).
@@ -125,6 +125,18 @@ its map; never re-add the 5,000-icon webfont).
   natural finish; the ✕ "end" button → `completed: false`). `App` records a completion ONLY when
   `completed` is true. The `useWorkoutSession` hook also resets its state to idle when `workout`
   changes, so a finished workout never leaks `done` state into the next one — don't remove that guard.
+- **Dates are local:** "today" (streak, week strip, daily seed, completion date) is the date on the
+  user's clock — always via `src/domain/date.ts` (`localDate`, `localDayNumber`), never
+  `toISOString().slice(0, 10)` (that's the UTC date: a 1am workout landed on the wrong day).
+- **Leaving the app pauses the workout:** `RafClock` caps each frame at `MAX_FRAME_SEC` (browsers stop
+  frames while hidden; one giant tick would fire every remaining cue at once), and the hook pauses on
+  `visibilitychange` → hidden. `pause()`/`resume()` emit `statusChanged` so the UI shows Resume. The
+  wake lock (`src/pwa/wakeLock.ts`) re-takes itself on return because the browser drops it when hidden.
+- **Saved data is untrusted:** `storage/store.ts` checks every field on load (old app versions, corrupt
+  JSON) and falls back to defaults; a checkpoint that doesn't fit the current `Workout` shape is dropped.
+  Saves never throw (full / blocked storage). `src/ui/ErrorBoundary.tsx` wraps `App`: a render crash
+  shows "Back to home" and clears the checkpoint. When you change `Workout`/`Segment`, update `isSegment`/
+  `isCheckpoint` too.
 - **Themed warm-ups:** `warmupFlows.ts` `pickWarmupFlow` is the "Mobility Lottery" — avoids recently
   used themes (persisted via `pushRecentTheme`), prefers a flow that preps the day's work, weights
   "fun" flows up. The generator renders the chosen flow at the front of `segments`.

@@ -12,6 +12,7 @@ export interface SessionState {
 
 export type SessionEvent =
   | { type: 'tick'; state: SessionState }
+  | { type: 'statusChanged'; state: SessionState }
   | { type: 'segmentChanged'; index: number; segment: Segment }
   | { type: 'cue'; cue: Cue }
   | { type: 'finished'; completed: boolean };
@@ -58,8 +59,13 @@ export class WorkoutSession {
     this.enterSegmentResumed(index, elapsedSec);
   }
 
-  pause(): void { if (this.status === 'running') this.status = 'paused'; }
-  resume(): void { if (this.status === 'paused') this.status = 'running'; }
+  pause(): void { if (this.status === 'running') this.setStatus('paused'); }
+  resume(): void { if (this.status === 'paused') this.setStatus('running'); }
+
+  private setStatus(status: SessionStatus): void {
+    this.status = status;
+    this.onEvent({ type: 'statusChanged', state: this.getState() });
+  }
 
   skip(): void {
     if (this.status === 'running' || this.status === 'paused') this.advance();

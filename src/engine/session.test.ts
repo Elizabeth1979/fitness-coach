@@ -68,6 +68,22 @@ describe('WorkoutSession', () => {
     expect(session.getState().segmentRemainingSec).toBeLessThan(remaining);
   });
 
+  it('pause and resume announce the new status (so the UI can show Resume)', () => {
+    const { events, session } = run();
+    session.start();
+    session.pause();
+    session.pause(); // already paused: no second event
+    session.resume();
+    const changes = events.filter((e) => e.type === 'statusChanged');
+    expect(changes.map((e) => e.type === 'statusChanged' && e.state.status)).toEqual(['paused', 'running']);
+  });
+
+  it('pause before start announces nothing', () => {
+    const { events, session } = run();
+    session.pause();
+    expect(events).toEqual([]);
+  });
+
   it('skip jumps to the next segment', () => {
     const { clock, events, session } = run();
     session.start();

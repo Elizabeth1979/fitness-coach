@@ -8,6 +8,7 @@ import { phrases } from '../coach/phrases';
 import { PREPARE_SEC, CHANGE_REST_SEC, SWITCH_SEC, prepareCues, annotateChangeovers, encouragementCues, workCues, switchSegment } from './changeover';
 import { pickWarmupFlow, WARMUP_FLOWS, type WarmupFlow } from './warmupFlows';
 import { exerciseById } from '../domain/exercises';
+import { localDayNumber } from '../domain/date';
 
 export interface GenerateOptions {
   kind: WorkoutKind;
@@ -230,7 +231,7 @@ function buildWarmup(flow: WarmupFlow, focus: Focus, target: number, cheer: () =
 
 export function generateWorkout(opts: GenerateOptions): Workout {
   const focus = focusForDate(opts.date);
-  const seed = opts.seed ?? Math.floor(opts.date.getTime() / 86_400_000);
+  const seed = opts.seed ?? localDayNumber(opts.date);
   const rng = createRng(seed);
   // Encouragement draws come from their OWN stream, so editing the encouragement
   // list never changes which exercises a given day/seed produces.
