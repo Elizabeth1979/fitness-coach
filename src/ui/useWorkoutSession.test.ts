@@ -4,6 +4,7 @@ import { useWorkoutSession } from './useWorkoutSession';
 import { generateWorkout } from '../generator/generateWorkout';
 import { getCheckpoint } from '../storage/store';
 import { localDate } from '../domain/date';
+import type { Workout } from '../domain/types';
 
 const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight'], seed: 1 });
 
@@ -12,21 +13,29 @@ function setVisibility(state: DocumentVisibilityState): void {
   document.dispatchEvent(new Event('visibilitychange'));
 }
 
+// Drive animation frames by hand (the hook uses the real-clock adapter).
+function driveFrames() {
+  let now = 0;
+  let queued: FrameRequestCallback | null = null;
+  vi.stubGlobal('performance', { now: () => now });
+  vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => { queued = cb; return 1; });
+  vi.stubGlobal('cancelAnimationFrame', () => { queued = null; });
+  return (sec: number) => {
+    for (let i = 0; i < sec * 10; i++) { now += 100; const cb = queued; queued = null; act(() => cb?.(now)); }
+  };
+}
+
+const tiny: Workout = {
+  id: 'tiny', kind: '10min', focus: 'movement', rounds: 1, style: 'circuit',
+  segments: [{ kind: 'work', durationSec: 1, cues: [] }, { kind: 'celebrate', durationSec: 1, cues: [] }],
+};
+
 describe('useWorkoutSession', () => {
   afterEach(() => { setVisibility('visible'); vi.unstubAllGlobals(); localStorage.clear(); });
 
   it('saves the exact second on pause, so Resume continues mid-move', () => {
-    // Drive animation frames by hand (the hook uses the real-clock adapter).
-    let now = 0;
-    let queued: FrameRequestCallback | null = null;
-    vi.stubGlobal('performance', { now: () => now });
-    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => { queued = cb; return 1; });
-    vi.stubGlobal('cancelAnimationFrame', () => { queued = null; });
-    const advance = (sec: number) => {
-      for (let i = 0; i < sec * 10; i++) { now += 100; const cb = queued; queued = null; act(() => cb?.(now)); }
-    };
-
-    const { result } = renderHook(() => useWorkoutSession(w));
+    const advance = driveFrames();
+    const { result } = renderHook(() => useWorkoutSession(w, vi.fn()));
     act(() => result.current.start());
     advance(3);
     act(() => result.current.pause());
@@ -38,7 +47,7 @@ describe('useWorkoutSession', () => {
 
 
   it('pause() shows paused and resume() shows running again', () => {
-    const { result } = renderHook(() => useWorkoutSession(w));
+    const { result } = renderHook(() => useWorkoutSession(w, vi.fn()));
     act(() => result.current.start());
     act(() => result.current.pause());
     expect(result.current.state.status).toBe('paused');
@@ -47,7 +56,7 @@ describe('useWorkoutSession', () => {
   });
 
   it('pauses when the app is hidden (screen locked / another app in front)', () => {
-    const { result } = renderHook(() => useWorkoutSession(w));
+    const { result } = renderHook(() => useWorkoutSession(w, vi.fn()));
     act(() => result.current.start());
     act(() => setVisibility('hidden'));
     expect(result.current.state.status).toBe('paused');
@@ -57,7 +66,7 @@ describe('useWorkoutSession', () => {
 
   it('starts idle and transitions to running on start()', () => {
     const workout = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight'], seed: 1 });
-    const { result } = renderHook(() => useWorkoutSession(workout));
+    const { result } = renderHook(() => useWorkoutSession(workout, vi.fn()));
     expect(result.current.state.status).toBe('idle');
     act(() => result.current.start());
     expect(result.current.state.status).toBe('running');
@@ -67,10 +76,35 @@ describe('useWorkoutSession', () => {
     const date = new Date('2026-06-24T08:00:00');
     const w1 = generateWorkout({ kind: '10min', date, equipment: ['bodyweight'], seed: 1 });
     const w2 = generateWorkout({ kind: '20min', date, equipment: ['bodyweight'], seed: 2 });
-    const { result, rerender } = renderHook(({ w }) => useWorkoutSession(w), { initialProps: { w: w1 } });
+    const { result, rerender } = renderHook(({ w }) => useWorkoutSession(w, vi.fn()), { initialProps: { w: w1 } });
     act(() => result.current.start());
     expect(result.current.state.status).toBe('running');
     rerender({ w: w2 });
     expect(result.current.state.status).toBe('idle');
+  });
+
+  it('reports a natural finish as completed', () => {
+    const advance = driveFrames();
+    const onFinished = vi.fn();
+    const { result } = renderHook(() => useWorkoutSession(tiny, onFinished));
+    act(() => result.current.start());
+    advance(3);
+    expect(onFinished).toHaveBeenCalledExactlyOnceWith(true);
+  });
+
+  it('reports ending early as not completed', () => {
+    const onFinished = vi.fn();
+    const { result } = renderHook(() => useWorkoutSession(w, onFinished));
+    act(() => result.current.start());
+    act(() => result.current.end());
+    expect(onFinished).toHaveBeenCalledExactlyOnceWith(false);
+  });
+
+  it('does not report a finish when the workout is simply put away', () => {
+    const onFinished = vi.fn();
+    const { result, rerender } = renderHook(({ wk }) => useWorkoutSession(wk, onFinished), { initialProps: { wk: w as Workout | null } });
+    act(() => result.current.start());
+    rerender({ wk: null });
+    expect(onFinished).not.toHaveBeenCalled();
   });
 });

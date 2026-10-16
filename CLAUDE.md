@@ -127,9 +127,16 @@ its map; never re-add the 5,000-icon webfont).
   in when every bout has room (≥ switch + 2 × MIN_WORK_SEC). `canSwap()` uses the same rule
   (`swapChoices`), so the UI hides "Swap" exactly when `swapMove` would change nothing.
 - **Completion semantics:** the engine's `finished` event carries `completed: boolean` (true only on
-  natural finish; the ✕ "end" button → `completed: false`). `App` records a completion ONLY when
-  `completed` is true. The `useWorkoutSession` hook also resets its state to idle when `workout`
-  changes, so a finished workout never leaks `done` state into the next one — don't remove that guard.
+  natural finish; the ✕ "end" button → `completed: false`). The hook passes it to
+  `useWorkoutSession(workout, onFinished)` (via `useEffectEvent`), and `App.handleFinished` records a
+  completion ONLY when it's true. Putting a workout away (it changes / unmounts) is not a finish. The hook
+  also resets its state to idle when `workout` changes (previous value kept in state, React's "adjust
+  state when a prop changes" pattern), so a finished workout never leaks `done` into the next one.
+- **React purity (enforced by lint):** don't read the clock (`new Date()`), storage or refs while
+  rendering, and don't `setState` straight inside an effect. Read once in a lazy `useState(() => …)`,
+  derive values during render (`App`'s `preview` = `useMemo(generateWorkout…)` + a `swapped` override
+  tied to the workout it was made on), and update state in the event that caused the change
+  (`goHome`, `handleFinished`).
 - **Dates are local:** "today" (streak, week strip, daily seed, completion date) is the date on the
   user's clock — always via `src/domain/date.ts` (`localDate`, `localDayNumber`), never
   `toISOString().slice(0, 10)` (that's the UTC date: a 1am workout landed on the wrong day).

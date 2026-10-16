@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Category, Workout } from '../domain/types';
 import { loadStore } from '../storage/store';
 import { WeekView } from './WeekView';
@@ -30,6 +30,7 @@ export function DoneScreen({ categories, streak, workout, onHome }: Props) {
   }, [categories]);
   const mins = workout ? Math.round(workout.segments.reduce((a, s) => a + s.durationSec, 0) / 60) : 0;
   const dates = useMemo(() => loadStore().completions.map((c) => c.date), []);
+  const [today] = useState(() => localDate(new Date())); // read the clock once, not on every render
   return (
     <main className="screen">
       <div style={{ position: 'relative', textAlign: 'center', padding: '10px 0 16px' }}>
@@ -55,7 +56,7 @@ export function DoneScreen({ categories, streak, workout, onHome }: Props) {
         </div>
       </div>
 
-      <WeekView dates={dates} today={localDate(new Date())} />
+      <WeekView dates={dates} today={today} />
 
       <button className="btn btn-primary" onClick={onHome} style={{ width: '100%' }}><Icon name="home" />Done</button>
     </main>
