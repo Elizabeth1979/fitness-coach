@@ -87,6 +87,14 @@ hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekVie
   flow segments are FIXED length (30s, or 120s free-dance) and are **excluded from** `spreadDrift`.
   The "total within 45s of target" test guards this (for both circuit & stations) — tune durations,
   not the tolerance.
+- **Changeovers (`generator/changeover.ts`):** getting from one move to the next is a 15s rest that
+  says "Rest… Next up: X." the moment it starts, then a 5s "Get ready" that ends in a real
+  one-per-second "three, two, one" → "Go!" (~20s total; a changeover rest also follows the warm-up
+  and sits between stations; the round-rest is the changeover between rounds). Speech can't overlap,
+  so never schedule a long line less than ~2s before a count — it queues and the counts come out in
+  a rushed burst (the original bug). Every exercise (work segment) also ends with "three, two,
+  one" so you know it's almost done. `annotateChangeovers` is an idempotent post-pass that writes
+  each rest's "Next up" + all closing countdowns from the final segment order; `swapMove` re-runs it.
 - **Completion semantics:** the engine's `finished` event carries `completed: boolean` (true only on
   natural finish; the ✕ "end" button → `completed: false`). `App` records a completion ONLY when
   `completed` is true. The `useWorkoutSession` hook also resets its state to idle when `workout`

@@ -25,9 +25,10 @@ export const phrases = {
   welcome: (focus: Focus): string =>
     `Welcome back, Elli. Today's focus is ${FOCUS_LABEL[focus]}. Let's begin.`,
   exercise: (name: string): string => `${name}.`,
-  begin: (): string => 'Begin.',
+  begin: (): string => 'Go!',
   rest: (): string => 'Rest. Take a deep breath.',
-  next: (name: string): string => `Next exercise. ${name}.`,
+  nextUp: (name: string): string => `Next up: ${name}.`,
+  getReady: (): string => 'Get ready.',
   warmupAnnounce: (flowName: string): string => `Today's warm-up: ${flowName}.`,
   coreFinisher: (): string => 'Last bit — core finisher.',
   count: (n: number): string => NUMBER_WORDS[n] ?? String(n),
