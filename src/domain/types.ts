@@ -29,7 +29,8 @@ export interface Cue {
   haptic?: HapticKind;
 }
 
-export type SegmentKind = 'prepare' | 'work' | 'rest' | 'roundrest' | 'celebrate';
+// 'switch' = the short gap between the left and right side of a one-sided move.
+export type SegmentKind = 'prepare' | 'work' | 'switch' | 'rest' | 'roundrest' | 'celebrate';
 
 export interface Segment {
   kind: SegmentKind;

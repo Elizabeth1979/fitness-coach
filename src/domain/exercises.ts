@@ -42,10 +42,13 @@ export const EXERCISES: Exercise[] = [
   // --- Legs ---
   { id: 'cossack', name: 'Cossack Squat', category: 'legs', equipment: ['bodyweight'], goals: ['strength', 'mobility', 'balance'], unilateral: true, measure: 'reps', cue: 'Cossack Squat. Shift side to side, keep one leg long.', defaultReps: 6 },
   { id: 'bulgarian', name: 'Bulgarian Split Squat', category: 'legs', equipment: ['bodyweight'], goals: ['strength', 'balance'], unilateral: true, measure: 'reps', cue: 'Bulgarian Split Squat. Back foot elevated, sink straight down.', defaultReps: 8 },
+  { id: 'bw-squat', name: 'Bodyweight Squat', category: 'legs', equipment: ['bodyweight'], goals: ['strength', 'mobility'], unilateral: false, measure: 'reps', cue: 'Bodyweight Squat. Feet shoulder-width, sit back and down, stand tall.', defaultReps: 10 },
+  { id: 'goblet-squat', name: 'Goblet Squat', category: 'legs', equipment: ['weights'], goals: ['strength', 'mobility'], unilateral: false, measure: 'reps', cue: 'Goblet Squat. Hold the weight at your chest, elbows inside the knees, sink down.', defaultReps: 8 },
   { id: 'deep-squat', name: 'Deep Squat Hold', category: 'legs', equipment: ['bodyweight'], goals: ['mobility', 'balance'], unilateral: false, measure: 'time', cue: 'Deep Squat. Sit at the bottom, chest tall, breathe.', defaultDurationSec: 40 },
 
   // --- Hinge ---
   { id: 'rdl', name: 'Romanian Deadlift', category: 'hinge', equipment: ['weights'], goals: ['strength', 'mobility'], unilateral: false, measure: 'reps', cue: 'Romanian Deadlift. Hinge at the hips, soft knees, flat back.', defaultReps: 8 },
+  { id: 'glute-bridge', name: 'Glute Bridge', category: 'hinge', equipment: ['bodyweight'], goals: ['strength', 'mobility'], unilateral: false, measure: 'reps', cue: 'Glute Bridge. Lie on your back, feet flat, lift the hips and squeeze.', defaultReps: 10 },
   { id: 'single-rdl', name: 'Single-Leg Romanian Deadlift', category: 'hinge', equipment: ['bodyweight'], goals: ['strength', 'balance', 'coordination'], unilateral: true, measure: 'reps', cue: 'Single-Leg Deadlift. Reach back with one leg, stay balanced.', defaultReps: 6 },
 
   // --- Carry ---

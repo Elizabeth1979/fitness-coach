@@ -35,6 +35,7 @@ export const phrases = {
   rest: (): string => 'Rest. Take a deep breath.',
   nextUp: (name: string): string => `Next up: ${name}.`,
   getReady: (): string => 'Get ready.',
+  switchSides: (): string => 'Switch sides.',
   warmupAnnounce: (flowName: string): string => `Today's warm-up: ${flowName}.`,
   coreFinisher: (): string => 'Last bit — core finisher.',
   count: (n: number): string => NUMBER_WORDS[n] ?? String(n),

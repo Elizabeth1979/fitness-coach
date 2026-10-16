@@ -87,6 +87,29 @@ describe('changeovers between exercises', () => {
     }
   });
 
+  it('one-sided moves get a "switch sides" gap with a countdown between left and right', () => {
+    let switches = 0;
+    for (const [kind, style] of variants) {
+      for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
+        const segs = build(kind, style, seed).segments;
+        segs.forEach((s, i) => {
+          if (s.kind !== 'work' || s.side !== 'left') return;
+          const gap = segs[i + 1];
+          const right = segs[i + 2];
+          const where = `${kind}/${style}/seed${seed} ${s.exercise?.name}`;
+          expect(gap?.kind, where).toBe('switch');
+          expect(gap.exercise?.id, where).toBe(s.exercise?.id);
+          expect(gap.durationSec, where).toBeGreaterThanOrEqual(8);
+          expect(firstSay(gap), where).toBe(phrases.switchSides());
+          expect(countCues(gap).map((c) => c.atSec), where).toEqual([gap.durationSec - 3, gap.durationSec - 2, gap.durationSec - 1]);
+          expect(right?.kind === 'work' && right.side === 'right', where).toBe(true);
+          switches++;
+        });
+      }
+    }
+    expect(switches).toBeGreaterThan(0); // the library has one-sided moves, so some workouts use them
+  });
+
   it('gives about 20 seconds to get from one main exercise to the next', () => {
     for (const [kind, style] of variants) {
       const segs = build(kind, style, 4).segments;

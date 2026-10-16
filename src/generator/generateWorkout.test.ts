@@ -130,7 +130,7 @@ describe('generateWorkout', () => {
     // short-circuit categories, `worstTotal` rises and this fails before a real
     // breach. Constants mirror generateWorkout.ts (10-min = 3 rounds over the
     // SLOTS_SHORT trio, strength = the larger round-rest, warm-up capped at 90s).
-    const MIN_WORK_SEC = 15, PREPARE = 5, CHANGE_REST = 15, ROUND_REST_STRENGTH = 35, CELEBRATE = 18, WARMUP_MAX_10MIN = 90;
+    const MIN_WORK_SEC = 15, PREPARE = 5, CHANGE_REST = 15, SWITCH = 10, ROUND_REST_STRENGTH = 35, CELEBRATE = 18, WARMUP_MAX_10MIN = 90;
     const rounds = 3;
     const items = SLOTS_SHORT.length; // short circuit width (3)
     const maxUnilateralSlots = SLOTS_SHORT.filter((cat) => {
@@ -141,8 +141,23 @@ describe('generateWorkout', () => {
     const floorWork = rounds * units * MIN_WORK_SEC;
     // changeover rest after the warm-up + between moves; the round-rest between rounds
     const fixed = WARMUP_MAX_10MIN + CHANGE_REST + CELEBRATE + (rounds - 1) * ROUND_REST_STRENGTH
-      + rounds * (items * PREPARE + (items - 1) * CHANGE_REST);
+      + rounds * (items * PREPARE + (items - 1) * CHANGE_REST)
+      + rounds * maxUnilateralSlots * SWITCH; // switch-sides gap per one-sided move per round
     const worstTotal = floorWork + fixed;
     expect(worstTotal - 600).toBeLessThanOrEqual(45);
   });
+
+  it('the 10-minute workout uses two-sided moves, so the core finisher always fits', () => {
+    for (const sore of ['none', 'shoulders', 'back', 'legs'] as const) {
+      for (const style of ['circuit', 'stations'] as const) {
+        for (let seed = 0; seed < 25; seed++) {
+          const w = generateWorkout({ kind: '10min', date: WED, equipment: ALL, seed, style, sore });
+          const where = `${style}/${sore}/seed${seed}`;
+          expect(w.segments.filter((s) => s.kind === 'work' && s.side).length, where).toBe(0);
+          expect(w.segments.some((s) => s.block === 'core'), where).toBe(true);
+        }
+      }
+    }
+  });
 });
+

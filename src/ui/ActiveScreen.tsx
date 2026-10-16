@@ -16,6 +16,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
   const isRest = seg?.kind === 'rest' || isRoundRest; // both get the calm background
   const isPrepare = seg?.kind === 'prepare';
   const isCelebrate = seg?.kind === 'celebrate';
+  const isSwitch = seg?.kind === 'switch'; // between the two sides of a one-sided move
   const moves = sessionMoves(workout);
   const mi = currentMoveIndex(moves, isPrepare ? state.segmentIndex + 1 : state.segmentIndex);
   const move = moves[mi];
@@ -27,6 +28,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
 
   const title = isRoundRest ? `Round ${ri.round} complete`
     : seg?.kind === 'rest' ? 'Rest'
+    : isSwitch ? 'Switch sides'
     : isCelebrate ? 'Well done!'
     : (seg?.exercise?.name ?? 'Get ready');
 
@@ -44,7 +46,10 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
   const showRoundChip = !!chipLabel && !isRoundRest && !isCelebrate;
   const cc = seg?.exercise ? catColor(seg.exercise.category) : catColor('warmup');
   // Green = the clock you're working against. Rest is calm grey.
-  const ringColor = isRest ? '#8a909c' : '#15803d';
+  const ringColor = isRest || isSwitch ? '#8a909c' : '#15803d';
+  const subtitle = isSwitch ? `${seg?.exercise?.name ?? ''} · right side next`
+    : seg?.side && move ? `${move.target} · ${seg.side} side`
+    : move?.target;
 
   return (
     <main className="screen" style={{ display: 'flex', flexDirection: 'column', background: isRest ? '#e9f0fb' : 'var(--bg)' }}>
@@ -65,15 +70,15 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
         {!isRest && !isCelebrate && seg?.exercise && <span className="pill">{cc.label}</span>}
       </div>
       <div className="t-display" style={{ textAlign: 'center', marginBottom: 7 }}>{title}</div>
-      {!isRest && !isCelebrate && move && (
-        <div className="muted" style={{ textAlign: 'center', fontSize: 17, marginBottom: 16 }}>{move.target}</div>
+      {!isRest && !isCelebrate && subtitle && (
+        <div className="muted" style={{ textAlign: 'center', fontSize: 17, marginBottom: 16 }}>{subtitle}</div>
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0 18px' }}>
         <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} color={ringColor} />
       </div>
 
-      {next && !isCelebrate && (() => {
+      {next && !isCelebrate && !isSwitch && (() => {
         const nc = catColor(next.category);
         return (
           <div className="card row" style={{ gap: 11, padding: '11px 13px', marginBottom: 18 }}>

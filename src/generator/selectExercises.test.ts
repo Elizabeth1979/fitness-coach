@@ -44,4 +44,16 @@ describe('selectExercises', () => {
     const pull = out.find((e) => e.category === 'pull');
     expect(pull?.id).not.toBe('dead-hang');
   });
+
+  it('maxOneSided: 0 picks two-sided moves whenever the slot has one', () => {
+    const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
+    for (let seed = 0; seed < 50; seed++) {
+      const picked = selectExercises({
+        equipment: ALL, recentExerciseIds: [], rng: createRng(seed), includeWarmup: false,
+        slots: ['legs', 'hinge', 'carry'], maxOneSided: 0,
+      });
+      expect(picked.filter((e) => e.unilateral).map((e) => e.name), `seed ${seed}`).toEqual([]);
+    }
+  });
 });
+

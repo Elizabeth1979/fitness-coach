@@ -1,4 +1,4 @@
-import type { Category, Equipment, Exercise, SoreArea } from '../domain/types';
+import type { Category, Equipment, Exercise, SoreArea, WorkoutKind } from '../domain/types';
 import { EXERCISES, exercisesByCategory } from '../domain/exercises';
 import { pick } from './rng';
 
@@ -59,6 +59,14 @@ export interface SelectOptions {
   rng: () => number;
   includeWarmup: boolean;
   slots?: Category[];
+  /** Once this many one-sided moves are picked, pick two-sided ones (when the slot has one). */
+  maxOneSided?: number;
+}
+
+// A one-sided move costs two bouts plus a switch-sides gap every round, so a day
+// can only afford a few: none in the 10-min session, two in longer ones.
+export function maxOneSided(kind: WorkoutKind): number {
+  return kind === '10min' ? 0 : 2;
 }
 
 export function selectExercises(opts: SelectOptions): Exercise[] {
@@ -76,7 +84,11 @@ export function selectExercises(opts: SelectOptions): Exercise[] {
   }
 
   for (const slot of slots) {
-    const chosen = choose(candidatesFor(slot, equipment), recentExerciseIds, used, rng);
+    const all = candidatesFor(slot, equipment);
+    const capped = opts.maxOneSided !== undefined && out.filter((e) => e.unilateral).length >= opts.maxOneSided;
+    const twoSided = all.filter((e) => !e.unilateral && !used.has(e.id));
+    const pool = capped && twoSided.length > 0 ? twoSided : all;
+    const chosen = choose(pool, recentExerciseIds, used, rng);
     if (chosen) { out.push(chosen); used.add(chosen.id); }
   }
 

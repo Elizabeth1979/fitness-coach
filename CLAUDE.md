@@ -95,6 +95,12 @@ hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekVie
   a rushed burst (the original bug). Every exercise (work segment) also ends with "three, two,
   one" so you know it's almost done. `annotateChangeovers` is an idempotent post-pass that writes
   each rest's "Next up" + all closing countdowns from the final segment order; `swapMove` re-runs it.
+- **One-sided moves:** a unilateral exercise is `left work → 'switch' segment (10s, "Switch sides." +
+  three-two-one) → right work`. Each costs two bouts plus a switch every round, so selection caps them
+  (`maxOneSided`: 0 in the 10-min — two-sided moves only — 2 otherwise, a soft cap). `swapMove`
+  reshapes a bout when sidedness changes (merge sides / split into left·switch·right) so a switch
+  segment only ever sits between the two sides of a one-sided move, and only swaps a one-sided move
+  in when every bout has room (≥ switch + 2 × MIN_WORK_SEC).
 - **Completion semantics:** the engine's `finished` event carries `completed: boolean` (true only on
   natural finish; the ✕ "end" button → `completed: false`). `App` records a completion ONLY when
   `completed` is true. The `useWorkoutSession` hook also resets its state to idle when `workout`

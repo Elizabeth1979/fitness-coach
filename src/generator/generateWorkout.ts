@@ -1,11 +1,11 @@
 import type {
   Cue, Equipment, Exercise, Focus, Segment, SoreArea, Workout, WorkoutKind, WorkoutStyle,
 } from '../domain/types';
-import { selectExercises, candidatesFor, slotsForSore, SLOTS, SLOTS_SHORT } from './selectExercises';
+import { selectExercises, candidatesFor, slotsForSore, SLOTS, SLOTS_SHORT, maxOneSided } from './selectExercises';
 import { focusForDate } from './schedule';
 import { createRng, pick } from './rng';
 import { phrases } from '../coach/phrases';
-import { PREPARE_SEC, CHANGE_REST_SEC, prepareCues, annotateChangeovers } from './changeover';
+import { PREPARE_SEC, CHANGE_REST_SEC, SWITCH_SEC, prepareCues, annotateChangeovers, encouragementCues, workCues, switchSegment } from './changeover';
 import { pickWarmupFlow, WARMUP_FLOWS, type WarmupFlow } from './warmupFlows';
 import { exerciseById } from '../domain/exercises';
 
@@ -38,7 +38,7 @@ const CELEBRATE_SEC = 18;
 // It stays within the 45s tolerance only because ≤3 circuit categories are
 // unilateral today (see the "worst-case 10-min floor budget" test). Adding
 // unilateral exercises to more categories could breach it — that test will catch it.
-const MIN_WORK_SEC = 15;
+export const MIN_WORK_SEC = 15;
 const MAX_WORK_SEC = 120;
 const WARMUP_MOVE_SEC = 30;
 // The abs finisher always closes the session (within the time budget). ~2–3 min,
@@ -115,19 +115,8 @@ function prepareSegment(ex: Exercise, round: number): Segment {
   return { kind: 'prepare', exercise: ex, durationSec: PREPARE_SEC, cues: prepareCues(), round };
 }
 
-// Encouragement in every exercise: halfway through a short one, about every 30s
-// in a long one. Never later than 6s before the end, so a line has finished
-// before the closing "three-two-one" (speech can't overlap).
-function encouragementCues(dur: number, cheer: () => string): Cue[] {
-  const latest = dur - 6;
-  const times: number[] = [];
-  if (dur < 60) times.push(Math.floor(dur / 2));
-  else for (let t = 30; t <= latest; t += 30) times.push(t);
-  return times.filter((t) => t >= 1 && t <= latest).map((atSec) => ({ atSec, say: cheer() }));
-}
-
 function workSegment(u: Unit, round: number, cheer: () => string): Segment {
-  const cues: Cue[] = [{ atSec: 0, say: phrases.begin(), haptic: 'start' }, ...encouragementCues(u.dur, cheer)];
+  const cues = workCues(u.dur, cheer);
   cues.push({ atSec: Math.max(1, u.dur - 5), haptic: 'countdown' });
   return { kind: 'work', exercise: u.ex, side: u.side, durationSec: u.dur, cues, round };
 }
@@ -257,6 +246,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   const circuit = selectExercises({
     equipment: opts.equipment, recentExerciseIds: recent, rng, includeWarmup: false,
     slots: slotsForSore(baseSlots, opts.sore ?? 'none'),
+    maxOneSided: maxOneSided(opts.kind),
   });
 
   // A forced theme (the "Different warm-up" switch) wins; otherwise the Lottery
@@ -274,15 +264,17 @@ export function generateWorkout(opts: GenerateOptions): Workout {
 
   // A changeover rest follows the warm-up, so the first move is announced in time.
   const postWarmupRest = warmupSegs.length > 0 ? CHANGE_REST_SEC : 0;
+  // Every set/round of a one-sided move has a switch-sides gap between its two sides.
+  const switchTime = rounds * circuit.filter((e) => e.unilateral).length * SWITCH_SEC;
 
   // Everything except the main work bouts and the abs block.
   //  stations: a changeover rest between stations
   //  circuit:  a changeover rest between moves; the round-rest is the changeover between rounds
   // (the finisher brings its own lead-in rest; with no finisher, "Great job" follows directly)
   const baseFixed = style === 'stations'
-    ? warmupTotal + postWarmupRest + CELEBRATE_SEC + items * PREPARE_SEC + (items - 1) * CHANGE_REST_SEC
+    ? warmupTotal + postWarmupRest + switchTime + CELEBRATE_SEC + items * PREPARE_SEC + (items - 1) * CHANGE_REST_SEC
       + items * (rounds - 1) * SET_REST_SEC
-    : warmupTotal + postWarmupRest + CELEBRATE_SEC + (rounds - 1) * roundRest
+    : warmupTotal + postWarmupRest + switchTime + CELEBRATE_SEC + (rounds - 1) * roundRest
       + rounds * items * PREPARE_SEC + rounds * (items - 1) * CHANGE_REST_SEC;
 
   // The abs finisher always closes the session, within the budget. It aims for
@@ -318,7 +310,10 @@ export function generateWorkout(opts: GenerateOptions): Workout {
       u += sides;
       segments.push(prepareSegment(ex, 1));
       for (let set = 1; set <= rounds; set++) {
-        exUnits.forEach((un) => segments.push(workSegment(un, set, cheer)));
+        exUnits.forEach((un, side) => {
+          if (side > 0) segments.push(switchSegment(ex, set));
+          segments.push(workSegment(un, set, cheer));
+        });
         if (set < rounds) segments.push(setRestSegment(set));
       }
       if (i < items - 1) segments.push(changeRestSegment(rounds)); // walk to the next station
@@ -330,7 +325,10 @@ export function generateWorkout(opts: GenerateOptions): Workout {
       circuit.forEach((ex, i) => {
         segments.push(prepareSegment(ex, r));
         const sides = ex.unilateral ? 2 : 1;
-        for (let s = 0; s < sides; s++) segments.push(workSegment(units[u++], r, cheer));
+        for (let s = 0; s < sides; s++) {
+          if (s > 0) segments.push(switchSegment(ex, r));
+          segments.push(workSegment(units[u++], r, cheer));
+        }
         // Between moves only: the round-rest is the changeover between rounds.
         if (i < items - 1) segments.push(changeRestSegment(r));
       });
