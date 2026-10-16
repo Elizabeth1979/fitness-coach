@@ -13,7 +13,8 @@ safety). Check on Elli's phone: lock the screen mid-workout → comes back pause
 - [x] `npm audit fix` (0 vulnerabilities), Dependabot (monthly, grouped), `lint` (warnings fail) in the Vercel build — merged, PR #15.
 - [ ] Elli: turn on **Dependabot alerts + security updates** in GitHub → Settings → Code security (a repo setting, not a file).
 - [x] Resume: same day only, from the exact second. Equipment toggle (Everything / Bodyweight only) — PR open.
-- [ ] Elli decides: add a bodyweight pull move (e.g. prone Y-T-W raises)? Bodyweight-only has no Pull today.
+- [x] Bodyweight pull move: Prone Y-T-W Raises (Elli: yes) — in PR #21.
+- [ ] Dependabot #17 (dev tools incl. oxlint 1.88) is blocked by 11 new React lint findings — fix the code (not the rules), then it goes green.
 - [ ] Read prefs once in `App`; inline styles → `index.css` classes; ask Elli which Change-sheet options she uses.
 
 **First, check with Elli:** did re-adding the app to her home screen from the Vercel address

@@ -36,7 +36,7 @@ describe('generateWorkout', () => {
     expect(generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 1 }).focus).toBe('movement');
   });
 
-  it('bodyweight only: never needs equipment and still fits the time, in every length and style', () => {
+  it('bodyweight only: never needs equipment, still pulls, and fits the time, in every length and style', () => {
     for (const [kind, target] of [['10min', 600], ['20min', 1200], ['30min', 1800]] as const) {
       for (const style of ['circuit', 'stations'] as const) {
         for (const date of [WED, TUE]) {
@@ -47,6 +47,7 @@ describe('generateWorkout', () => {
             for (const seg of w.segments) {
               if (seg.exercise) expect(seg.exercise.equipment, `${label}: ${seg.exercise.id}`).toEqual(['bodyweight']);
             }
+            expect(w.segments.some((seg) => seg.kind === 'work' && seg.exercise?.category === 'pull'), `${label}: has a pull`).toBe(true);
           }
         }
       }

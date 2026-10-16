@@ -201,7 +201,7 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
           </div>
           <div className="hint" style={{ marginTop: 8 }}>
             {isBodyweightOnly(p.equipment ?? ALL_EQUIPMENT)
-              ? 'No bar, weights or bands — handy when you travel. Without a bar there are no pulling moves.'
+              ? 'No bar, weights or bands — handy when you travel.'
               : 'Uses your pull-up bar, weights and bands.'}
           </div>
         </div>
