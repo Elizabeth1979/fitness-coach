@@ -94,7 +94,7 @@ export default function App() {
         setPhase('done');
       } else { setWorkout(null); setPhase('home'); }
     }
-  }, [phase, state.status, completed, workout]);
+  }, [phase, state.status, completed, workout, sore]);
 
   if (phase === 'home') return (
     <>
