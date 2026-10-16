@@ -135,14 +135,14 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .select { background: var(--surface); color: var(--text); border: var(--bd-2); border-radius:12px; padding:8px 12px; font: inherit; font-weight:500; font-size: var(--fs-xs); max-width:12rem; }
 
 .progress { flex:1; height:10px; background: var(--surface-3); border-radius: var(--r-pill); overflow:hidden; }
-.progress-fill { height:100%; background: var(--brand); border-radius: var(--r-pill); transition: width .4s cubic-bezier(.21,1.02,.45,1); }
+.progress-fill { height:100%; width:100%; background: var(--brand); transform-origin: left center; transition: transform .4s cubic-bezier(.21,1.02,.45,1); }
 
 /* ============================================================================
    BOTTOM SHEET (move detail, change workout) — fixed to the viewport
    ========================================================================== */
 .sheet-backdrop { position:fixed; inset:0; z-index:30; background: rgba(15,17,28,.55); display:flex; align-items:flex-end; justify-content:center; }
 .sheet { width:100%; max-width:460px; max-height:88vh; overflow-y:auto; background: var(--surface); border-radius:24px 24px 0 0; padding:20px 20px calc(24px + env(safe-area-inset-bottom)); }
-.cue { font-size:17px; line-height:1.55; font-weight:500; color: var(--text); background: var(--surface-2); border-left:6px solid var(--text); border-radius: var(--r-md); padding:15px; }
+.cue { font-size:17px; line-height:1.55; font-weight:500; color: var(--text); background: var(--surface-2); border: var(--bd); border-radius: var(--r-md); padding:15px; }
 
 /* ============================================================================
    LIST ROWS
