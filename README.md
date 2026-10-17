@@ -63,6 +63,7 @@ balance, skill — not calories or body weight.
 - **Note an idea for the app** — the 💡 on the workout screen (it pauses first), or the link on
   Home and after a workout. **Send idea** puts it straight into a private ideas database that
   Claude reads when planning the next update; offline, it waits on the phone and sends itself later.
+  Every idea, in Elli's words and with where it stands, is listed in [`plans/IDEAS.md`](plans/IDEAS.md).
 
 The coach is calm and encouraging — never military, never shaming, and there's not a
 calorie count in sight.
@@ -137,6 +138,8 @@ look-and-feel — colours, type, borders, shapes — is defined once in
 ## Docs
 
 - [`CLAUDE.md`](CLAUDE.md) — how the code fits together and the rules it follows.
+- [`plans/IDEAS.md`](plans/IDEAS.md) — every idea sent from the app's 💡, in Elli's words, with its status.
+- [`plans/TODO.md`](plans/TODO.md) — what's next (start here), plus a log of each session in [`plans/sessions/`](plans/sessions/).
 - Design specs and implementation plans live in [`docs/superpowers/`](docs/superpowers/).
 - [Next steps & roadmap](docs/NEXT-STEPS.md) — how to deploy, the polish backlog, and future phases (accounts/sync, native app, adaptive AI coach, gamification).
 

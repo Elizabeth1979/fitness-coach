@@ -6,7 +6,7 @@ see CLAUDE.md, "Elli's ideas"). Claude copies new ones here at the start of each
 updates the status as work lands.
 
 **Status:** ✅ done · 🔜 planned / partly done · 🆕 not started
-**Last synced:** 2026-10-17 · 23 ideas · 9 ✅ · 2 🔜 · 12 🆕
+**Last synced:** 2026-10-17
 
 ---
 

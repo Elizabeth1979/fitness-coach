@@ -269,10 +269,11 @@ Design specs and the TDD implementation plans live in `docs/superpowers/`; the r
 backlog are in `docs/NEXT-STEPS.md`.
 
 **Session rhythm:** start by reading `plans/TODO.md` (the "resume here" entry) and syncing new ideas from
-Supabase into `plans/IDEAS.md`; end by writing a
-session log in `plans/sessions/YYYY-MM-DD.md` and refreshing `plans/TODO.md`.
+Supabase into `plans/IDEAS.md`; end by writing a session log in `plans/sessions/YYYY-MM-DD.md` and
+refreshing `plans/TODO.md`.
 **Keep the docs current in the same PR as the change:**
 - anything a user would notice → `README.md` "What it does";
 - a new rule, gotcha or lesson learned → `CLAUDE.md`;
-- what happened → the session log + `plans/TODO.md`.
+- what happened → the session log + `plans/TODO.md`;
+- an idea of Elli's started or finished → its `status` in Supabase + `plans/IDEAS.md`.
 Don't put counts that go stale (tests, files) in the docs.
