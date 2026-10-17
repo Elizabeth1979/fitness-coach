@@ -183,10 +183,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .progress { flex:1; height:10px; background: var(--surface-3); border-radius: var(--r-pill); overflow:hidden; }
 .progress-fill { height:100%; width:100%; background: var(--brand); transform-origin: left center; transition: transform .4s cubic-bezier(.21,1.02,.45,1); }
 
-/* timer ring — green while you work, grey while you rest (data-tone="rest") */
+/* timer ring — green while you work, grey while you rest (data-tone="rest").
+   No transition on stroke-dashoffset: the ring is redrawn every frame, and WebKit (iPhone)
+   restarts the transition on each redraw, so the ring froze as a dot. */
 .timer-ring    { position:relative; width:200px; height:200px; }
 .timer-track   { fill: var(--surface); stroke: var(--ring-track); }
-.timer-fill    { fill:none; stroke: var(--brand); filter: var(--shadow-ring); transition: stroke-dashoffset .35s linear, stroke .3s; }
+.timer-fill    { fill:none; stroke: var(--brand); filter: var(--shadow-ring); transition: stroke .3s; }
 .timer-ring[data-tone="rest"] .timer-fill { stroke: var(--ring-rest); }
 .timer-readout { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 .timer-time    { font-size:54px; font-weight:800; letter-spacing:-1px; line-height:1; }
@@ -195,9 +197,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* ============================================================================
    BOTTOM SHEET (move detail, change workout) — fixed to the viewport
    ========================================================================== */
-.sheet-backdrop { position:fixed; inset:0; z-index:30; background: var(--scrim); display:flex; align-items:flex-end; justify-content:center; }
+/* While any sheet is open the page behind it can't scroll (iPhone included — Safari 16+ honours
+   overflow on the root), and a scroll inside the sheet stops at its edge instead of moving the page. */
+html:has(.sheet-backdrop) { overflow:hidden; }
+.sheet-backdrop { position:fixed; inset:0; z-index:30; background: var(--scrim); display:flex; align-items:flex-end; justify-content:center; overscroll-behavior:contain; }
 .sheet:focus { outline:none; } /* focused only as a fallback, when it has no buttons */
-.sheet { width:100%; max-width:460px; max-height:88vh; overflow-y:auto; background: var(--surface); border-radius:24px 24px 0 0; padding:20px 20px calc(24px + env(safe-area-inset-bottom)); }
+.sheet { width:100%; max-width:460px; max-height:88vh; overflow-y:auto; overscroll-behavior:contain; background: var(--surface); border-radius:24px 24px 0 0; padding:20px 20px calc(24px + env(safe-area-inset-bottom)); }
 .cue { font-size:17px; line-height:1.55; font-weight:500; color: var(--text); background: var(--surface-2); border: var(--bd); border-radius: var(--r-md); padding:15px; }
 
 /* ============================================================================

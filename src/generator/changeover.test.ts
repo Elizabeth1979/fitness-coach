@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateWorkout } from './generateWorkout';
 import { swapMove } from './swapMove';
+import { NEXT_UP_LEAD_SEC } from './changeover';
 import { createRng } from './rng';
 import { phrases } from '../coach/phrases';
 import { secsToSay } from '../coach/secsToSay';
@@ -143,6 +144,39 @@ describe('changeovers between exercises', () => {
     expect(isRest(restBefore)).toBe(true);
     expect(firstSay(restBefore)).toContain(phrases.nextUp(newEx));
     expect(firstSay(restBefore)).not.toContain(oldName);
+  });
+
+  // Elli (#13): "the next exercise was not announced" — she wants to hear it during the move,
+  // before its closing three-two-one, not only once the rest has begun.
+  it('every move names the next one about 10s before it ends (not a left side, not the same move again)', () => {
+    let named = 0;
+    for (const [kind, style] of variants) {
+      for (const seed of [1, 2, 3, 4]) {
+        const segs = build(kind, style, seed).segments;
+        segs.forEach((s, i) => {
+          if (s.kind !== 'work') return;
+          const ahead = segs.slice(i + 1).find((x) => x.kind === 'work' || x.kind === 'switch' || x.kind === 'celebrate');
+          const nextMove = ahead?.kind === 'work' && ahead.exercise?.id !== s.exercise?.id ? ahead.exercise : undefined;
+          const headsUp = s.cues.filter((c) => c.say?.startsWith('Next up'));
+          const where = `${kind}/${style}/seed${seed} #${i} ${s.exercise?.name} (${s.durationSec}s)`;
+          if (!nextMove) { expect(headsUp, where).toEqual([]); return; }
+          expect(headsUp, where).toEqual([{ atSec: s.durationSec - NEXT_UP_LEAD_SEC, say: phrases.comingUp(nextMove) }]);
+          named++;
+        });
+      }
+    }
+    expect(named).toBeGreaterThan(0);
+    expect(NEXT_UP_LEAD_SEC).toBe(10);
+  });
+
+  it('after a swap, the move before the swapped one names the NEW move', () => {
+    const w = build('20min', 'circuit', 4);
+    const prepIdx = w.segments.findIndex((s, i) => i > 0 && s.kind === 'prepare' && s.round === 1 && w.segments[i - 2]?.kind === 'work');
+    const w2 = swapMove(w, prepIdx, ALL, createRng(1));
+    const before = w2.segments[prepIdx - 2];
+    expect(before.cues.find((c) => c.say?.startsWith('Next up'))?.say).toBe(phrases.comingUp(w2.segments[prepIdx].exercise!));
+    // Re-annotating never stacks a second heads-up.
+    expect(before.cues.filter((c) => c.say?.startsWith('Next up'))).toHaveLength(1);
   });
 
   it('no spoken line runs into the next one (speech queues, so overlap = a late, rushed count)', () => {

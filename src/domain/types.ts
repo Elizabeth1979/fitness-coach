@@ -16,7 +16,10 @@ export interface Exercise {
   category: Category;
   equipment: Equipment[];
   goals: Goal[];
+  // One side at a time. Main moves split into left · switch · right; a warm-up move (fixed length) hears "Switch sides." halfway.
   unilateral: boolean;
+  // Round in circles: "Now the other way." halfway through.
+  bothDirections?: boolean;
   measure: Measure;
   cue: string;
   defaultDurationSec?: number;

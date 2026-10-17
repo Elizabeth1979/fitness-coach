@@ -39,5 +39,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
+    // Vitest blanks CSS by default; let tests read the real design system (e.g. the sheet's scroll lock).
+    css: { include: [/src\/index\.css/] },
   },
 });

@@ -39,6 +39,9 @@ export const TARGET_SECONDS: Record<Exclude<WorkoutKind, 'free'>, number> = {
 const ROUNDS: Record<WorkoutKind, number> = { '10min': 3, '20min': 3, '30min': 5, free: 3 };
 
 const CELEBRATE_SEC = 18;
+// …give or take the seconds left over from rounding (see roundToStep), within these.
+const CELEBRATE_MIN_SEC = 12, CELEBRATE_MAX_SEC = 30;
+const CELEBRATE_ABSORBS = { under: CELEBRATE_MAX_SEC - CELEBRATE_SEC, over: CELEBRATE_MIN_SEC - CELEBRATE_SEC };
 // NOTE: the 10-min/2-round budget's worst case is every work bout at this floor.
 // It stays within the 45s tolerance only because ≤3 circuit categories are
 // unilateral today (see the "worst-case 10-min floor budget" test). Adding
@@ -113,6 +116,41 @@ function spreadDrift(units: Unit[], drift: number): void {
     });
     if (absorbed === 0) break; // no unit could move; nothing more to do
     remaining -= absorbed;
+  }
+}
+
+// Every move's time is a round number on the clock (Elli: a 37s hold "looks weird").
+export const WORK_STEP_SEC = 5;
+
+// Round each move's time to WORK_STEP_SEC. Everything goes down to the step,
+// then the moves that lost the most get a step back while that brings the whole
+// workout's leftover (`goal` — one round's work time — less this round's, ×
+// `rounds`) into what the closing celebration can absorb, and nearer zero. (Five
+// rounds make each step 25s, so a 30-min workout can still end a couple of
+// seconds long.) Both sides of a one-sided move move together, so they match.
+function roundToStep(units: Unit[], rounds: number, goal: number): void {
+  const groups: Unit[][] = [];
+  for (const u of units) {
+    const last = groups[groups.length - 1];
+    if (u.side === 'right' && last?.[0].ex.id === u.ex.id) last.push(u);
+    else groups.push([u]);
+  }
+  const down = (v: number) => clamp(Math.floor(v / WORK_STEP_SEC) * WORK_STEP_SEC, MIN_WORK_SEC, MAX_WORK_SEC);
+  const lost = groups.map((g) => {
+    const avg = g.reduce((s, u) => s + u.dur, 0) / g.length;
+    for (const u of g) u.dur = down(avg);
+    return avg - g[0].dur;
+  });
+  // The whole workout's leftover; a step back is taken only when it brings that closer.
+  let leftover = (goal - units.reduce((s, u) => s + u.dur, 0)) * rounds;
+  const miss = (x: number) => Math.max(0, x - CELEBRATE_ABSORBS.under, CELEBRATE_ABSORBS.over - x);
+  const order = groups.map((_, i) => i).sort((a, b) => lost[b] - lost[a] || a - b);
+  for (const i of order) {
+    const g = groups[i], after = leftover - WORK_STEP_SEC * g.length * rounds;
+    if (g[0].dur + WORK_STEP_SEC > MAX_WORK_SEC) continue;
+    if (miss(after) > miss(leftover) || (miss(after) === miss(leftover) && Math.abs(after) >= Math.abs(leftover))) continue;
+    for (const u of g) u.dur += WORK_STEP_SEC;
+    leftover = after;
   }
 }
 
@@ -290,7 +328,9 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   const absTotal = absSegs.reduce((s, seg) => s + seg.durationSec, 0);
 
   // Size the main work to fill what's left after warm-up, rests, abs and celebrate.
-  spreadDrift(units, (target - baseFixed - absTotal) / rounds - baseWork());
+  const roundWork = (target - baseFixed - absTotal) / rounds;
+  spreadDrift(units, roundWork - baseWork());
+  roundToStep(units, rounds, roundWork);
 
   const practiced = absSegs.length > 0
     ? [...circuit.map((e) => e.category), 'core' as const]
@@ -339,7 +379,10 @@ export function generateWorkout(opts: GenerateOptions): Workout {
     }
   }
   segments.push(...absSegs);
-  segments.push(celebrate);
+  // Rounding each move to 5s leaves the total a few seconds off; the closing
+  // celebration takes them, so the workout lands on its 10/20/30 minutes.
+  const laidOut = segments.reduce((s, seg) => s + seg.durationSec, 0) + CELEBRATE_SEC;
+  segments.push({ ...celebrate, durationSec: clamp(CELEBRATE_SEC + target - laidOut, CELEBRATE_MIN_SEC, CELEBRATE_MAX_SEC) });
   // Now that the order is final, every rest can say what's next and count in.
   segments = annotateChangeovers(segments, rounds);
 

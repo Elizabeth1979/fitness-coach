@@ -28,13 +28,18 @@ balance, skill — not calories or body weight.
   - **Time to get there** — about 20 seconds between exercises. The rest starts with
     *"Rest. Take a deep breath. Next up: Bulgarian Split Squat. Back foot elevated, sink straight down."*, then
     *"Get ready."* and a real one-per-second *"three… two… one… Go!"*
+  - **"Next up" during every exercise** — about 10 seconds before it ends the coach names the
+    next move (*"Next up: Plank."*), so you're never surprised.
   - **"Three, two, one" at the end of every exercise**, so you know it's almost done.
-  - **"Switch sides"** — one-sided moves get a 10-second gap between left and right.
+  - **"Switch sides"** — one-sided moves get a 10-second gap between left and right. In the
+    warm-up, moves done one side at a time or in circles (leg swings, hip circles…) hear
+    *"Switch sides."* or *"Now the other way."* halfway.
   - **Encouragement in every exercise** — warm, royal, hype or silly (*"Somewhere, a sloth
     is jealous."*), never the same line twice until you've heard them all.
   - A capability summary at the end (*"Today you practiced push, pull, hinge…"*).
-- **The screen** shows the move, which side you're on, a big timer, how to do the move, and
-  what's next. Colour means "do this": green for Start and the running timer; everything else
+- **The screen** shows the move, which side you're on, a big timer ring that empties as the time
+  passes, how to do the move, and what's next. Every move's time is a round number (25, 30, 35
+  seconds…). A bottom sheet holds the page behind it still. Colour means "do this": green for Start and the running timer; everything else
   is high-contrast black, white and grey, in Lexend — a font designed for easy reading.
 - **Themed warm-ups & the Mobility Lottery** — never the same warm-up two days running
   (Hip / Shoulder / Animal / Dance — including a 2-minute free-dance).

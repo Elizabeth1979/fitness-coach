@@ -108,6 +108,49 @@ describe('generateWorkout', () => {
     }
   });
 
+  // Elli (#15): "Deep Squat Hold, 37 seconds — weird". Leftover time is spread over the moves, and it
+  // used to land to the second. Every move now gets a round number (a multiple of 5s); sides match.
+  it('gives every move a round number of seconds (a multiple of 5), the same on both sides', () => {
+    for (const kind of ['10min', '20min', '30min'] as const) {
+      for (const style of ['circuit', 'stations'] as const) {
+        for (const date of [WED, TUE]) {
+          for (const [seed, level] of [[1, 0], [2, 0], [3, 1], [4, -2], [5, 3], [6, 0], [7, 0], [8, 2]]) {
+            for (const equipment of [ALL, ['bodyweight'] as Equipment[]]) {
+              const segs = generateWorkout({ kind, date, equipment, seed, style, level }).segments;
+              segs.forEach((s, i) => {
+                if (s.kind !== 'work') return;
+                const where = `${kind}/${style}/seed${seed} ${s.exercise?.name} ${s.durationSec}s`;
+                expect(s.durationSec % 5, where).toBe(0);
+                if (s.side === 'right') expect(segs[i - 2].durationSec, where).toBe(s.durationSec);
+              });
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Rounding every move to 5s leaves seconds over or short; the closing "Great job" takes them, so
+  // the clock reads 10:00 / 20:00 left when the workout starts (30-min: five rounds make every 5s
+  // step count 25s, so it can end up 2s long — as close as it was before the rounding).
+  it('lands on the length (the closing celebration takes the leftover seconds)', () => {
+    for (const [kind, target] of [['10min', 600], ['20min', 1200], ['30min', 1800]] as const) {
+      for (const style of ['circuit', 'stations'] as const) {
+        for (const date of [WED, TUE]) {
+          for (let seed = 0; seed < 40; seed++) {
+            for (const equipment of [ALL, ['bodyweight'] as Equipment[]]) {
+              const w = generateWorkout({ kind, date, equipment, seed, style });
+              const end = w.segments[w.segments.length - 1];
+              const off = Math.abs(trainingSec(w) - target);
+              expect(off, `${kind}/${style}/seed${seed}`).toBeLessThanOrEqual(kind === '30min' ? 3 : 0);
+              expect(end.durationSec).toBeGreaterThanOrEqual(12);
+            }
+          }
+        }
+      }
+    }
+  });
+
   it('splits unilateral exercises into left and right work segments', () => {
     const w = generateWorkout({ kind: '30min', date: TUE, equipment: ALL, seed: 4 });
     const sides = w.segments.filter((s) => s.side).map((s) => s.side);

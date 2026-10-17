@@ -2,7 +2,7 @@ import type { Equipment, Exercise, Segment, Workout } from '../domain/types';
 import { candidatesFor, maxOneSided } from './selectExercises';
 import { pick } from './rng';
 import { phrases } from '../coach/phrases';
-import { MIN_WORK_SEC } from './generateWorkout';
+import { MIN_WORK_SEC, WORK_STEP_SEC } from './generateWorkout';
 import { withIntro } from './intro';
 import { repsFor } from './effort';
 import { SWITCH_SEC, annotateChangeovers, switchSegment, workCues } from './changeover';
@@ -95,6 +95,7 @@ function reshape(bout: Segment[], next: Exercise, cheer: () => string, level: nu
     ...(side ? { side } : {}), ...(block ? { block } : {}),
   });
   if (!next.unilateral) return [work(total)];
-  const side = Math.max(MIN_WORK_SEC, Math.round((total - SWITCH_SEC) / 2));
+  // Each side stays a round number on the clock (a 5s step), so the bout may shift by a few seconds.
+  const side = Math.max(MIN_WORK_SEC, Math.round((total - SWITCH_SEC) / 2 / WORK_STEP_SEC) * WORK_STEP_SEC);
   return [work(side, 'left'), switchSegment(next, round), work(side, 'right')];
 }

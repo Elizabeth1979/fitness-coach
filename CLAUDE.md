@@ -30,6 +30,17 @@ npm run lint         # oxlint --deny-warnings (config in .oxlintrc.json) — war
   build break once hid behind a green test run for several tasks.
 - **`console.log` in a passing test prints nothing** with the default reporter — add `--reporter=verbose`
   (or write to a file) when a throwaway test is meant to print numbers.
+- **Elli's phone is Android + Chrome** (installed PWA). Check phone bugs in Chromium with
+  `devices['Pixel 7']` — Playwright's bundled Chromium works via `executablePath` from
+  `~/Library/Caches/ms-playwright/chromium-*`; CPU throttling via CDP `Emulation.setCPUThrottlingRate`.
+  Emulation isn't a real phone: the frozen-ring bug (#12) did NOT reproduce in emulated Android Chrome,
+  only in WebKit (iPhone), so ask Elli to re-check on her phone. WebKit: `webkit` + `devices['iPhone 13']`
+  (`npx playwright install webkit`; if it stalls after downloading, unzip the zip into
+  `~/Library/Caches/ms-playwright/webkit-<rev>` and touch `INSTALLATION_COMPLETE`); mobile WebKit can't
+  fake a mouse wheel — use a desktop context at phone width for scroll checks. **Don't put a CSS
+  `transition` on anything updated every frame** (WebKit restarts it forever and the ring froze).
+- **Vitest blanks CSS** unless the file is in `test.css.include` (`vite.config.ts`); `index.css` is, so
+  a test can `import css from '../index.css?raw'` to guard a rule (sheet scroll lock, timer ring).
 - **Browser checks (Playwright, Chromium is preinstalled):** `npm run build`, serve `dist/` with the headers from
   `vercel.json` (so the real CSP applies) and drive the app. Wait ≥ 450ms after every screen change before the next
   click — `useTapGuard` drops taps in a new screen's first 400ms, so fast scripted clicks silently do nothing.
@@ -104,14 +115,15 @@ selectors (e.g. the timer and rest screen use `data-tone="rest"`, the week strip
 colours: `<Icon className="icon-warm" />`. **Dark mode** follows the phone (`prefers-color-scheme`, no toggle):
 the `@media` block re-defines the same tokens, so never hard-code a colour; text on `--accent` uses
 `--on-accent`, green text uses `--brand-text` (all text pairs ≥ 4.5:1). Every bottom sheet uses `src/ui/Sheet.tsx` (focus in, Tab
-trapped, Escape closes, focus returns). Tailwind is imported, so **don't name a class after a
+trapped, Escape closes, focus returns; the page behind is locked by CSS `html:has(.sheet-backdrop)`, so
+nested/replaced sheets can't leave it stuck — no JS scroll-lock library, their injected `<style>` breaks the CSP). Tailwind is imported, so **don't name a class after a
 Tailwind utility** (`ring`, `shadow`, `block`, …) — it silently inherits that utility's styles. Icons are inline SVGs from
 `@tabler/icons-react`, all listed in `src/ui/Icon.tsx` (`<Icon name="clock" />` — add new ones to
 its map; never re-add the 5,000-icon webfont).
 
 ## Conventions & invariants
 
-- **All spoken copy lives in `src/coach/phrases.ts`** (encouragement lines in `src/coach/encouragements.json`, dealt like a shuffled deck from their own RNG stream so editing the list never changes exercise selection; every exercise gets ≥1, kept ≥6s clear of the closing countdown). Tone is calm, encouraging, present-tense —
+- **All spoken copy lives in `src/coach/phrases.ts`** (encouragement lines in `src/coach/encouragements.json`, dealt like a shuffled deck from their own RNG stream so editing the list never changes exercise selection; every exercise gets ≥1, over before the "Next up" heads-up). Tone is calm, encouraging, present-tense —
   **never** calorie / weight-loss / "burn" / guilt / military wording. The user's name "Elli" is
   hard-coded. There is a test asserting banned words don't appear.
 - **Determinism:** `generateWorkout` is pure and seeded by `createRng(seed)` (seed defaults to the
@@ -130,6 +142,15 @@ its map; never re-add the 5,000-icon webfont).
   NOT part of the 10/20/30 minutes — Home/Done/streak all use `trainingSec`. `withIntro` drops any old intro
   and prepends a fresh one; `swapMove` re-runs it (only if one is there, so segment indices never shift).
   The active screen's "mm:ss left" clock (`format.ts` `timeLeft`) holds at the full length during the intro.
+- **Cues inside an exercise (`annotateChangeovers`):** "Go!" (or the warm-up how-to) at 0, encouragement
+  a third of the way in a short move (every 30s in a long one, always ≥14s before the end), a halfway
+  "Switch sides." / "Now the other way." for a move that goes two ways but isn't split into sides
+  (`unilateral` warm-up moves, `bothDirections` circles — placed in a quiet gap), "Next up: <name>." at
+  `NEXT_UP_LEAD_SEC` (10s) before the end (not on a left side, between sets of one move, or at the end),
+  then the three-two-one. The post-pass re-applies the heads-up and halfway line, so a swap stays right.
+  A test audits the library: a how-to that says "circle", "each way", "one leg, then the other"… must be flagged.
+- **Move times are multiples of 5s** (`roundToStep`, after `spreadDrift`): both sides equal, and the
+  celebration (12–30s) takes the leftover so 10/20-min land exactly, 30-min within ~2s.
 - **Changeovers (`generator/changeover.ts`):** getting from one move to the next is a 15s rest that
   says "Rest… Next up: X." the moment it starts, then a 5s "Get ready" that ends in a real
   one-per-second "three, two, one" → "Go!" (~20s total; a changeover rest also follows the warm-up
