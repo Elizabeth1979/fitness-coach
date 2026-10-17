@@ -86,9 +86,12 @@ shows the capability checklist.
 `store` (localStorage repo), `streak`, `week` (pure) · `generator/swapMove` (swap one move) · `ui/`
 hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekView` + `format`
 (pure: `formatTarget`/`sessionMoves`) · `pwa/` wakeLock + update. The design system (tokens +
-reusable classes `.card`/`.btn`/`.pill`/…) lives in `src/index.css`; components hold **no colour
-literals** — add a `:root` token and switch states with `data-*`/`aria-*` selectors (e.g. the timer
-and rest screen use `data-tone="rest"`). Every bottom sheet uses `src/ui/Sheet.tsx` (focus in, Tab
+reusable classes `.card`/`.btn`/`.pill`/…, plus per-screen classes `home-*`/`detail-*`/`active-*`/`done-*`/
+`week-*` and helpers like `.btn-block`/`.row-main`/`.choices`) lives in `src/index.css`; components hold
+**no inline styles** except values computed at runtime (progress bar, confetti positions) — guarded by
+`src/ui/inlineStyles.test.ts`. Add a `:root` token or a class, and switch states with `data-*`/`aria-*`
+selectors (e.g. the timer and rest screen use `data-tone="rest"`, the week strip `data-today`). Icon
+colours: `<Icon className="icon-warm" />`. Every bottom sheet uses `src/ui/Sheet.tsx` (focus in, Tab
 trapped, Escape closes, focus returns). Tailwind is imported, so **don't name a class after a
 Tailwind utility** (`ring`, `shadow`, `block`, …) — it silently inherits that utility's styles. Icons are inline SVGs from
 `@tabler/icons-react`, all listed in `src/ui/Icon.tsx` (`<Icon name="clock" />` — add new ones to

@@ -33,32 +33,32 @@ export function DoneScreen({ categories, streak, workout, onHome }: Props) {
   const [today] = useState(() => localDate(new Date())); // read the clock once, not on every render
   return (
     <main className="screen">
-      <div style={{ position: 'relative', textAlign: 'center', padding: '10px 0 16px' }}>
-        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+      <div className="done-hero">
+        <div aria-hidden="true" className="confetti-layer">
           {CONFETTI.map((p, i) => (
             <span key={i} className="confetti" style={{ left: p.left, animationDelay: p.delay }} />
           ))}
         </div>
-        <div style={{ width: 66, height: 66, margin: '0 auto 13px', borderRadius: '50%', background: 'var(--brand-soft)', color: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-done)', animation: 'pop-check .6s cubic-bezier(.34,1.56,.64,1) both' }}><Icon name="check" size={36} /></div>
-        <h1 className="t-hero" style={{ fontSize: 29 }}>Great job, Elli <span aria-hidden="true">🎉</span></h1>
-        <div className="muted" style={{ fontSize: 17, marginTop: 5 }}>You're more capable than yesterday.</div>
+        <div className="done-check"><Icon name="check" size={36} /></div>
+        <h1 className="t-hero done-title">Great job, Elli <span aria-hidden="true">🎉</span></h1>
+        <div className="muted done-subtitle">You're more capable than yesterday.</div>
       </div>
 
-      <div className="card" style={{ marginBottom: 14 }}>
-        <div className="row-between" style={{ marginBottom: 14 }}>
-          <span className="row muted" style={{ gap: 6, fontSize: 'var(--fs-sm)' }}><Icon name="clock" />{mins} minutes</span>
-          <span className="row muted" style={{ gap: 6, fontSize: 'var(--fs-sm)' }}><Icon name="list-check" />{practiced.length} moves</span>
-          {streak > 0 && <span className="pill" style={{ padding: '6px 11px' }}><Icon name="flame" style={{ color: 'var(--warm)' }} />{streak}-day streak</span>}
+      <div className="card done-summary">
+        <div className="row-between done-stats">
+          <span className="row muted done-stat"><Icon name="clock" />{mins} minutes</span>
+          <span className="row muted done-stat"><Icon name="list-check" />{practiced.length} moves</span>
+          {streak > 0 && <span className="pill done-streak"><Icon name="flame" className="icon-warm" />{streak}-day streak</span>}
         </div>
-        <div className="hint" style={{ fontSize: 'var(--fs-sm)', marginBottom: 9 }}>You practiced</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-          {practiced.map((p) => <span key={p.key} className="pill" style={{ fontSize: 'var(--fs-sm)', padding: '7px 13px' }}><Icon name="check" size={16} style={{ color: 'var(--brand)' }} />{p.label}</span>)}
+        <div className="hint done-practiced-label">You practiced</div>
+        <div className="done-practiced">
+          {practiced.map((p) => <span key={p.key} className="pill done-chip"><Icon name="check" size={16} className="icon-brand" />{p.label}</span>)}
         </div>
       </div>
 
       <WeekView dates={dates} today={today} />
 
-      <button className="btn btn-primary" onClick={onHome} style={{ width: '100%' }}><Icon name="home" />Done</button>
+      <button className="btn btn-primary btn-block" onClick={onHome}><Icon name="home" />Done</button>
     </main>
   );
 }

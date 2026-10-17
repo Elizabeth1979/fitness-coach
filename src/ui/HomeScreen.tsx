@@ -19,7 +19,7 @@ function greeting(d: Date): string {
 
 interface Props {
   workout: Workout; kind: WorkoutKind; onKind: (k: WorkoutKind) => void; streak: number;
-  style?: WorkoutStyle; onStyle?: (s: WorkoutStyle) => void;
+  workoutStyle?: WorkoutStyle; onStyle?: (s: WorkoutStyle) => void;
   onSwapWarmup?: () => void;
   sore?: SoreArea; onSore?: (s: SoreArea) => void; soreSuggested?: SoreArea;
   equipment?: Equipment[]; onEquipment?: (e: Equipment[]) => void;
@@ -49,67 +49,67 @@ export function HomeScreen(p: Props) {
   const warmName = warmupFlowName(p.workout.warmupThemeId);
   const cores = coreMoves(p.workout);
   const coreSec = p.workout.segments.filter((s) => s.block === 'core').reduce((a, s) => a + s.durationSec, 0);
-  const stations = (p.style ?? 'circuit') === 'stations';
+  const stations = (p.workoutStyle ?? 'circuit') === 'stations';
   const rounds = p.workout.rounds;
 
   return (
-    <main className="screen" style={{ paddingBottom: 0 }}>
-      <div className="row-between" style={{ marginBottom: 18 }}>
+    <main className="screen screen-home">
+      <div className="row-between home-header">
         <div>
-          <div className="muted" style={{ fontSize: 16 }}>{hello}, Elli <span aria-hidden="true">👋</span></div>
+          <div className="muted home-greeting">{hello}, Elli <span aria-hidden="true">👋</span></div>
           <h1 className="t-hero">Move With Elli</h1>
         </div>
         {p.streak > 0 && (
-          <span className="pill"><Icon name="flame" size={17} style={{ color: 'var(--warm)' }} />{p.streak}-day streak</span>
+          <span className="pill"><Icon name="flame" size={17} className="icon-warm" />{p.streak}-day streak</span>
         )}
       </div>
 
       {p.canResume && p.onResume && (
-        <button className="btn btn-soft" onClick={p.onResume} style={{ width: '100%', marginBottom: 14 }}>
+        <button className="btn btn-soft btn-block home-resume" onClick={p.onResume}>
           <Icon name="player-play" />Resume where you stopped
         </button>
       )}
 
-      <section className="card" aria-label="Today's workout" style={{ marginBottom: 14 }}>
-        <div className="row-between" style={{ marginBottom: 4 }}>
+      <section className="card home-today" aria-label="Today's workout">
+        <div className="row-between home-today-head">
           <h2 className="t-section">Today</h2>
           <span className="muted">{total(p.workout)} min · {focus === 'strength' ? 'Strength' : 'Movement'}</span>
         </div>
 
         {warmups.length > 0 && (
-          <div className="summary-row" style={{ borderBottom: '1px solid var(--surface-border)' }}>
+          <div className="summary-row summary-row--divider-below">
             <Icon name="stretching" />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700 }}>Warm-up{warmName ? ` · ${warmName}` : ''}</div>
+            <div className="row-main">
+              <div className="summary-title">Warm-up{warmName ? ` · ${warmName}` : ''}</div>
               <div className="hint">{warmups.length} {warmups.length === 1 ? 'move' : 'moves'} · first</div>
             </div>
           </div>
         )}
 
-        <div className="row-between" style={{ margin: '14px 0 2px' }}>
+        <div className="row-between home-list-head">
           <span className="eyebrow">{stations ? 'Moves' : 'Circuit'}</span>
-          <span className="muted" style={{ fontSize: 'var(--fs-xs)' }}>{stations ? `${rounds} sets each` : `${rounds} rounds`}</span>
+          <span className="muted home-rounds">{stations ? `${rounds} sets each` : `${rounds} rounds`}</span>
         </div>
-        <div className="hint" style={{ marginBottom: 4 }}>Tap a move to see how it's done or swap it</div>
+        <div className="hint home-list-hint">Tap a move to see how it's done or swap it</div>
         <WorkoutPreview workout={p.workout} onOpenMove={p.onOpenMove} canSwap={p.canSwap} />
 
         {cores.length > 0 && (
-          <div className="summary-row" style={{ borderTop: '1px solid var(--surface-border)' }}>
+          <div className="summary-row summary-row--divider-above">
             <Icon name="flame" />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700 }}>Core finisher · ~{Math.round(coreSec / 60)} min</div>
+            <div className="row-main">
+              <div className="summary-title">Core finisher · ~{Math.round(coreSec / 60)} min</div>
               <div className="hint">{cores.map((m) => m.exercise.name).join(' · ')} · last</div>
             </div>
           </div>
         )}
       </section>
 
-      <button className="btn btn-soft" onClick={() => setChanging(true)} style={{ width: '100%', marginBottom: 18 }}>
+      <button className="btn btn-soft btn-block home-change" onClick={() => setChanging(true)}>
         <Icon name="adjustments-horizontal" />Change workout
       </button>
 
       <div className="start-bar">
-        <button className="btn btn-primary" onClick={p.onStart} style={{ width: '100%' }} aria-label="Start workout">
+        <button className="btn btn-primary btn-block" onClick={p.onStart} aria-label="Start workout">
           <Icon name="player-play" />Start workout
         </button>
       </div>
@@ -122,7 +122,7 @@ export function HomeScreen(p: Props) {
 function ChangeSheet(p: Props & { onClose: () => void }) {
   const voices = useVoices();
   const [voiceURI, setVoiceURI] = useState<string | undefined>(() => getPrefs().voiceURI);
-  const style: WorkoutStyle = p.style ?? 'circuit';
+  const style: WorkoutStyle = p.workoutStyle ?? 'circuit';
   const sore: SoreArea = p.sore ?? 'none';
   const suggestedLabel = SORES.find((s) => s.id === p.soreSuggested)?.label;
   const rounds = p.workout.rounds;
@@ -140,16 +140,16 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
 
   return (
     <Sheet label="Change workout" onClose={p.onClose}>
-      <div className="row-between" style={{ marginBottom: 20 }}>
+      <div className="row-between sheet-head">
         <h2 className="t-section">Change workout</h2>
-        <button className="btn btn-soft" onClick={p.onClose} aria-label="Close" style={{ padding: 9, minHeight: 44, borderRadius: 12 }}>
+        <button className="btn btn-soft btn-close" onClick={p.onClose} aria-label="Close">
           <Icon name="x" size={20} />
         </button>
       </div>
 
       <div className="field">
         <span className="eyebrow">How long?</span>
-        <div role="radiogroup" aria-label="Workout length" style={{ display: 'flex', gap: 8 }}>
+        <div role="radiogroup" aria-label="Workout length" className="choices">
           {KINDS.map((k) => (
             <button key={k} role="radio" aria-checked={p.kind === k} className="choice choice--block" onClick={() => p.onKind(k)}>
               {k.replace('min', ' min')}
@@ -161,7 +161,7 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
       {p.onSore && (
         <div className="field">
           <span className="eyebrow">Anything sore?</span>
-          <div role="radiogroup" aria-label="Sore area" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <div role="radiogroup" aria-label="Sore area" className="choices">
             {SORES.map(({ id, label }) => (
               <button key={id} role="radio" aria-checked={sore === id} className="choice" onClick={() => p.onSore!(id)}>
                 {label}{p.soreSuggested === id && id !== 'none' ? ' ★' : ''}
@@ -169,7 +169,7 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
             ))}
           </div>
           {p.soreSuggested && p.soreSuggested !== 'none' && suggestedLabel && (
-            <div className="hint" style={{ marginTop: 8 }}>★ Suggested: rest your {suggestedLabel.toLowerCase()} after last time.</div>
+            <div className="hint field-note">★ Suggested: rest your {suggestedLabel.toLowerCase()} after last time.</div>
           )}
         </div>
       )}
@@ -182,7 +182,7 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
               <button key={val} role="radio" aria-checked={style === val} className="seg-btn" onClick={() => p.onStyle!(val)}>{label}</button>
             ))}
           </div>
-          <div className="hint" style={{ marginTop: 8 }}>
+          <div className="hint field-note">
             {style === 'stations'
               ? `All ${rounds} sets of one move, then the next.`
               : `All moves once, then repeat — ${rounds} rounds.`}
@@ -199,7 +199,7 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
                 aria-checked={isBodyweightOnly(c.equipment) === isBodyweightOnly(p.equipment ?? ALL_EQUIPMENT)}>{c.label}</button>
             ))}
           </div>
-          <div className="hint" style={{ marginTop: 8 }}>
+          <div className="hint field-note">
             {isBodyweightOnly(p.equipment ?? ALL_EQUIPMENT)
               ? 'No bar, weights or bands — handy when you travel.'
               : 'Uses your pull-up bar, weights and bands.'}
@@ -209,11 +209,11 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
 
       <div className="field">
         <span className="eyebrow">Mix it up</span>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="choices">
           {p.onSwapWarmup && (
-            <button className="btn btn-soft btn-sm" onClick={p.onSwapWarmup} style={{ flex: 1 }}><Icon name="refresh" />New warm-up</button>
+            <button className="btn btn-soft btn-sm" onClick={p.onSwapWarmup}><Icon name="refresh" />New warm-up</button>
           )}
-          <button className="btn btn-soft btn-sm" onClick={p.onReroll} style={{ flex: 1 }}><Icon name="refresh" />New moves</button>
+          <button className="btn btn-soft btn-sm" onClick={p.onReroll}><Icon name="refresh" />New moves</button>
         </div>
       </div>
 
@@ -223,7 +223,7 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
         </div>
       )}
 
-      <button className="btn btn-dark" onClick={p.onClose} style={{ width: '100%' }}>Done</button>
+      <button className="btn btn-dark btn-block" onClick={p.onClose}>Done</button>
     </Sheet>
   );
 }

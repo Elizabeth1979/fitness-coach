@@ -27,9 +27,9 @@ export function WorkoutPreview({ workout, onOpenMove, canSwap = () => true }: Pr
             aria-label={`${m.exercise.name}, ${m.target}. ${swappable ? 'Tap to swap this move' : 'Tap to see how to do it'}`}
           >
             <span className="num" aria-hidden="true">{i + 1}</span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span className="t-move" style={{ display: 'block' }}>{m.exercise.name}</span>
-              <span className="muted" style={{ fontSize: 'var(--fs-sm)' }}>
+            <span className="row-main">
+              <span className="t-move move-name">{m.exercise.name}</span>
+              <span className="muted move-meta">
                 {catColor(m.category).label} · {m.target}{stations ? ` · ${workout.rounds} sets` : ''}
               </span>
             </span>

@@ -109,7 +109,7 @@ export default function App() {
   if (phase === 'home') return (
     <>
       <HomeScreen workout={preview} kind={kind} onKind={handleKind} streak={streak}
-        style={style} onStyle={handleStyle} onSwapWarmup={handleSwapWarmup}
+        workoutStyle={style} onStyle={handleStyle} onSwapWarmup={handleSwapWarmup}
         sore={sore} onSore={handleSore} soreSuggested={soreSuggested}
         canResume={!!checkpoint} onResume={handleResume} onReroll={handleReroll}
         onStart={handleStart} onOpenMove={setOpenPrepare}
