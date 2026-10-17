@@ -11,7 +11,7 @@ The 2026-10-17 PRs (details in [`sessions/2026-10-17.md`](sessions/2026-10-17.md
 - #29 tidy-up + offline check
 - #30 README / CLAUDE.md learnings
 
-**Elli's first-workout ideas are in Supabase (ids 8–30, 2026-10-17)** — triaged below. Read the table at the
+**Elli's ideas: readable list in [`IDEAS.md`](IDEAS.md)** (her words + status), source of truth in Supabase (ids 8–30, 2026-10-17) — triaged below. Read the table at the
 start of each session for new ones (query in CLAUDE.md "Elli's ideas"); set `status` planned/done as we go.
 
 ### From Elli's first workout (Supabase `ideas`, 2026-10-17)

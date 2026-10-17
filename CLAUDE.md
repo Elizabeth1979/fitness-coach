@@ -237,7 +237,8 @@ The 💡 / "Note an idea" sheet sends ideas to the Supabase project **move-with-
 (`idaningbbhqjerlfsmuz`, org `rirktxpvdgwkigmqevzd`), table `public.ideas`
 (`body`, `noted_on`, `status`: new/planned/done/declined). **Read them at the start of a session**
 with the Supabase MCP: `select id, body, noted_on, status from public.ideas order by id;` — mark
-handled ones `planned`/`done`. The app uses the *publishable* key (fine in code) and may only
+handled ones `planned`/`done`, and keep **`plans/IDEAS.md`** (Elli's readable list: every idea in her
+words, grouped, with status) in step: add new ones, update statuses as work lands. The app uses the *publishable* key (fine in code) and may only
 INSERT those three columns (column grant + RLS insert policy); it can't read anything back, so a
 re-send is made harmless by the phone-made `client_id` (unique; a 23505 counts as sent). The CSP
 `connect-src` in `vercel.json` allows exactly that one Supabase origin — keep the test in step.
@@ -267,7 +268,8 @@ the lockfile format is the same.
 Design specs and the TDD implementation plans live in `docs/superpowers/`; the roadmap and polish
 backlog are in `docs/NEXT-STEPS.md`.
 
-**Session rhythm:** start by reading `plans/TODO.md` (the "resume here" entry); end by writing a
+**Session rhythm:** start by reading `plans/TODO.md` (the "resume here" entry) and syncing new ideas from
+Supabase into `plans/IDEAS.md`; end by writing a
 session log in `plans/sessions/YYYY-MM-DD.md` and refreshing `plans/TODO.md`.
 **Keep the docs current in the same PR as the change:**
 - anything a user would notice → `README.md` "What it does";
