@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Sheet } from './Sheet';
 import { MoveDetail } from './MoveDetail';
 import { generateWorkout } from '../generator/generateWorkout';
+import css from '../index.css?raw';
 
 function Harness({ onClose = vi.fn() }: { onClose?: () => void }) {
   const [open, setOpen] = useState(false);
@@ -59,6 +60,22 @@ describe('Sheet', () => {
     expect(onClose).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('dialog').parentElement!);
     expect(onClose).toHaveBeenCalledOnce();
+  });
+});
+
+// Elli (#25): with a sheet open, the page behind it still scrolled. The lock is pure CSS, so it
+// can't get out of step with nested or replaced sheets (it holds while ANY sheet is on screen)
+// and needs no injected <style>, which the CSP would block. The browser check covers iPhone WebKit.
+describe('Sheet — the page behind it stays put', () => {
+  const rule = (selector: string) => css.match(new RegExp(`(?:^|\\n)${selector.replace(/[.()[\]]/g, '\\$&')}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
+
+  it('locks the page scroll while any sheet is open', () => {
+    expect(rule('html:has(.sheet-backdrop)')).toMatch(/overflow:\s*hidden/);
+  });
+
+  it('keeps a scroll inside the sheet from running on into the page', () => {
+    expect(rule('.sheet-backdrop')).toMatch(/overscroll-behavior:\s*contain/);
+    expect(rule('.sheet')).toMatch(/overscroll-behavior:\s*contain/);
   });
 });
 

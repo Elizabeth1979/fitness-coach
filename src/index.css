@@ -195,9 +195,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* ============================================================================
    BOTTOM SHEET (move detail, change workout) — fixed to the viewport
    ========================================================================== */
-.sheet-backdrop { position:fixed; inset:0; z-index:30; background: var(--scrim); display:flex; align-items:flex-end; justify-content:center; }
+/* While any sheet is open the page behind it can't scroll (iPhone included — Safari 16+ honours
+   overflow on the root), and a scroll inside the sheet stops at its edge instead of moving the page. */
+html:has(.sheet-backdrop) { overflow:hidden; }
+.sheet-backdrop { position:fixed; inset:0; z-index:30; background: var(--scrim); display:flex; align-items:flex-end; justify-content:center; overscroll-behavior:contain; }
 .sheet:focus { outline:none; } /* focused only as a fallback, when it has no buttons */
-.sheet { width:100%; max-width:460px; max-height:88vh; overflow-y:auto; background: var(--surface); border-radius:24px 24px 0 0; padding:20px 20px calc(24px + env(safe-area-inset-bottom)); }
+.sheet { width:100%; max-width:460px; max-height:88vh; overflow-y:auto; overscroll-behavior:contain; background: var(--surface); border-radius:24px 24px 0 0; padding:20px 20px calc(24px + env(safe-area-inset-bottom)); }
 .cue { font-size:17px; line-height:1.55; font-weight:500; color: var(--text); background: var(--surface-2); border: var(--bd); border-radius: var(--r-md); padding:15px; }
 
 /* ============================================================================
