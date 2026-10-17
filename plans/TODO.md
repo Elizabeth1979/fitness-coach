@@ -44,6 +44,22 @@ forward + clear their cache; new versions now arrive on their own when she retur
 - [x] **Tokenize leftover inline colours** — timer ring, rest background, confetti, shadows.
 - [x] **Sheet accessibility** — `src/ui/Sheet.tsx`: focus in, Tab trapped, Escape, focus back.
 
+### Later — "Suggest a feature" in the app (Elli's idea, 2026-10-17; parked, not started)
+Elli wants to jot ideas mid-workout, and other users should be able to ask for features too.
+What was settled while brainstorming:
+- **Upvote, don't duplicate (Elli's requirement):** if someone asks for something already
+  requested, it counts as a vote on the existing request, not a new task.
+- **Lands as GitHub issues** labelled `feature-request` (repo is **public** → the form must say
+  "requests are posted publicly, no personal details"). App → small Vercel function → issue;
+  the GitHub key lives only in Vercel env vars. No sign-in for users. Keep text offline, send later.
+- **Open question — votes without accounts:** GitHub 👍 reactions are one per GitHub account, so
+  anonymous votes need another home. Look first at a tested feature-voting tool (Featurebase claims
+  sign-in-free voting; Canny has a GitHub integration but needs login; Fider is open source) before
+  building our own counter. For "is this a duplicate?", Anthropic's own `anthropics/claude-code`
+  repo runs a Claude dedupe workflow (`.github/workflows/claude-dedupe-issues.yml`) — a precedent.
+- **Then, optional:** the official Claude GitHub app (`/install-github-app` in a `claude`
+  terminal, needs Elli to add the secret) so "@claude build this" on a request builds it on a branch.
+
 ### Next — nothing urgent; ideas live in `docs/NEXT-STEPS.md` (polish backlog + roadmap)
 
 ### Standing rules (from Elli)
