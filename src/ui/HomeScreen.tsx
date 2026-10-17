@@ -10,6 +10,7 @@ import { warmupMoves, coreMoves } from './format';
 import { warmupFlowName } from '../generator/warmupFlows';
 import { Icon } from './Icon';
 import { Sheet } from './Sheet';
+import { IdeasSheet } from './IdeasSheet';
 import { useTapGuard } from './useTapGuard';
 
 function greeting(d: Date): string {
@@ -45,6 +46,7 @@ const isBodyweightOnly = (e: readonly Equipment[]) => e.length === 1 && e[0] ===
 // fold away under "More options".
 export function HomeScreen(p: Props) {
   const [changing, setChanging] = useState(false);
+  const [noting, setNoting] = useState(false);
   const [hello] = useState(() => greeting(new Date())); // read the clock once, not on every render
   const guard = useTapGuard();
   const focus = p.workout.focus;
@@ -114,6 +116,9 @@ export function HomeScreen(p: Props) {
       <button className="btn btn-soft btn-block home-change" onClick={() => setChanging(true)}>
         <Icon name="adjustments-horizontal" />Change workout
       </button>
+      <button className="link-btn home-idea" onClick={() => setNoting(true)}>
+        <Icon name="bulb" />Note an idea for the app
+      </button>
 
       <div className="start-bar">
         <button className="btn btn-primary btn-block" onClick={p.onStart} aria-label="Start workout">
@@ -122,6 +127,7 @@ export function HomeScreen(p: Props) {
       </div>
 
       {changing && <ChangeSheet {...p} onClose={() => setChanging(false)} />}
+      {noting && <IdeasSheet onClose={() => setNoting(false)} />}
     </main>
   );
 }

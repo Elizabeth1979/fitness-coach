@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import { ActiveScreen } from './ActiveScreen';
 import { generateWorkout } from '../generator/generateWorkout';
 import type { SessionState } from '../engine/session';
@@ -12,6 +12,22 @@ const firstCircuit = w.segments.findIndex((s) => s.kind === 'work' && s.round ==
 const state: SessionState = { status: 'running', segmentIndex: firstCircuit, segment: w.segments[firstCircuit], segmentRemainingSec: 20 };
 
 describe('ActiveScreen', () => {
+  it('pauses the workout and opens the ideas sheet to note an idea', () => {
+    const onPause = vi.fn();
+    render(<ActiveScreen state={state} workout={w} onPause={onPause} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Note an idea' }));
+    expect(onPause).toHaveBeenCalledOnce();
+    expect(screen.getByRole('dialog', { name: 'Your ideas' })).toBeInTheDocument();
+  });
+
+  it('does not pause again when already paused', () => {
+    const onPause = vi.fn();
+    render(<ActiveScreen state={{ ...state, status: 'paused' }} workout={w} onPause={onPause} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Note an idea' }));
+    expect(onPause).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog', { name: 'Your ideas' })).toBeInTheDocument();
+  });
+
   it('shows the move, a within-round Move label, and the round', () => {
     render(<ActiveScreen state={state} workout={w} onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
     expect(screen.getByText(w.segments[firstCircuit].exercise!.name)).toBeInTheDocument();

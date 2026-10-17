@@ -5,6 +5,7 @@ import { WeekView } from './WeekView';
 import { catColor } from './categoryColor';
 import { Icon } from './Icon';
 import { useTapGuard } from './useTapGuard';
+import { IdeasSheet } from './IdeasSheet';
 import { localDate } from '../domain/date';
 import { trainingMin } from '../domain/workout';
 import type { Feel } from '../generator/effort';
@@ -29,6 +30,7 @@ interface Props { categories: Category[]; streak: number; workout: Workout | nul
 
 export function DoneScreen({ categories, streak, workout, onHome, onFeel }: Props) {
   const [feel, setFeel] = useState<Feel | null>(null);
+  const [noting, setNoting] = useState(false);
   const feelLabel = useId();
   const practiced = useMemo(() => {
     const seen = new Set<string>();
@@ -84,7 +86,11 @@ export function DoneScreen({ categories, streak, workout, onHome, onFeel }: Prop
 
       <WeekView dates={dates} today={today} />
 
+      <button className="link-btn done-idea" onClick={() => setNoting(true)}>
+        <Icon name="bulb" />Note an idea for the app
+      </button>
       <button className="btn btn-primary btn-block" onClick={onHome}><Icon name="home" />Done</button>
+      {noting && <IdeasSheet onClose={() => setNoting(false)} />}
     </main>
   );
 }

@@ -173,6 +173,11 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .icon-toggle { display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; flex-shrink:0; background: var(--surface); color: var(--text-muted); border: var(--bd-2); }
 .icon-toggle[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border:0; }
 
+/* a multi-line text box (the ideas sheet) */
+.textarea { display:block; width:100%; resize:vertical; background: var(--surface); color: var(--text); border: var(--bd-2); border-radius: var(--r-md); padding:12px 14px; font: inherit; font-size:17px; font-weight:500; line-height:1.45; }
+/* a quiet secondary action under the main ones ("Note an idea") */
+.link-btn { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; min-height:44px; color: var(--text-muted); font-size: var(--fs-sm); font-weight:700; text-decoration: underline; text-underline-offset: 3px; }
+.btn:disabled { opacity:.45; box-shadow:none; cursor: default; transform:none; }
 .select { background: var(--surface); color: var(--text); border: var(--bd-2); border-radius:12px; padding:8px 12px; font: inherit; font-weight:500; font-size: var(--fs-xs); max-width:12rem; }
 
 .progress { flex:1; height:10px; background: var(--surface-3); border-radius: var(--r-pill); overflow:hidden; }
@@ -230,7 +235,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .home-header   { margin-bottom: 18px; }
 .home-greeting { font-size: 16px; }
 .home-resume, .home-today { margin-bottom: 14px; }
-.home-change   { margin-bottom: 18px; }
+.home-change   { margin-bottom: 4px; }
+.home-idea     { margin-bottom: 14px; }
 .home-today-head { margin-bottom: 4px; }
 .home-list-head  { margin: 14px 0 2px; }
 .home-rounds     { font-size: var(--fs-xs); }
@@ -286,6 +292,14 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .done-chip     { font-size: var(--fs-sm); padding: 7px 13px; }
 .done-feel     { margin-bottom: 14px; }
 .done-feel-title { margin: 0 0 10px; }
+.done-idea     { margin-bottom: 10px; }
+/* Ideas sheet */
+.idea-save     { margin-top: 10px; }
+.idea-manual   { margin-top: 12px; font-size: var(--fs-sm); }
+.idea-list     { list-style: none; margin: 0 0 14px; padding: 0; }
+.idea-row      { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+.idea-row:not(:first-child) { border-top: 1px solid var(--surface-border); }
+.idea-text     { font-weight: 600; overflow-wrap: anywhere; white-space: pre-wrap; }
 
 /* Week strip (Done screen) — "today" switches via data-today */
 .week        { margin-bottom: 18px; }

@@ -44,4 +44,10 @@ describe('HomeScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /change workout/i }));
     expect(screen.getByRole('radio', { name: 'Bodyweight only' })).toHaveAttribute('aria-checked', 'true');
   });
+
+  it('opens the ideas sheet from "Note an idea"', () => {
+    render(<HomeScreen workout={w} kind="10min" onKind={vi.fn()} streak={0} onReroll={vi.fn()} onStart={vi.fn()} onOpenMove={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: /note an idea/i }));
+    expect(screen.getByRole('dialog', { name: 'Your ideas' })).toBeInTheDocument();
+  });
 });

@@ -48,6 +48,9 @@ balance, skill — not calories or body weight.
   **offline** (installable PWA). The installed app picks up new versions by itself when you return
   to it — never mid-workout.
 - **Dark mode** follows your phone's setting.
+- **Note an idea for the app** — the 💡 on the workout screen (it pauses first), or the link on
+  Home and after a workout. Ideas stay on the phone; **Share** sends the list on (e.g. into a chat
+  with Claude when planning the next update).
 
 The coach is calm and encouraging — never military, never shaming, and there's not a
 calorie count in sight.

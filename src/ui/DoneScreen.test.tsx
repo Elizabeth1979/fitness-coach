@@ -23,4 +23,10 @@ describe('DoneScreen', () => {
     expect(onFeel).toHaveBeenLastCalledWith('hard');
     expect(screen.getByRole('status')).toHaveTextContent(/a little easier/);
   });
+
+  it('opens the ideas sheet from "Note an idea"', () => {
+    render(<DoneScreen categories={['push']} streak={1} workout={null} onHome={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: /note an idea/i }));
+    expect(screen.getByRole('dialog', { name: 'Your ideas' })).toBeInTheDocument();
+  });
 });

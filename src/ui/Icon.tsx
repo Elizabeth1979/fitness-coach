@@ -1,7 +1,7 @@
 import {
-  IconAdjustmentsHorizontal, IconArrowsExchange, IconCheck, IconClock, IconFlame, IconHome,
+  IconAdjustmentsHorizontal, IconArrowsExchange, IconBulb, IconCheck, IconClock, IconCopy, IconFlame, IconHome,
   IconListCheck, IconMusic, IconMusicOff, IconPlayerPause, IconPlayerPlay, IconPlayerSkipForward,
-  IconPlayerTrackNext, IconRefresh, IconRepeat, IconStretching, IconX,
+  IconPlayerTrackNext, IconRefresh, IconRepeat, IconShare, IconStretching, IconTrash, IconX,
 } from '@tabler/icons-react';
 
 // Every icon the app uses, in one place. Each is a small inline SVG that ships
@@ -10,8 +10,10 @@ import {
 const ICONS = {
   'adjustments-horizontal': IconAdjustmentsHorizontal,
   'arrows-exchange': IconArrowsExchange,
+  bulb: IconBulb,
   check: IconCheck,
   clock: IconClock,
+  copy: IconCopy,
   flame: IconFlame,
   home: IconHome,
   'list-check': IconListCheck,
@@ -23,7 +25,9 @@ const ICONS = {
   'player-track-next': IconPlayerTrackNext,
   refresh: IconRefresh,
   repeat: IconRepeat,
+  share: IconShare,
   stretching: IconStretching,
+  trash: IconTrash,
   x: IconX,
 } as const;
 

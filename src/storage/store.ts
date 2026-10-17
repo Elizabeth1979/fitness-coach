@@ -27,12 +27,19 @@ export interface Checkpoint {
   date: string;        // YYYY-MM-DD it was saved: only a same-day workout is offered for resume
 }
 
+/** An idea for the app, jotted down on the phone (kept here only — Share sends it on). */
+export interface Idea {
+  text: string;
+  date: string;        // YYYY-MM-DD
+}
+
 export interface Store {
   version: 1;
   completions: Completion[];
   prefs: Prefs;
   checkpoint?: Checkpoint;
   recentThemes?: string[];
+  ideas?: Idea[];
 }
 
 const KEY = 'mwe.store.v1';
@@ -60,6 +67,8 @@ function isCompletion(v: unknown): v is Completion {
     && isString(v.kind) && isString(v.focus) && isStringArray(v.exerciseIds) && isNumber(v.durationSec)
     && (v.sore === undefined || isOneOf(SORE_AREAS, v.sore));
 }
+
+const isIdea = (v: unknown): v is Idea => isRecord(v) && isString(v.text) && isDate(v.date);
 
 function readPrefs(v: unknown): Prefs {
   const p = isRecord(v) ? v : {};
@@ -103,6 +112,7 @@ function readStore(v: unknown): Store {
   };
   if (isCheckpoint(s.checkpoint)) store.checkpoint = s.checkpoint;
   if (isStringArray(s.recentThemes)) store.recentThemes = s.recentThemes;
+  if (Array.isArray(s.ideas)) store.ideas = s.ideas.filter(isIdea);
   return store;
 }
 
@@ -180,4 +190,34 @@ export function pushRecentTheme(id: string, keep = 3): void {
   list.push(id);
   s.recentThemes = list.slice(-keep);
   saveStore(s);
+}
+
+export function getIdeas(): Idea[] {
+  return loadStore().ideas ?? [];
+}
+
+/** Saves an idea (newest last). Blank text is ignored. Returns the updated list. */
+export function addIdea(text: string, date: string): Idea[] {
+  const s = loadStore();
+  const ideas = s.ideas ?? [];
+  const trimmed = text.trim();
+  if (trimmed) ideas.push({ text: trimmed, date });
+  s.ideas = ideas;
+  saveStore(s);
+  return ideas;
+}
+
+/** Removes the idea at `index` (in saved order). Returns the updated list. */
+export function removeIdea(index: number): Idea[] {
+  const s = loadStore();
+  const ideas = (s.ideas ?? []).filter((_, i) => i !== index);
+  s.ideas = ideas;
+  saveStore(s);
+  return ideas;
+}
+
+/** The ideas as one plain-text list, ready to paste into a chat. */
+export function ideasText(ideas: readonly Idea[]): string {
+  const lines = ideas.map((i) => `- ${i.text.replace(/\s*\n\s*/g, ' ')} (${i.date})`);
+  return ['Ideas for Move With Elli:', ...lines].join('\n');
 }

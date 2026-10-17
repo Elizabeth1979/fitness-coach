@@ -8,7 +8,7 @@ interface Props { label: string; onClose: () => void; children: ReactNode }
 
 /**
  * A bottom sheet that behaves like a real dialog: focus moves into it when it opens,
- * Tab / Shift+Tab stay inside it, Escape, Back or a tap on the backdrop closes it,
+ * (onto a `data-autofocus` element if there is one), Tab / Shift+Tab stay inside it, Escape, Back or a tap on the backdrop closes it,
  * and focus goes back to whatever opened it.
  */
 export function Sheet({ label, onClose, children }: Props) {
@@ -24,7 +24,7 @@ export function Sheet({ label, onClose, children }: Props) {
     if (!dialog) return;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const focusables = () => Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE));
-    (focusables()[0] ?? dialog).focus();
+    (dialog.querySelector<HTMLElement>('[data-autofocus]') ?? focusables()[0] ?? dialog).focus();
 
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') { e.preventDefault(); closeRef.current(); return; }

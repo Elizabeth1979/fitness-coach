@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { generateWorkout } from '../generator/generateWorkout';
-import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore, saveCheckpoint, getCheckpoint, clearCheckpoint, getRecentThemes, pushRecentTheme, suggestedSore } from './store';
+import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore, saveCheckpoint, getCheckpoint, clearCheckpoint, getRecentThemes, pushRecentTheme, suggestedSore, getIdeas, addIdea, removeIdea, ideasText } from './store';
 
 const makeMemStorage = (): Storage => {
   const store: Record<string, string> = {};
@@ -79,6 +79,42 @@ describe('store', () => {
     saveCheckpoint({ workout: w, segmentIndex: 2, elapsedSec: 4.5, date: '2026-06-23' });
     expect(getCheckpoint('2026-06-23')).not.toBeNull();
     expect(getCheckpoint('2026-06-24')).toBeNull();
+  });
+});
+
+describe('store — ideas for the app', () => {
+  it('saves ideas newest last, trimmed, and ignores blank ones', () => {
+    expect(getIdeas()).toEqual([]);
+    addIdea('  A 45-minute option  ', '2026-10-17');
+    addIdea('   ', '2026-10-17');
+    addIdea('Music I can pick', '2026-10-18');
+    expect(getIdeas()).toEqual([
+      { text: 'A 45-minute option', date: '2026-10-17' },
+      { text: 'Music I can pick', date: '2026-10-18' },
+    ]);
+  });
+
+  it('removes one idea and keeps the rest', () => {
+    addIdea('one', TODAY); addIdea('two', TODAY); addIdea('three', TODAY);
+    expect(removeIdea(1).map((i) => i.text)).toEqual(['one', 'three']);
+    expect(getIdeas().map((i) => i.text)).toEqual(['one', 'three']);
+  });
+
+  it('keeps ideas when other things are saved', () => {
+    addIdea('one', TODAY);
+    recordCompletion(completion);
+    setPrefs({ equipment: ['bodyweight'] });
+    expect(getIdeas()).toEqual([{ text: 'one', date: TODAY }]);
+  });
+
+  it('drops broken saved ideas', () => {
+    saveRaw({ ideas: [{ text: 'ok', date: TODAY }, { text: 5, date: TODAY }, 'loose', { text: 'no date' }] });
+    expect(getIdeas()).toEqual([{ text: 'ok', date: TODAY }]);
+  });
+
+  it('turns the list into text to paste into a chat', () => {
+    expect(ideasText([{ text: 'A 45-minute option', date: '2026-10-17' }, { text: 'Two lines\nhere', date: '2026-10-18' }]))
+      .toBe('Ideas for Move With Elli:\n- A 45-minute option (2026-10-17)\n- Two lines here (2026-10-18)');
   });
 });
 

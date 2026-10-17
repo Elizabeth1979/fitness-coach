@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import type { SessionState } from '../engine/session';
 import type { Workout } from '../domain/types';
 import { TimerRing } from './TimerRing';
@@ -7,6 +7,7 @@ import { catColor } from './categoryColor';
 import { phrases } from '../coach/phrases';
 import { Icon } from './Icon';
 import { useTapGuard } from './useTapGuard';
+import { IdeasSheet } from './IdeasSheet';
 
 interface Props {
   state: SessionState; workout: Workout;
@@ -17,6 +18,12 @@ interface Props {
 export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd, musicOn, onToggleMusic, musicAvailable }: Props) {
   const listLabel = useId();
   const guard = useTapGuard();
+  const [noting, setNoting] = useState(false);
+  // Jotting an idea pauses the workout, so the clock doesn't run on while you type.
+  function noteIdea() {
+    if (state.status === 'running') onPause();
+    setNoting(true);
+  }
   const seg = state.segment;
   const isIntro = seg?.kind === 'intro'; // the overview before the clock starts
   const isRoundRest = seg?.kind === 'roundrest';
@@ -71,6 +78,9 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
             <Icon name={musicOn ? 'music' : 'music-off'} size={18} />
           </button>
         )}
+        <button onClick={noteIdea} aria-label="Note an idea" className="icon-toggle">
+          <Icon name="bulb" size={18} />
+        </button>
       </div>
 
       <div className="active-chips">
@@ -127,6 +137,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
         <button className="btn btn-soft" onClick={onSkip}><Icon name="player-skip-forward" />Skip</button>
         <button className="btn btn-ghost active-end" onClick={onEnd} aria-label="End workout"><Icon name="x" size={20} /></button>
       </div>
+      {noting && <IdeasSheet onClose={() => setNoting(false)} />}
     </main>
   );
 }
