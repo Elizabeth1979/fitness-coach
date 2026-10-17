@@ -57,8 +57,12 @@ What was settled while brainstorming:
   sign-in-free voting; Canny has a GitHub integration but needs login; Fider is open source) before
   building our own counter. For "is this a duplicate?", Anthropic's own `anthropics/claude-code`
   repo runs a Claude dedupe workflow (`.github/workflows/claude-dedupe-issues.yml`) — a precedent.
-- **Then, optional:** the official Claude GitHub app (`/install-github-app` in a `claude`
-  terminal, needs Elli to add the secret) so "@claude build this" on a request builds it on a branch.
+- [ ] **"@claude build this" (Elli wants this too, later):** add Anthropic's official Claude
+  GitHub app (`anthropics/claude-code-action`). Then commenting "@claude build this" on any
+  request makes Claude build it on its own branch and offer a PR, and Vercel gives it a preview
+  link to try on the phone. Setup (~5 min, Elli): open a regular `claude` terminal in this repo,
+  run `/install-github-app`, and enter the secret key yourself when it asks. Only people with
+  write access (Elli) can trigger it.
 
 ### Next — nothing urgent; ideas live in `docs/NEXT-STEPS.md` (polish backlog + roadmap)
 
