@@ -175,7 +175,10 @@ type-check must pass before a deploy is promoted.
 one PR per major version; each gets a Vercel preview that runs the gate above. Before merging, run each
 branch through `npm ci` + the gate locally, and re-check `main` the same way after merging several
 (their lockfile edits are merged as text). `@types/node` majors are ignored: keep it on Vercel's Node
-major (24.x). `npm audit` should stay at 0. npm 10.9.4's
+major (24.x). Expected noise: `npm ls --all` reports `lightningcss-linux-x64-musl@1.32.0 invalid` (vite's
+nested lightningcss 1.33 skips its musl binary on glibc); vite loads the right 1.33 gnu binary — harmless.
+If Dependabot's PR was built on an older `main`, use GitHub's "Update branch" (a merge, no rewrite) so
+Vercel re-runs the gate; `@dependabot` commands can't be posted from here (the mention gets escaped). `npm audit` should stay at 0. npm 10.9.4's
 `npm audit fix` crashes (`edgesOut` of null, an npm resolver bug) — use `npx npm@11 audit fix`;
 the lockfile format is the same.
 
