@@ -12,6 +12,9 @@ Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md
 intro; double-tap ✕ started a NEW workout); Pause didn't stop the voice; "New warm-up" happened behind the sheet.
 All fixed + tests (see the session log).
 
+**Then:** the phone's Back button steps back inside the app (sheet → closed, workout → paused + Home with
+Resume, Done → Home) instead of quitting it; fixed a negative first-frame time that dropped the Resume point.
+
 **Ask Elli after #25:** is the intro the right length (~25s), and does she want the warm-up name / core shown on the intro screen too (now: spoken only)?
 
 **Elli only:** (1) on the phone, lock the screen mid-workout → comes back paused, screen stays on after Resume;

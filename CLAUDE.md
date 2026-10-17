@@ -155,6 +155,11 @@ its map; never re-add the 5,000-icon webfont).
   `fireEvent.click` in tests is unaffected; pass `{ detail: 1 }` to test as a tap. Nothing in a sheet may
   appear late and push the buttons around (the voice picker is there, disabled, before the voices load).
   Pause/Skip/End also `coach.cancel()` — speech is queued, so the coach otherwise talks on after Pause.
+- **Back button (`ui/useBackButton.ts`):** while a sheet is open or you're off Home, one extra history entry
+  catches the phone's Back: a sheet closes; mid-workout it pauses (saving the spot) and goes Home with Resume;
+  Done goes Home. Closing a layer with its own button pops the entry, so Back on Home still leaves the app.
+  `RafClock` clamps a frame's dt at ≥ 0 (a first frame can be stamped before `start()`; a negative elapsed
+  made the checkpoint invalid, so Resume wasn't offered).
 - **Leaving the app pauses the workout:** `RafClock` caps each frame at `MAX_FRAME_SEC` (browsers stop
   frames while hidden; one giant tick would fire every remaining cue at once), and the hook pauses on
   `visibilitychange` → hidden. `pause()`/`resume()` emit `statusChanged` so the UI shows Resume. The

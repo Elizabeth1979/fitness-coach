@@ -45,6 +45,18 @@ describe('RafClock', () => {
     expect(cb.mock.calls.map(([dt]) => dt)).toEqual([0.016, 0.1]);
   });
 
+  it('never runs time backwards: a first frame stamped before start() counts as 0', () => {
+    // A frame's timestamp is when the frame began, which can be just before start() was called.
+    const frame = stubFrames(1000);
+    const clock = new RafClock();
+    const cb = vi.fn();
+    clock.onTick(cb);
+    clock.start();
+    frame(990);
+    frame(1006);
+    expect(cb.mock.calls.map(([dt]) => dt)).toEqual([0, 0.016]);
+  });
+
   it('caps a long gap (page was hidden) instead of jumping ahead', () => {
     const frame = stubFrames(1000);
     const clock = new RafClock();
