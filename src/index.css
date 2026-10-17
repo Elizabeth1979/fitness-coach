@@ -183,10 +183,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .progress { flex:1; height:10px; background: var(--surface-3); border-radius: var(--r-pill); overflow:hidden; }
 .progress-fill { height:100%; width:100%; background: var(--brand); transform-origin: left center; transition: transform .4s cubic-bezier(.21,1.02,.45,1); }
 
-/* timer ring — green while you work, grey while you rest (data-tone="rest") */
+/* timer ring — green while you work, grey while you rest (data-tone="rest").
+   No transition on stroke-dashoffset: the ring is redrawn every frame, and WebKit (iPhone)
+   restarts the transition on each redraw, so the ring froze as a dot. */
 .timer-ring    { position:relative; width:200px; height:200px; }
 .timer-track   { fill: var(--surface); stroke: var(--ring-track); }
-.timer-fill    { fill:none; stroke: var(--brand); filter: var(--shadow-ring); transition: stroke-dashoffset .35s linear, stroke .3s; }
+.timer-fill    { fill:none; stroke: var(--brand); filter: var(--shadow-ring); transition: stroke .3s; }
 .timer-ring[data-tone="rest"] .timer-fill { stroke: var(--ring-rest); }
 .timer-readout { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
 .timer-time    { font-size:54px; font-weight:800; letter-spacing:-1px; line-height:1; }
