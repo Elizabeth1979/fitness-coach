@@ -54,6 +54,8 @@ export const phrases = {
   begin: (): string => 'Go!',
   rest: (): string => 'Rest. Take a deep breath.',
   nextUp: (ex: Pick<Exercise, 'name' | 'cue'>): string => `Next up: ${phrases.howTo(ex)}`,
+  // Said during a move, ~10s before it ends: just the name (the rest after it adds the how-to).
+  comingUp: (ex: Pick<Exercise, 'name'>): string => `Next up: ${ex.name}.`,
   // Said on Resume: what you're doing, since Pause cut the coach off.
   backTo: (ex: Pick<Exercise, 'name' | 'cue'>): string => `Back to it: ${phrases.howTo(ex)}`,
   getReady: (): string => 'Get ready.',
