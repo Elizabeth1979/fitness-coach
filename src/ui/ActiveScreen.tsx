@@ -6,6 +6,7 @@ import { sessionMoves, currentMoveIndex, circuitMoves, roundInfo, stationInfo, t
 import { catColor } from './categoryColor';
 import { phrases } from '../coach/phrases';
 import { Icon } from './Icon';
+import { useTapGuard } from './useTapGuard';
 
 interface Props {
   state: SessionState; workout: Workout;
@@ -15,6 +16,7 @@ interface Props {
 
 export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd, musicOn, onToggleMusic, musicAvailable }: Props) {
   const listLabel = useId();
+  const guard = useTapGuard();
   const seg = state.segment;
   const isIntro = seg?.kind === 'intro'; // the overview before the clock starts
   const isRoundRest = seg?.kind === 'roundrest';
@@ -57,7 +59,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
     : move?.target;
 
   return (
-    <main className="screen screen-active" data-tone={isRest ? 'rest' : undefined}>
+    <main className="screen screen-active" data-tone={isRest ? 'rest' : undefined} onClickCapture={guard}>
       <p className="sr-only" aria-live="assertive">{isRoundRest ? `Round ${ri.round} of ${ri.totalRounds} complete. Rest.` : `Now: ${title}`}</p>
 
       <div className="row active-top">

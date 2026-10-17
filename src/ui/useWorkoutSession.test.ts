@@ -55,6 +55,27 @@ describe('useWorkoutSession', () => {
     expect(result.current.state.status).toBe('running');
   });
 
+  it('Pause stops the coach mid-sentence; Skip clears the old line before the next one is said', () => {
+    const log: string[] = [];
+    vi.stubGlobal('SpeechSynthesisUtterance', class { text: string; constructor(text: string) { this.text = text; } });
+    vi.stubGlobal('speechSynthesis', { speak: (u: { text: string }) => log.push(`say ${u.text}`), cancel: () => log.push('cancel'), getVoices: () => [] });
+    const { result, unmount } = renderHook(() => useWorkoutSession(w, vi.fn()));
+    act(() => result.current.start());
+    expect(log).toContain(`say ${w.segments[0].cues[0].say}`);
+
+    log.length = 0;
+    act(() => result.current.pause());
+    expect(log).toEqual(['cancel']);
+
+    act(() => result.current.resume());
+    log.length = 0;
+    act(() => result.current.skip());
+    expect(log[0]).toBe('cancel');
+    expect(log).toContain(`say ${w.segments[1].cues[0].say}`);
+    unmount(); // while the fake speech is still installed: putting it away silences the coach too
+    expect(log.at(-1)).toBe('cancel');
+  });
+
   it('pauses when the app is hidden (screen locked / another app in front)', () => {
     const { result } = renderHook(() => useWorkoutSession(w, vi.fn()));
     act(() => result.current.start());

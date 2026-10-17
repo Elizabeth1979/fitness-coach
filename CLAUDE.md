@@ -149,6 +149,12 @@ its map; never re-add the 5,000-icon webfont).
 - **Dates are local:** "today" (streak, week strip, daily seed, completion date) is the date on the
   user's clock — always via `src/domain/date.ts` (`localDate`, `localDayNumber`), never
   `toISOString().slice(0, 10)` (that's the UTC date: a 1am workout landed on the wrong day).
+- **Taps & layout:** every screen `<main>` and the `Sheet` backdrop use `useTapGuard` (`onClickCapture`): taps
+  in the first 400ms after it appears are dropped, because a quick second tap lands on whatever the NEW screen
+  put under the finger (Start → Skip, ✕ End → Start, a move → Swap). Keyboard clicks (`detail` 0) pass, so
+  `fireEvent.click` in tests is unaffected; pass `{ detail: 1 }` to test as a tap. Nothing in a sheet may
+  appear late and push the buttons around (the voice picker is there, disabled, before the voices load).
+  Pause/Skip/End also `coach.cancel()` — speech is queued, so the coach otherwise talks on after Pause.
 - **Leaving the app pauses the workout:** `RafClock` caps each frame at `MAX_FRAME_SEC` (browsers stop
   frames while hidden; one giant tick would fire every remaining cue at once), and the hook pauses on
   `visibilitychange` → hidden. `pause()`/`resume()` emit `statusChanged` so the UI shows Resume. The

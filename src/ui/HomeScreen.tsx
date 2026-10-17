@@ -10,6 +10,7 @@ import { warmupMoves, coreMoves } from './format';
 import { warmupFlowName } from '../generator/warmupFlows';
 import { Icon } from './Icon';
 import { Sheet } from './Sheet';
+import { useTapGuard } from './useTapGuard';
 
 function greeting(d: Date): string {
   const h = d.getHours();
@@ -45,6 +46,7 @@ const total = (w: Workout) => Math.round(trainingSec(w) / 60);
 export function HomeScreen(p: Props) {
   const [changing, setChanging] = useState(false);
   const [hello] = useState(() => greeting(new Date())); // read the clock once, not on every render
+  const guard = useTapGuard();
   const focus = p.workout.focus;
   const warmups = warmupMoves(p.workout);
   const warmName = warmupFlowName(p.workout.warmupThemeId);
@@ -54,7 +56,7 @@ export function HomeScreen(p: Props) {
   const rounds = p.workout.rounds;
 
   return (
-    <main className="screen screen-home">
+    <main className="screen screen-home" onClickCapture={guard}>
       <div className="row-between home-header">
         <div>
           <div className="muted home-greeting">{hello}, Elli <span aria-hidden="true">👋</span></div>
@@ -84,12 +86,16 @@ export function HomeScreen(p: Props) {
               <div className="summary-title">Warm-up{warmName ? ` · ${warmName}` : ''}</div>
               <div className="hint">{warmups.length} {warmups.length === 1 ? 'move' : 'moves'} · first</div>
             </div>
+            {p.onSwapWarmup && (
+              <button className="swap-pill" onClick={p.onSwapWarmup} aria-label="New warm-up"><Icon name="refresh" />New</button>
+            )}
           </div>
         )}
 
         <div className="row-between home-list-head">
-          <span className="eyebrow">{stations ? 'Moves' : 'Circuit'}</span>
-          <span className="muted home-rounds">{stations ? `${rounds} sets each` : `${rounds} rounds`}</span>
+          <span><span className="eyebrow">{stations ? 'Moves' : 'Circuit'}</span>
+            <span className="muted home-rounds"> · {stations ? `${rounds} sets each` : `${rounds} rounds`}</span></span>
+          <button className="swap-pill" onClick={p.onReroll} aria-label="New moves"><Icon name="refresh" />New</button>
         </div>
         <div className="hint home-list-hint">Tap a move to see how it's done or swap it</div>
         <WorkoutPreview workout={p.workout} onOpenMove={p.onOpenMove} canSwap={p.canSwap} />
@@ -209,20 +215,8 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
       )}
 
       <div className="field">
-        <span className="eyebrow">Mix it up</span>
-        <div className="choices">
-          {p.onSwapWarmup && (
-            <button className="btn btn-soft btn-sm" onClick={p.onSwapWarmup}><Icon name="refresh" />New warm-up</button>
-          )}
-          <button className="btn btn-soft btn-sm" onClick={p.onReroll}><Icon name="refresh" />New moves</button>
-        </div>
+        <VoicePicker voices={voices} value={voiceURI} onChange={handleVoiceChange} />
       </div>
-
-      {voices.length > 0 && (
-        <div className="field">
-          <VoicePicker voices={voices} value={voiceURI} onChange={handleVoiceChange} />
-        </div>
-      )}
 
       <button className="btn btn-dark btn-block" onClick={p.onClose}>Done</button>
     </Sheet>
