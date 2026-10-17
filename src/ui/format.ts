@@ -5,7 +5,7 @@ export function formatTarget(seg: Segment): string {
   const ex = seg.exercise;
   if (!ex) return '';
   if (ex.measure === 'reps') {
-    const n = ex.defaultReps ?? 0;
+    const n = seg.reps ?? ex.defaultReps ?? 0;
     return ex.unilateral ? `${n} reps each side` : `${n} reps`;
   }
   const s = seg.durationSec;

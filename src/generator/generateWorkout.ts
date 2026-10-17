@@ -10,6 +10,7 @@ import { pickWarmupFlow, WARMUP_FLOWS, type WarmupFlow } from './warmupFlows';
 import { exerciseById } from '../domain/exercises';
 import { localDayNumber } from '../domain/date';
 import { withIntro } from './intro';
+import { repsFor, restFor } from './effort';
 
 export interface GenerateOptions {
   kind: WorkoutKind;
@@ -24,6 +25,8 @@ export interface GenerateOptions {
   // unset, the Mobility Lottery picks one. The circuit is chosen before the flow,
   // so overriding the warm-up keeps the same circuit; the body re-sizes to budget.
   warmupThemeId?: string;
+  // Effort level from "How did that feel?": more reps + shorter rests as it rises.
+  level?: number;
 }
 
 export const TARGET_SECONDS: Record<Exclude<WorkoutKind, 'free'>, number> = {
@@ -117,10 +120,11 @@ function prepareSegment(ex: Exercise, round: number): Segment {
   return { kind: 'prepare', exercise: ex, durationSec: PREPARE_SEC, cues: prepareCues(), round };
 }
 
-function workSegment(u: Unit, round: number, cheer: () => string): Segment {
+function workSegment(u: Unit, round: number, cheer: () => string, level: number): Segment {
   const cues = workCues(u.dur, cheer);
   cues.push({ atSec: Math.max(1, u.dur - 5), haptic: 'countdown' });
-  return { kind: 'work', exercise: u.ex, side: u.side, durationSec: u.dur, cues, round };
+  const reps = repsFor(u.ex, level);
+  return { kind: 'work', exercise: u.ex, side: u.side, durationSec: u.dur, cues, round, ...(reps ? { reps } : {}) };
 }
 
 // A changeover rest. What it says ("Rest. Next up: …") and any closing
@@ -129,8 +133,7 @@ function changeRestSegment(round?: number): Segment {
   return { kind: 'rest', durationSec: CHANGE_REST_SEC, round, cues: [{ atSec: 0, say: phrases.rest(), haptic: 'rest' }] };
 }
 
-function roundRestSegment(round: number, total: number, focus: Focus): Segment {
-  const dur = roundRestSec(focus);
+function roundRestSegment(round: number, total: number, dur: number): Segment {
   return {
     kind: 'roundrest',
     durationSec: dur,
@@ -148,8 +151,7 @@ function roundRestSegment(round: number, total: number, focus: Focus): Segment {
 // spoken three-two-one added by annotateChangeovers).
 const SET_REST_SEC = 30;
 
-function setRestSegment(round: number): Segment {
-  const dur = SET_REST_SEC;
+function setRestSegment(round: number, dur: number): Segment {
   return {
     kind: 'rest', durationSec: dur, round,
     cues: [
@@ -257,7 +259,9 @@ export function generateWorkout(opts: GenerateOptions): Workout {
 
   const units = buildUnits(circuit, focus);
   const items = circuit.length;
-  const roundRest = roundRestSec(focus);
+  const level = opts.level ?? 0;
+  const roundRest = restFor(roundRestSec(focus), level);
+  const setRest = restFor(SET_REST_SEC, level);
   const style: WorkoutStyle = opts.style ?? 'circuit';
   const baseWork = (): number => units.reduce((s, u) => s + u.dur, 0);
 
@@ -272,7 +276,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   // (the finisher brings its own lead-in rest; with no finisher, "Great job" follows directly)
   const baseFixed = style === 'stations'
     ? warmupTotal + postWarmupRest + switchTime + CELEBRATE_SEC + items * PREPARE_SEC + (items - 1) * CHANGE_REST_SEC
-      + items * (rounds - 1) * SET_REST_SEC
+      + items * (rounds - 1) * setRest
     : warmupTotal + postWarmupRest + switchTime + CELEBRATE_SEC + (rounds - 1) * roundRest
       + rounds * items * PREPARE_SEC + rounds * (items - 1) * CHANGE_REST_SEC;
 
@@ -311,9 +315,9 @@ export function generateWorkout(opts: GenerateOptions): Workout {
       for (let set = 1; set <= rounds; set++) {
         exUnits.forEach((un, side) => {
           if (side > 0) segments.push(switchSegment(ex, set));
-          segments.push(workSegment(un, set, cheer));
+          segments.push(workSegment(un, set, cheer, level));
         });
-        if (set < rounds) segments.push(setRestSegment(set));
+        if (set < rounds) segments.push(setRestSegment(set, setRest));
       }
       if (i < items - 1) segments.push(changeRestSegment(rounds)); // walk to the next station
     });
@@ -326,12 +330,12 @@ export function generateWorkout(opts: GenerateOptions): Workout {
         const sides = ex.unilateral ? 2 : 1;
         for (let s = 0; s < sides; s++) {
           if (s > 0) segments.push(switchSegment(ex, r));
-          segments.push(workSegment(units[u++], r, cheer));
+          segments.push(workSegment(units[u++], r, cheer, level));
         }
         // Between moves only: the round-rest is the changeover between rounds.
         if (i < items - 1) segments.push(changeRestSegment(r));
       });
-      if (r < rounds) segments.push(roundRestSegment(r, rounds, focus));
+      if (r < rounds) segments.push(roundRestSegment(r, rounds, roundRest));
     }
   }
   segments.push(...absSegs);
@@ -339,5 +343,5 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   // Now that the order is final, every rest can say what's next and count in.
   segments = annotateChangeovers(segments, rounds);
 
-  return withIntro({ id: `w-${seed}-${opts.kind}-${style}`, kind: opts.kind, focus, rounds, style, warmupThemeId: flow.id, segments });
+  return withIntro({ id: `w-${seed}-${opts.kind}-${style}`, kind: opts.kind, focus, rounds, style, warmupThemeId: flow.id, ...(level ? { level } : {}), segments });
 }

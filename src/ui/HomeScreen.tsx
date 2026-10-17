@@ -42,7 +42,8 @@ const isBodyweightOnly = (e: readonly Equipment[]) => e.length === 1 && e[0] ===
 const total = (w: Workout) => Math.round(trainingSec(w) / 60);
 
 // Home is one screen with one job: show today's workout and a big Start.
-// Every option lives behind a single "Change workout" sheet.
+// Every option lives behind a single "Change workout" sheet; the less-used ones
+// fold away under "More options".
 export function HomeScreen(p: Props) {
   const [changing, setChanging] = useState(false);
   const [hello] = useState(() => greeting(new Date())); // read the clock once, not on every render
@@ -133,6 +134,7 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
   const sore: SoreArea = p.sore ?? 'none';
   const suggestedLabel = SORES.find((s) => s.id === p.soreSuggested)?.label;
   const rounds = p.workout.rounds;
+  const [moreOpen, setMoreOpen] = useState(() => sore !== 'none' || style === 'stations');
 
   function handleVoiceChange(uri: string) {
     const next = uri || undefined;
@@ -165,38 +167,6 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
         </div>
       </div>
 
-      {p.onSore && (
-        <div className="field">
-          <span className="eyebrow">Anything sore?</span>
-          <div role="radiogroup" aria-label="Sore area" className="choices">
-            {SORES.map(({ id, label }) => (
-              <button key={id} role="radio" aria-checked={sore === id} className="choice" onClick={() => p.onSore!(id)}>
-                {label}{p.soreSuggested === id && id !== 'none' ? ' ★' : ''}
-              </button>
-            ))}
-          </div>
-          {p.soreSuggested && p.soreSuggested !== 'none' && suggestedLabel && (
-            <div className="hint field-note">★ Suggested: rest your {suggestedLabel.toLowerCase()} after last time.</div>
-          )}
-        </div>
-      )}
-
-      {p.onStyle && (
-        <div className="field">
-          <span className="eyebrow">How to repeat</span>
-          <div role="radiogroup" aria-label="Workout style" className="seg">
-            {([['circuit', 'Circuit'], ['stations', 'Stations']] as const).map(([val, label]) => (
-              <button key={val} role="radio" aria-checked={style === val} className="seg-btn" onClick={() => p.onStyle!(val)}>{label}</button>
-            ))}
-          </div>
-          <div className="hint field-note">
-            {style === 'stations'
-              ? `All ${rounds} sets of one move, then the next.`
-              : `All moves once, then repeat — ${rounds} rounds.`}
-          </div>
-        </div>
-      )}
-
       {p.onEquipment && (
         <div className="field">
           <span className="eyebrow">Equipment</span>
@@ -217,6 +187,45 @@ function ChangeSheet(p: Props & { onClose: () => void }) {
       <div className="field">
         <VoicePicker voices={voices} value={voiceURI} onChange={handleVoiceChange} />
       </div>
+
+      {(p.onSore || p.onStyle) && (
+        // Less-used settings stay folded away; open by itself when one is in use,
+        // so nothing that shapes today's workout is ever hidden.
+        <details className="field more-options" open={moreOpen} onToggle={(e) => setMoreOpen(e.currentTarget.open)}>
+          <summary className="more-summary">More options</summary>
+          {p.onSore && (
+            <div className="field">
+              <span className="eyebrow">Anything sore?</span>
+              <div role="radiogroup" aria-label="Sore area" className="choices">
+                {SORES.map(({ id, label }) => (
+                  <button key={id} role="radio" aria-checked={sore === id} className="choice" onClick={() => p.onSore!(id)}>
+                    {label}{p.soreSuggested === id && id !== 'none' ? ' ★' : ''}
+                  </button>
+                ))}
+              </div>
+              {p.soreSuggested && p.soreSuggested !== 'none' && suggestedLabel && (
+                <div className="hint field-note">★ Suggested: rest your {suggestedLabel.toLowerCase()} after last time.</div>
+              )}
+            </div>
+          )}
+
+          {p.onStyle && (
+            <div className="field">
+              <span className="eyebrow">How to repeat</span>
+              <div role="radiogroup" aria-label="Workout style" className="seg">
+                {([['circuit', 'Circuit'], ['stations', 'Stations']] as const).map(([val, label]) => (
+                  <button key={val} role="radio" aria-checked={style === val} className="seg-btn" onClick={() => p.onStyle!(val)}>{label}</button>
+                ))}
+              </div>
+              <div className="hint field-note">
+                {style === 'stations'
+                  ? `All ${rounds} sets of one move, then the next.`
+                  : `All moves once, then repeat — ${rounds} rounds.`}
+              </div>
+            </div>
+          )}
+        </details>
+      )}
 
       <button className="btn btn-dark btn-block" onClick={p.onClose}>Done</button>
     </Sheet>

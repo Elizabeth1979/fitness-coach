@@ -67,7 +67,9 @@ describe('useWorkoutSession', () => {
     act(() => result.current.pause());
     expect(log).toEqual(['cancel']);
 
-    act(() => result.current.resume());
+    log.length = 0;
+    act(() => result.current.resume()); // says again what was cut off
+    expect(log).toEqual([`say ${w.segments[0].cues[0].say}`]);
     log.length = 0;
     act(() => result.current.skip());
     expect(log[0]).toBe('cancel');

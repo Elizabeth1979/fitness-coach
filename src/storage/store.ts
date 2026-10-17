@@ -1,6 +1,7 @@
 import type { Equipment, Segment, SegmentKind, SoreArea, Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
 import { computeStreak } from './streak';
 import { ALL_EQUIPMENT } from '../domain/exercises';
+import { MIN_LEVEL, MAX_LEVEL } from '../generator/effort';
 
 export interface Completion {
   date: string;        // YYYY-MM-DD
@@ -16,6 +17,7 @@ export interface Prefs {
   equipment: Equipment[];
   style?: WorkoutStyle;
   music?: boolean;   // background beats during a workout (default on)
+  level?: number;    // effort level from "How did that feel?" (generator/effort.ts)
 }
 
 export interface Checkpoint {
@@ -68,6 +70,7 @@ function readPrefs(v: unknown): Prefs {
   if (isString(p.voiceURI)) prefs.voiceURI = p.voiceURI;
   if (isOneOf(STYLES, p.style)) prefs.style = p.style;
   if (typeof p.music === 'boolean') prefs.music = p.music;
+  if (isNumber(p.level) && Number.isInteger(p.level) && p.level >= MIN_LEVEL && p.level <= MAX_LEVEL) prefs.level = p.level;
   return prefs;
 }
 
@@ -75,6 +78,7 @@ function readPrefs(v: unknown): Prefs {
 function isSegment(v: unknown): v is Segment {
   if (!isRecord(v) || !isOneOf(SEGMENT_KINDS, v.kind) || !isNumber(v.durationSec) || v.durationSec <= 0) return false;
   if (!Array.isArray(v.cues) || !v.cues.every((c) => isRecord(c) && isNumber(c.atSec))) return false;
+  if (v.reps !== undefined && !isNumber(v.reps)) return false;
   const ex = v.exercise;
   return ex === undefined || (isRecord(ex) && isString(ex.id) && isString(ex.name) && isString(ex.cue));
 }
@@ -83,6 +87,7 @@ function isCheckpoint(v: unknown): v is Checkpoint {
   if (!isRecord(v) || !isRecord(v.workout)) return false;
   const w = v.workout;
   if (!isString(w.id) || !isOneOf(WORKOUT_KINDS, w.kind) || !isOneOf(STYLES, w.style) || !isNumber(w.rounds)) return false;
+  if (w.level !== undefined && !isNumber(w.level)) return false;
   if (!Array.isArray(w.segments) || w.segments.length === 0 || !w.segments.every(isSegment)) return false;
   return isNumber(v.segmentIndex) && Number.isInteger(v.segmentIndex)
     && v.segmentIndex >= 0 && v.segmentIndex < w.segments.length

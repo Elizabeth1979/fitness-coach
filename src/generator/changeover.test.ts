@@ -13,8 +13,8 @@ const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands']
 const WED = new Date('2026-06-24T08:00:00');
 const COUNTS = [phrases.count(3), phrases.count(2), phrases.count(1)];
 
-const build = (kind: WorkoutKind, style: WorkoutStyle, seed: number): Workout =>
-  generateWorkout({ kind, date: WED, equipment: ALL, seed, style });
+const build = (kind: WorkoutKind, style: WorkoutStyle, seed: number, level = 0): Workout =>
+  generateWorkout({ kind, date: WED, equipment: ALL, seed, style, level });
 
 const variants: [WorkoutKind, WorkoutStyle][] = [
   ['10min', 'circuit'], ['20min', 'circuit'], ['30min', 'circuit'],
@@ -148,10 +148,10 @@ describe('changeovers between exercises', () => {
     const WORDS_PER_SEC = 2.5; // a deliberately slow estimate of the coach's speaking rate
     const secsToSay = (text: string) => text.split(/\s+/).filter(Boolean).length / WORDS_PER_SEC;
     for (const [kind, style] of variants) {
-      for (const seed of [1, 2, 3, 4, 5, 6]) {
+      for (const [seed, level] of [[1, 0], [2, 0], [3, 0], [4, 0], [5, -2], [6, 3]]) {
         const lines: { at: number; say: string; where: string }[] = [];
         let t0 = 0;
-        for (const s of build(kind, style, seed).segments) {
+        for (const s of build(kind, style, seed, level).segments) {
           for (const c of s.cues) if (c.say) lines.push({ at: t0 + c.atSec, say: c.say, where: `${s.kind} ${s.exercise?.name ?? ''}` });
           t0 += s.durationSec;
         }

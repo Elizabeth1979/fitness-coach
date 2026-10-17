@@ -4,6 +4,7 @@ import { pick } from './rng';
 import { phrases } from '../coach/phrases';
 import { MIN_WORK_SEC } from './generateWorkout';
 import { withIntro } from './intro';
+import { repsFor } from './effort';
 import { SWITCH_SEC, annotateChangeovers, switchSegment, workCues } from './changeover';
 
 // The circuit repeats every round, so a slot's exercise appears once per round
@@ -33,7 +34,7 @@ export function swapMove(workout: Workout, prepareIndex: number, equipment: Equi
     if (!isBout(seg)) { out.push(seg); i++; continue; }
     let j = i;
     while (isBout(segs[j])) j++; // one bout: a single work, or left · switch · right
-    out.push(...reshape(segs.slice(i, j), next, cheer));
+    out.push(...reshape(segs.slice(i, j), next, cheer, workout.level ?? 0));
     i = j;
   }
 
@@ -77,13 +78,19 @@ function boutTotals(segs: Segment[], id: string): number[] {
   return totals;
 }
 
-function reshape(bout: Segment[], next: Exercise, cheer: () => string): Segment[] {
+function reshape(bout: Segment[], next: Exercise, cheer: () => string, level: number): Segment[] {
+  // The new move's rep target at the same effort level (none for a timed move).
+  const reps = repsFor(next, level);
+  const withNext = (s: Segment): Segment => {
+    const { reps: _old, ...rest } = s;
+    return { ...rest, exercise: next, ...(reps && s.kind === 'work' ? { reps } : {}) };
+  };
   const wasOneSided = bout.some((s) => s.kind === 'switch' || s.side !== undefined);
-  if (wasOneSided === !!next.unilateral) return bout.map((s) => ({ ...s, exercise: next }));
+  if (wasOneSided === !!next.unilateral) return bout.map(withNext);
 
   const { round, block } = bout[0];
   const total = bout.reduce((a, s) => a + s.durationSec, 0);
-  const work = (durationSec: number, side?: 'left' | 'right'): Segment => ({
+  const work = (durationSec: number, side?: 'left' | 'right'): Segment => withNext({
     kind: 'work', exercise: next, durationSec, round, cues: workCues(durationSec, cheer),
     ...(side ? { side } : {}), ...(block ? { block } : {}),
   });

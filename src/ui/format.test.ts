@@ -91,6 +91,12 @@ describe('roundInfo', () => {
   });
 });
 
+describe('formatTarget with an effort level', () => {
+  it('shows the rep target the workout set, not the default', () => {
+    expect(formatTarget(seg({ exercise: ex('reps', { defaultReps: 8 }), reps: 11 }))).toBe('11 reps');
+  });
+});
+
 describe('workout clock', () => {
   const w = generateWorkout({ kind: '20min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight'], seed: 4 });
 
