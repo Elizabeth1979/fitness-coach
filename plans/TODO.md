@@ -11,9 +11,24 @@ The 2026-10-17 PRs (details in [`sessions/2026-10-17.md`](sessions/2026-10-17.md
 - #29 tidy-up + offline check
 - #30 README / CLAUDE.md learnings
 
-**Start of next session: read Elli's ideas from Supabase** (project `move-with-elli`, table `ideas` —
-query in CLAUDE.md "Elli's ideas"). Her ideas from her first workout upload by themselves the first
-time she opens the new version. If the table is empty, ask her to open the app once (online).
+**Elli's first-workout ideas are in Supabase (ids 8–30, 2026-10-17)** — triaged below. Read the table at the
+start of each session for new ones (query in CLAUDE.md "Elli's ideas"); set `status` planned/done as we go.
+
+### From Elli's first workout (Supabase `ideas`, 2026-10-17)
+- **Bugs (fix first):** timer ring stuck as a green dot (#12) · next move not announced during a move (#13)
+  · Deep Squat Hold got 37s (#15) · page behind a bottom sheet still scrolls (#25) · hip circles / leg swings
+  have no switch sides (#11)
+- **Understanding moves:** images (#9, #14) · clearer how-to for shoulder rotation, arm swings, leopard crawl,
+  flutter kicks (#14, #17, #21)
+- **Workout flow:** rep-counted moves you can't finish in the time → "as many as you can" (#16) · merge
+  Rest/Next-up with Get ready (#18) · announce the core finisher before it, not after (#21) · go back to a
+  missed move, not only Skip; resume after leaving by mistake (#10) · "all sets of one move" = Stations, make
+  it findable (#20)
+- **Home & settings:** Change workout below the fold (#22) · swap the core finisher (#24) · choose a focus area
+  (#28) · voices: only English accents AU/NZ/CA/UK/US/IE (#29) · why some moves can't swap (#26)
+- **History:** past workouts with date, moves, how it felt (#23)
+- **Bigger / research:** add learned exercises to the pool (#27) · more natural speech (#30) · offer the ideas
+  feature to other users when productizing (#8). Answered: #19 (the minutes include rests).
 
 **Next: no new features until Elli has done 3–4 real workouts on her phone.** Then work from her notes.
 Ask her: is the intro the right length (~25s)?
