@@ -19,10 +19,14 @@ Resume, Done → Home) instead of quitting it; fixed a negative first-frame time
 dark mode (follows the phone); Change sheet: sore + circuit/stations folded under "More options" (Elli wanted
 them kept, just out of the way).
 
+**Then:** offline checked in a browser (server off + network off → Home + a full workout run, no errors);
+tidy-up of today's leftovers: one `secsToSay` (was 3 copies), one `trainingMin` (was 3), dead `.btn-sm`, stale docs.
+
 **Ask Elli after #25:** is the intro the right length (~25s), and does she want the warm-up name / core shown on the intro screen too (now: spoken only)?
 
 **Elli only:** (1) on the phone, lock the screen mid-workout → comes back paused, screen stays on after Resume;
-(2) GitHub → Settings → Code security → turn on Dependabot alerts + security updates.
+(2) turn on Dependabot alerts + security updates at https://github.com/elizabeth1979/fitness-coach/settings/security_analysis;
+(3) airplane mode on the phone → open the installed app → run a workout (browser check passed; a phone is the real test).
 
 ### Next — from the 2026-10-16 review plan (see the session log's "Evening" section)
 - [x] Security headers in `vercel.json` (CSP, nosniff, Referrer-Policy, COOP, Permissions-Policy) — merged, PR #14.

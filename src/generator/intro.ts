@@ -1,6 +1,7 @@
 import type { Cue, Workout } from '../domain/types';
 import { phrases } from '../coach/phrases';
-import { trainingSec } from '../domain/workout';
+import { trainingMin } from '../domain/workout';
+import { secsToSay } from '../coach/secsToSay';
 import { PREPARE_SEC, prepareCues } from './changeover';
 import { warmupFlowName } from './warmupFlows';
 
@@ -9,17 +10,16 @@ import { warmupFlowName } from './warmupFlows';
 // starts the workout. It's sized to what is said (never cut off mid-sentence)
 // and isn't part of the 10/20/30 minutes.
 
-// A deliberately slow estimate of the coach's speaking rate, plus a breath after each line.
-const WORDS_PER_SEC = 2.5;
+// How long a line takes to say, plus a breath after it.
 const PAUSE_SEC = 1;
-const sayingSec = (text: string): number => Math.ceil(text.split(/\s+/).length / WORDS_PER_SEC) + PAUSE_SEC;
+const sayingSec = (text: string): number => Math.ceil(secsToSay(text)) + PAUSE_SEC;
 
 /** The workout with a fresh intro in front (any old one dropped), so it's re-run after a swap. */
 export function withIntro(workout: Workout): Workout {
   const body = workout.segments.filter((s) => s.kind !== 'intro');
   const first = body.find((s) => s.kind === 'work')?.exercise;
   const overview = phrases.introOverview({
-    minutes: Math.round(trainingSec(workout) / 60),
+    minutes: trainingMin(workout),
     focus: workout.focus,
     warmup: warmupFlowName(workout.warmupThemeId),
     moves: body.filter((s) => s.kind === 'prepare' && s.round === 1 && s.block !== 'core').map((s) => s.exercise?.name ?? ''),

@@ -81,7 +81,6 @@ describe('swapMove', () => {
   });
 
   describe('one-sided and two-sided moves', () => {
-    const total = trainingSec;
     // Invariant: a switch-sides step only ever sits between the left and right of a one-sided move.
     const switchesAreValid = (x: Workout) => x.segments.every((seg, i) =>
       seg.kind !== 'switch' || (seg.exercise?.unilateral === true
@@ -102,7 +101,7 @@ describe('swapMove', () => {
           tried++;
           expect(switchesAreValid(out)).toBe(true);
           expect(oneSided(out, ex.id).every((seg) => seg.side === undefined)).toBe(true);
-          expect(total(out)).toBe(total(w));
+          expect(trainingSec(out)).toBe(trainingSec(w));
         }
       }
       expect(tried).toBeGreaterThan(0);
@@ -143,7 +142,7 @@ describe('swapMove', () => {
         split++;
         expect(out.segments.map((x) => x.side ?? x.kind)).toEqual(['prepare', 'left', 'switch', 'right', 'rest', 'prepare', 'left', 'switch', 'right']);
         expect(switchesAreValid(out)).toBe(true);
-        expect(total(out)).toBe(total(synthetic));
+        expect(trainingSec(out)).toBe(trainingSec(synthetic));
       }
       expect(split).toBeGreaterThan(0);
     });

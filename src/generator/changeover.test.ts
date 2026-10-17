@@ -3,6 +3,7 @@ import { generateWorkout } from './generateWorkout';
 import { swapMove } from './swapMove';
 import { createRng } from './rng';
 import { phrases } from '../coach/phrases';
+import { secsToSay } from '../coach/secsToSay';
 import type { Equipment, Segment, Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
 
 // Changeovers: getting from one exercise to the next. Elli found them too fast:
@@ -145,8 +146,6 @@ describe('changeovers between exercises', () => {
   });
 
   it('no spoken line runs into the next one (speech queues, so overlap = a late, rushed count)', () => {
-    const WORDS_PER_SEC = 2.5; // a deliberately slow estimate of the coach's speaking rate
-    const secsToSay = (text: string) => text.split(/\s+/).filter(Boolean).length / WORDS_PER_SEC;
     for (const [kind, style] of variants) {
       for (const [seed, level] of [[1, 0], [2, 0], [3, 0], [4, 0], [5, -2], [6, 3]]) {
         const lines: { at: number; say: string; where: string }[] = [];

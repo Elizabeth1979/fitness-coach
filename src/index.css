@@ -147,7 +147,6 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .btn-dark  { background: var(--accent); color: var(--on-accent); }
 .btn-soft  { background: var(--surface); color: var(--text); border: var(--bd-2); }
 .btn-ghost { background: var(--surface); color: var(--danger); border: 1.5px solid var(--danger-border); }
-.btn-sm    { min-height: 48px; padding: 12px; font-size: var(--fs-sm); }
 
 /* ============================================================================
    PILLS · BADGES  (all neutral — colour is reserved for "do this")

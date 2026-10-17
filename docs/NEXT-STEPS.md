@@ -81,7 +81,7 @@ is `/` (root) — see `base` in `vite.config.ts` and `scope`/`start_url` in the 
 
 - **✓ Themed warm-ups & the Mobility Lottery** — the single daily warm-up is now a named,
   never-repeating themed *flow* (Hip / Shoulder / Animal / Dance — including a 2-minute
-  free-dance), chosen to prep the day's work and announced by the coach ("Today's warm-up:
+  free-dance), chosen to prep the day's work and announced in the coach's spoken intro ("Warm-up:
   Dance Flow"). On `main`. **Still a follow-up:** the optional bigger change — make
   Push/Pull/Legs/Hinge the non-negotiables and rotate Warm-up/Mobility/Crawl/Carry/Balance.
   Design + code-mapping: [docs/superpowers/specs/2026-06-24-themed-warmups-and-rotation-design.md](docs/superpowers/specs/2026-06-24-themed-warmups-and-rotation-design.md).

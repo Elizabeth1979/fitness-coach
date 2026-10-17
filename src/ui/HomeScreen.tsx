@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Equipment, SoreArea, Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
 import { ALL_EQUIPMENT } from '../domain/exercises';
-import { trainingSec } from '../domain/workout';
+import { trainingMin } from '../domain/workout';
 import { getPrefs, setPrefs } from '../storage/store';
 import { useVoices } from './useVoices';
 import { VoicePicker } from './VoicePicker';
@@ -39,7 +39,6 @@ const EQUIPMENT_CHOICES: { label: string; equipment: Equipment[] }[] = [
   { label: 'Bodyweight only', equipment: ['bodyweight'] },
 ];
 const isBodyweightOnly = (e: readonly Equipment[]) => e.length === 1 && e[0] === 'bodyweight';
-const total = (w: Workout) => Math.round(trainingSec(w) / 60);
 
 // Home is one screen with one job: show today's workout and a big Start.
 // Every option lives behind a single "Change workout" sheet; the less-used ones
@@ -77,7 +76,7 @@ export function HomeScreen(p: Props) {
       <section className="card home-today" aria-label="Today's workout">
         <div className="row-between home-today-head">
           <h2 className="t-section">Today</h2>
-          <span className="muted">{total(p.workout)} min · {focus === 'strength' ? 'Strength' : 'Movement'}</span>
+          <span className="muted">{trainingMin(p.workout)} min · {focus === 'strength' ? 'Strength' : 'Movement'}</span>
         </div>
 
         {warmups.length > 0 && (
