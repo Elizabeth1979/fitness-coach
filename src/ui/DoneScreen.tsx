@@ -6,7 +6,7 @@ import { catColor } from './categoryColor';
 import { Icon } from './Icon';
 import { useTapGuard } from './useTapGuard';
 import { localDate } from '../domain/date';
-import { trainingSec } from '../domain/workout';
+import { trainingMin } from '../domain/workout';
 import type { Feel } from '../generator/effort';
 
 // "How did that feel?" — one tap nudges the next workouts (generator/effort.ts).
@@ -40,7 +40,7 @@ export function DoneScreen({ categories, streak, workout, onHome, onFeel }: Prop
     }
     return out;
   }, [categories]);
-  const mins = workout ? Math.round(trainingSec(workout) / 60) : 0;
+  const mins = workout ? trainingMin(workout) : 0;
   const dates = useMemo(() => loadStore().completions.map((c) => c.date), []);
   const [today] = useState(() => localDate(new Date())); // read the clock once, not on every render
   const guard = useTapGuard();

@@ -1,8 +1,6 @@
 import type { Segment } from '../domain/types';
 import { phrases } from './phrases';
-
-// A deliberately slow estimate of the coach's speaking rate (as in the cue-timing tests).
-const WORDS_PER_SEC = 2.5;
+import { secsToSay } from './secsToSay';
 
 /**
  * What the coach says on Resume. Pause cuts the coach off mid-sentence, so say
@@ -17,5 +15,5 @@ export function resumeLine(seg: Segment | null, elapsedSec: number): string | nu
     : seg.cues.find((c) => c.atSec === 0)?.say;
   if (!line) return null;
   const nextAt = seg.cues.find((c) => c.say && c.atSec > elapsedSec)?.atSec ?? seg.durationSec;
-  return line.split(/\s+/).length / WORDS_PER_SEC <= nextAt - elapsedSec ? line : null;
+  return secsToSay(line) <= nextAt - elapsedSec ? line : null;
 }

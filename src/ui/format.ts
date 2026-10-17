@@ -87,7 +87,7 @@ export function circuitMoves(workout: Workout): SessionMove[] {
 }
 
 export interface RoundInfo {
-  round: number;        // 1..rounds inside a circuit; 0 during warm-up / celebrate
+  round: number;        // 1..rounds inside a circuit; 0 during intro / warm-up / celebrate
   totalRounds: number;
   moveInRound: number;  // 1-based circuit slot within the round; 0 outside a round
   movesPerRound: number;
