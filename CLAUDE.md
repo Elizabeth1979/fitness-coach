@@ -28,6 +28,15 @@ npm run lint         # oxlint --deny-warnings (config in .oxlintrc.json) — war
   runs via esbuild, which strips types WITHOUT type-checking and ignores `erasableSyntaxOnly`.
   Only `tsc -b` (inside `npm run build`) catches type errors and erasable-syntax violations. A
   build break once hid behind a green test run for several tasks.
+- **`console.log` in a passing test prints nothing** with the default reporter — add `--reporter=verbose`
+  (or write to a file) when a throwaway test is meant to print numbers.
+- **Browser checks (Playwright, Chromium is preinstalled):** `npm run build`, serve `dist/` with the headers from
+  `vercel.json` (so the real CSP applies) and drive the app. Wait ≥ 450ms after every screen change before the next
+  click — `useTapGuard` drops taps in a new screen's first 400ms, so fast scripted clicks silently do nothing.
+  Offline: load once, await `navigator.serviceWorker.ready`, stop the server **and** `context.setOffline(true)`, then
+  open a fresh tab. Keep scripts and screenshots out of the repo (a relative `shots/` once landed in it).
+- **Dead code:** `npx knip@5` finds unused files/exports; its "unused exported types" and the `Null*`/`Web*` adapter
+  classes are expected (used inside their own module), not dead.
 - **`erasableSyntaxOnly` is enabled** (`tsconfig.app.json`): no TypeScript constructor parameter
   properties, no `enum`, no `import =`. Use explicit field declarations + assignment instead.
 - **jsdom provides no `localStorage`** in this Vitest setup (opaque origin). Storage tests stub it

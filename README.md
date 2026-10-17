@@ -15,13 +15,16 @@ balance, skill — not calories or body weight.
 ## What it does
 
 - **One screen, one button.** Home shows today's workout as a plain numbered list and a big
-  green **Start workout** button that's always visible. Every option — length (10 / 20 / 30
-  min), anything sore, circuit or stations, a new warm-up or new moves, the coach's voice —
-  lives behind a single **Change workout** button.
+  green **Start workout** button that's always visible. **New** next to the warm-up or the moves
+  deals a fresh set. Everything else sits behind **Change workout**: length (10 / 20 / 30 min),
+  equipment (everything / bodyweight only) and the coach's voice, with "anything sore?" and
+  circuit-or-stations folded under **More options**.
 - **A rule-based generator** builds a full-body workout (warm-up → Push → Pull → Legs → Hinge
   → Carry/Crawl → Mobility → core finisher → celebration) sized to the minute. Tap any move
   to read how to do it or **swap** it for another of the same kind.
 - **A voice coach guides every second:**
+  - **A short spoken intro** before the clock starts — what's waiting today and what comes
+    first — then *"Get ready… three, two, one"*. The screen shows the time left.
   - **Time to get there** — about 20 seconds between exercises. The rest starts with
     *"Rest. Take a deep breath. Next up: Bulgarian Split Squat. Back foot elevated, sink straight down."*, then
     *"Get ready."* and a real one-per-second *"three… two… one… Go!"*
@@ -36,10 +39,15 @@ balance, skill — not calories or body weight.
 - **Themed warm-ups & the Mobility Lottery** — never the same warm-up two days running
   (Hip / Shoulder / Animal / Dance — including a 2-minute free-dance).
 - **Anything sore?** Pick shoulders, back or legs and the day works around it.
+- **"How did that feel?"** after each workout — *too easy / just right / too hard* — nudges the
+  next ones: more or fewer reps, and shorter rests as you get stronger. Same length every time.
 - Optional **background beats**, haptic buzzes, and the screen stays awake so you can prop the
   phone up and just move.
-- **Resume where you stopped**, keep a **streak**, and it works **offline** (installable PWA).
-  The installed app picks up new versions by itself when you return to it — never mid-workout.
+- **Resume where you stopped** — Pause, leaving the app or the phone's Back button all keep your
+  spot, and the coach re-says what you were doing when you carry on. Keep a **streak**, and it works
+  **offline** (installable PWA). The installed app picks up new versions by itself when you return
+  to it — never mid-workout.
+- **Dark mode** follows your phone's setting.
 
 The coach is calm and encouraging — never military, never shaming, and there's not a
 calorie count in sight.
@@ -64,7 +72,7 @@ npm install
 npm run dev        # open the printed http://localhost:5173/ URL
 ```
 
-`npm run test:run` runs the test suite (127 tests); `npm run build` makes the production
+`npm run lint` checks the code (warnings fail the deploy); `npm run test:run` runs the test suite; `npm run build` makes the production
 build + service worker and runs the TypeScript type-check.
 
 ## Tech
