@@ -86,9 +86,12 @@ shows the capability checklist.
 `store` (localStorage repo), `streak`, `week` (pure) · `generator/swapMove` (swap one move) · `ui/`
 hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekView` + `format`
 (pure: `formatTarget`/`sessionMoves`) · `pwa/` wakeLock + update. The design system (tokens +
-reusable classes `.card`/`.btn`/`.pill`/…) lives in `src/index.css`; components hold **no colour
-literals** — add a `:root` token and switch states with `data-*`/`aria-*` selectors (e.g. the timer
-and rest screen use `data-tone="rest"`). Every bottom sheet uses `src/ui/Sheet.tsx` (focus in, Tab
+reusable classes `.card`/`.btn`/`.pill`/…, plus per-screen classes `home-*`/`detail-*`/`active-*`/`done-*`/
+`week-*` and helpers like `.btn-block`/`.row-main`/`.choices`) lives in `src/index.css`; components hold
+**no inline styles** except values computed at runtime (progress bar, confetti positions) — guarded by
+`src/ui/inlineStyles.test.ts`. Add a `:root` token or a class, and switch states with `data-*`/`aria-*`
+selectors (e.g. the timer and rest screen use `data-tone="rest"`, the week strip `data-today`). Icon
+colours: `<Icon className="icon-warm" />`. Every bottom sheet uses `src/ui/Sheet.tsx` (focus in, Tab
 trapped, Escape closes, focus returns). Tailwind is imported, so **don't name a class after a
 Tailwind utility** (`ring`, `shadow`, `block`, …) — it silently inherits that utility's styles. Icons are inline SVGs from
 `@tabler/icons-react`, all listed in `src/ui/Icon.tsx` (`<Icon name="clock" />` — add new ones to
@@ -108,7 +111,13 @@ its map; never re-add the 5,000-icon webfont).
   3 rounds** so each move gets ≥3 effective sets; 20/30-min use the full 6 slots (×3 / ×5). Warm-up
   flow segments are FIXED length (30s, or 120s free-dance) and are **excluded from** `spreadDrift`.
   The "total within 45s of target" test guards this (for both circuit & stations) — tune durations,
-  not the tolerance.
+  not the tolerance. Measure with `trainingSec(workout)` (`domain/workout.ts`), which leaves out the intro.
+- **Intro (`generator/intro.ts`):** segment 0 is an `'intro'`: the coach says what's waiting (length,
+  warm-up, the main moves, core) and "First up: X + how-to", then "Get ready" + three-two-one; the first
+  warm-up move then starts with just "Go!". It's sized to its words (2.5 words/s + 1s breath, ~25s) and is
+  NOT part of the 10/20/30 minutes — Home/Done/streak all use `trainingSec`. `withIntro` drops any old intro
+  and prepends a fresh one; `swapMove` re-runs it (only if one is there, so segment indices never shift).
+  The active screen's "mm:ss left" clock (`format.ts` `timeLeft`) holds at the full length during the intro.
 - **Changeovers (`generator/changeover.ts`):** getting from one move to the next is a 15s rest that
   says "Rest… Next up: X." the moment it starts, then a 5s "Get ready" that ends in a real
   one-per-second "three, two, one" → "Go!" (~20s total; a changeover rest also follows the warm-up

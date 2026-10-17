@@ -1,14 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { trainingSec } from '../domain/workout';
 import { generateWorkout } from './generateWorkout';
-import type { Equipment, Segment, Workout } from '../domain/types';
+import type { Equipment, Workout } from '../domain/types';
 
 const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 const WED = new Date('2026-06-24T08:00:00'); // movement day
 const TUE = new Date('2026-06-23T08:00:00'); // strength day
 
-function total(segs: Segment[]): number {
-  return segs.reduce((s, seg) => s + seg.durationSec, 0);
-}
 
 // The ordered exercise ids of the main (non-warmup) prepares — one per station.
 function stationOrder(w: Workout): string[] {
@@ -55,7 +53,7 @@ describe('generateWorkout — station style', () => {
       for (const date of [WED, TUE]) {
         for (let seed = 0; seed <= 60; seed++) {
           const w = generateWorkout({ kind, date, equipment: ALL, seed, style: 'stations' });
-          const got = total(w.segments);
+          const got = trainingSec(w);
           expect(Math.abs(got - target), `${kind} ${date.toISOString()} seed ${seed} → ${got}s`).toBeLessThanOrEqual(45);
         }
       }
@@ -64,7 +62,7 @@ describe('generateWorkout — station style', () => {
 
   it('still opens with a warm-up flow and ends with celebrate', () => {
     const w = generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 4, style: 'stations' });
-    expect(w.segments[0].exercise?.category).toBe('warmup');
+    expect(w.segments[1].exercise?.category).toBe('warmup');
     expect(w.segments[w.segments.length - 1].kind).toBe('celebrate');
   });
 });

@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import {
   IconAdjustmentsHorizontal, IconArrowsExchange, IconCheck, IconClock, IconFlame, IconHome,
   IconListCheck, IconMusic, IconMusicOff, IconPlayerPause, IconPlayerPlay, IconPlayerSkipForward,
@@ -34,11 +33,12 @@ interface Props {
   name: IconName;
   /** Defaults to 1em, so an icon sizes itself to the surrounding text (like the old icon font). */
   size?: number | string;
-  style?: CSSProperties;
+  /** Extra classes, e.g. a colour from index.css (`icon-warm`, `icon-brand`). */
+  className?: string;
 }
 
 /** A decorative icon (hidden from screen readers — the text next to it says what it means). */
-export function Icon({ name, size = '1em', style }: Props) {
+export function Icon({ name, size = '1em', className }: Props) {
   const Svg = ICONS[name];
-  return <Svg size={size} stroke={2} className="icon" style={style} aria-hidden="true" focusable="false" />;
+  return <Svg size={size} stroke={2} className={className ? `icon ${className}` : 'icon'} aria-hidden="true" focusable="false" />;
 }

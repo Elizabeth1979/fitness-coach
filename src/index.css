@@ -5,7 +5,8 @@
    MOVE WITH ELLI — DESIGN SYSTEM
    Single source of truth for the "basic stuff": colour, typography, borders,
    radii, shadows, and every reusable shape. Change a token in :root and it
-   cascades through the whole app. Components carry only layout inline.
+   cascades through the whole app. Components carry no inline styles, only
+   values computed at runtime (e.g. the progress bar, confetti positions).
 
    COLOUR RULE: colour means "do this". Green is reserved for the one action
    (Start / Resume), the running timer and "done". Everything else is black,
@@ -180,6 +181,93 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .daydot { width:32px; height:32px; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; background: var(--surface-3); color: var(--on-dark); }
 .daydot[data-done="true"]  { background: var(--brand); }
 .daydot[data-today="true"] { box-shadow: 0 0 0 3px var(--brand-ring); }
+
+/* ============================================================================
+   HELPERS — small shared pieces (come after the base classes they refine)
+   ========================================================================== */
+.btn-block  { width: 100%; }
+/* the round-cornered ✕ at the top of a sheet */
+.btn-close  { padding: 9px; min-height: 44px; border-radius: 12px; }
+/* the text column of a row: takes the free space, lets long names wrap */
+.row-main   { flex: 1; min-width: 0; }
+/* a group of choices (radio buttons or side-by-side buttons) */
+.choices    { display: flex; flex-wrap: wrap; gap: 8px; }
+.choices > .btn { flex: 1; }
+.field-note { margin-top: 8px; }
+.icon-warm  { color: var(--warm); }
+.icon-brand { color: var(--brand); }
+
+/* ============================================================================
+   SCREENS — layout of specific screens; components carry no inline styles
+   except values computed at runtime (progress, confetti positions)
+   ========================================================================== */
+/* Home */
+.screen-home { padding-bottom: 0; }
+.home-header   { margin-bottom: 18px; }
+.home-greeting { font-size: 16px; }
+.home-resume, .home-today { margin-bottom: 14px; }
+.home-change   { margin-bottom: 18px; }
+.home-today-head { margin-bottom: 4px; }
+.home-list-head  { margin: 14px 0 2px; }
+.home-rounds     { font-size: var(--fs-xs); }
+.home-list-hint  { margin-bottom: 4px; }
+.summary-title   { font-weight: 700; }
+.summary-row--divider-below { border-bottom: 1px solid var(--surface-border); }
+.summary-row--divider-above { border-top: 1px solid var(--surface-border); }
+.move-name { display: block; }
+.move-meta { font-size: var(--fs-sm); }
+.voice-picker { gap: 8px; font-size: var(--fs-xs); }
+
+/* Sheets: Change workout · move detail */
+.sheet-head     { margin-bottom: 20px; }
+.detail-head    { margin-bottom: 12px; }
+.detail-title   { margin-bottom: 6px; }
+.detail-target  { gap: 6px; font-size: 16px; margin-bottom: 14px; }
+.detail-cue     { margin-bottom: 18px; }
+.detail-actions { display: flex; gap: 10px; }
+.detail-actions > .btn { flex: 1; }
+.detail-note    { font-size: var(--fs-sm); margin-bottom: 12px; }
+
+/* Workout */
+.active-top      { margin-bottom: 22px; }
+.active-phase    { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; }
+.active-clock    { display: flex; align-items: center; gap: 4px; font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.active-chips    { display: flex; justify-content: center; align-items: center; gap: 7px; margin-bottom: 7px; min-height: 24px; }
+.active-title    { text-align: center; margin-bottom: 7px; }
+.active-subtitle { text-align: center; font-size: 17px; margin-bottom: 16px; }
+.active-timer    { display: flex; justify-content: center; margin: 6px 0 18px; }
+.active-cue      { margin-bottom: 14px; }
+.active-controls { display: flex; gap: 9px; margin-top: auto; }
+.active-controls > .btn { flex: 1; }
+.active-controls > .active-end { flex: 0 1 auto; min-width: 56px; }
+.intro-card      { margin-bottom: 14px; }
+.intro-list      { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+.next-card       { gap: 11px; padding: 11px 13px; margin-bottom: 18px; }
+.next-eyebrow    { font-size: var(--fs-2xs); }
+.next-meta       { font-size: var(--fs-xs); text-align: right; }
+.next-meta-label { color: var(--text); font-weight: 800; }
+
+/* Done */
+.done-hero     { position: relative; text-align: center; padding: 10px 0 16px; }
+.confetti-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.done-check    { width: 66px; height: 66px; margin: 0 auto 13px; border-radius: 50%; background: var(--brand-soft); color: var(--brand); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-done); animation: pop-check .6s cubic-bezier(.34,1.56,.64,1) both; }
+.done-title    { font-size: 29px; }
+.done-subtitle { font-size: 17px; margin-top: 5px; }
+.done-summary  { margin-bottom: 14px; }
+.done-stats    { margin-bottom: 14px; }
+.done-stat     { gap: 6px; font-size: var(--fs-sm); }
+.done-streak   { padding: 6px 11px; }
+.done-practiced-label { font-size: var(--fs-sm); margin-bottom: 9px; }
+.done-practiced { display: flex; flex-wrap: wrap; gap: 7px; }
+.done-chip     { font-size: var(--fs-sm); padding: 7px 13px; }
+
+/* Week strip (Done screen) — "today" switches via data-today */
+.week        { margin-bottom: 18px; }
+.week-title  { font-size: 16px; margin-bottom: 14px; }
+.week-days   { display: flex; justify-content: space-between; }
+.week-day    { text-align: center; }
+.week-label  { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 7px; }
+.week-day[data-today="true"] .week-label { font-weight: 800; color: var(--brand); }
 
 /* ============================================================================
    ANIMATION

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Category, Equipment, SoreArea, Workout, WorkoutKind, WorkoutStyle } from './domain/types';
 import { generateWorkout } from './generator/generateWorkout';
+import { trainingSec } from './domain/workout';
 import { useWorkoutSession } from './ui/useWorkoutSession';
 import { HomeScreen } from './ui/HomeScreen';
 import { ActiveScreen } from './ui/ActiveScreen';
@@ -79,7 +80,7 @@ export default function App() {
     if (!completed) { goHome(); return; }
     recordCompletion({ date: today(), kind: workout.kind, focus: workout.focus,
       exerciseIds: [...new Set(workout.segments.flatMap((s) => (s.exercise ? [s.exercise.id] : [])))],
-      durationSec: workout.segments.reduce((a, s) => a + s.durationSec, 0), sore });
+      durationSec: trainingSec(workout), sore });
     setStreak(currentStreak(today()));
     setPhase('done');
   }
@@ -109,7 +110,7 @@ export default function App() {
   if (phase === 'home') return (
     <>
       <HomeScreen workout={preview} kind={kind} onKind={handleKind} streak={streak}
-        style={style} onStyle={handleStyle} onSwapWarmup={handleSwapWarmup}
+        workoutStyle={style} onStyle={handleStyle} onSwapWarmup={handleSwapWarmup}
         sore={sore} onSore={handleSore} soreSuggested={soreSuggested}
         canResume={!!checkpoint} onResume={handleResume} onReroll={handleReroll}
         onStart={handleStart} onOpenMove={setOpenPrepare}

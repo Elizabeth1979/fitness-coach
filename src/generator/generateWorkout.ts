@@ -9,6 +9,7 @@ import { PREPARE_SEC, CHANGE_REST_SEC, SWITCH_SEC, prepareCues, annotateChangeov
 import { pickWarmupFlow, WARMUP_FLOWS, type WarmupFlow } from './warmupFlows';
 import { exerciseById } from '../domain/exercises';
 import { localDayNumber } from '../domain/date';
+import { withIntro } from './intro';
 
 export interface GenerateOptions {
   kind: WorkoutKind;
@@ -216,17 +217,14 @@ function warmupSegment(ex: Exercise, dur: number, say: string, cheer: () => stri
   return { kind: 'work', exercise: ex, durationSec: dur, cues };
 }
 
-function buildWarmup(flow: WarmupFlow, focus: Focus, target: number, cheer: () => string): Segment[] {
+function buildWarmup(flow: WarmupFlow, target: number, cheer: () => string): Segment[] {
   const count = warmupMoveCount(target, flow);
   const moves = flow.moves.slice(0, count)
     .map((id) => exerciseById(id))
     .filter((e): e is Exercise => e !== undefined);
   const dur = flow.free ? freeDanceSec(target) : WARMUP_MOVE_SEC;
-  const intro = `${phrases.welcome(focus)} ${phrases.warmupAnnounce(flow.name)}`;
-  return moves.map((ex, i) => {
-    const say = i === 0 ? `${intro} ${phrases.howTo(ex)}` : phrases.howTo(ex);
-    return warmupSegment(ex, dur, say, cheer);
-  });
+  // The intro already said how to do the first move, so it starts with just "Go!".
+  return moves.map((ex, i) => warmupSegment(ex, dur, i === 0 ? phrases.begin() : phrases.howTo(ex), cheer));
 }
 
 export function generateWorkout(opts: GenerateOptions): Workout {
@@ -254,7 +252,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   // picks a flow that preps the day's work and avoids recent themes.
   const forced = opts.warmupThemeId ? WARMUP_FLOWS.find((f) => f.id === opts.warmupThemeId) : undefined;
   const flow = forced ?? pickWarmupFlow({ workoutCategories: circuit.map((e) => e.category), recentThemeIds, rng });
-  const warmupSegs = buildWarmup(flow, focus, target, cheer);
+  const warmupSegs = buildWarmup(flow, target, cheer);
   const warmupTotal = warmupSegs.reduce((s, seg) => s + seg.durationSec, 0);
 
   const units = buildUnits(circuit, focus);
@@ -341,5 +339,5 @@ export function generateWorkout(opts: GenerateOptions): Workout {
   // Now that the order is final, every rest can say what's next and count in.
   segments = annotateChangeovers(segments, rounds);
 
-  return { id: `w-${seed}-${opts.kind}-${style}`, kind: opts.kind, focus, rounds, style, warmupThemeId: flow.id, segments };
+  return withIntro({ id: `w-${seed}-${opts.kind}-${style}`, kind: opts.kind, focus, rounds, style, warmupThemeId: flow.id, segments });
 }

@@ -29,8 +29,9 @@ export interface Cue {
   haptic?: HapticKind;
 }
 
+// 'intro' = the spoken overview before the clock starts (not part of the workout length).
 // 'switch' = the short gap between the left and right side of a one-sided move.
-export type SegmentKind = 'prepare' | 'work' | 'switch' | 'rest' | 'roundrest' | 'celebrate';
+export type SegmentKind = 'intro' | 'prepare' | 'work' | 'switch' | 'rest' | 'roundrest' | 'celebrate';
 
 export interface Segment {
   kind: SegmentKind;

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { trainingSec } from '../domain/workout';
 import { canSwap, swapMove } from './swapMove';
 import { generateWorkout } from './generateWorkout';
 import { createRng } from './rng';
@@ -20,8 +21,7 @@ describe('swapMove', () => {
     expect(w2.segments[prepIdx].exercise!.category).toBe(oldCat);
   });
   it('keeps total duration unchanged (durations reused)', () => {
-    const total = (x: typeof w) => x.segments.reduce((s, seg) => s + seg.durationSec, 0);
-    expect(total(swapMove(w, prepIdx, ALL, createRng(2)))).toBe(total(w));
+    expect(trainingSec(swapMove(w, prepIdx, ALL, createRng(2)))).toBe(trainingSec(w));
   });
   it('does not mutate the original workout', () => {
     const before = w.segments[prepIdx].exercise!.id;
@@ -81,7 +81,7 @@ describe('swapMove', () => {
   });
 
   describe('one-sided and two-sided moves', () => {
-    const total = (x: Workout) => x.segments.reduce((a, seg) => a + seg.durationSec, 0);
+    const total = trainingSec;
     // Invariant: a switch-sides step only ever sits between the left and right of a one-sided move.
     const switchesAreValid = (x: Workout) => x.segments.every((seg, i) =>
       seg.kind !== 'switch' || (seg.exercise?.unilateral === true

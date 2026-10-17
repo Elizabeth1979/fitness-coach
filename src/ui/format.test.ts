@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { formatTarget, sessionMoves, currentMoveIndex, circuitMoves, roundInfo } from './format';
+import { formatTarget, sessionMoves, currentMoveIndex, circuitMoves, roundInfo, timeLeft, formatClock } from './format';
+import { trainingSec } from '../domain/workout';
 import { generateWorkout } from '../generator/generateWorkout';
 import { SLOTS_SHORT } from '../generator/selectExercises';
 import type { Segment } from '../domain/types';
@@ -87,5 +88,22 @@ describe('roundInfo', () => {
   it('returns round 0 during the warm-up', () => {
     const warm = w.segments.findIndex((s) => s.exercise?.category === 'warmup');
     expect(roundInfo(w, warm).round).toBe(0);
+  });
+});
+
+describe('workout clock', () => {
+  const w = generateWorkout({ kind: '20min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight'], seed: 4 });
+
+  it('holds at the full length during the intro, then counts down the rest of the workout', () => {
+    expect(timeLeft(w, 0, 3)).toBe(trainingSec(w));
+    expect(timeLeft(w, 1, w.segments[1].durationSec)).toBe(trainingSec(w));
+    expect(timeLeft(w, 1, 10)).toBe(trainingSec(w) - w.segments[1].durationSec + 10);
+    expect(timeLeft(w, w.segments.length - 1, 4)).toBe(4);
+  });
+
+  it('formats as m:ss', () => {
+    expect(formatClock(1200)).toBe('20:00');
+    expect(formatClock(65.7)).toBe('1:05');
+    expect(formatClock(0)).toBe('0:00');
   });
 });

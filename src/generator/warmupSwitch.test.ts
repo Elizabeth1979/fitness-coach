@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { trainingSec } from '../domain/workout';
 import { generateWorkout } from './generateWorkout';
 import { WARMUP_FLOWS } from './warmupFlows';
-import type { Equipment, Segment, Workout } from '../domain/types';
+import type { Equipment, Workout } from '../domain/types';
 
 const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'];
 const WED = new Date('2026-06-24T08:00:00');
 
-const total = (segs: Segment[]) => segs.reduce((s, x) => s + x.durationSec, 0);
 const mainExercises = (w: Workout) =>
   w.segments.filter((s) => s.kind === 'prepare' && s.exercise).map((s) => s.exercise!.id);
 
@@ -15,7 +15,7 @@ describe('generateWorkout — forced warm-up theme', () => {
     for (const f of WARMUP_FLOWS) {
       const w = generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 3, warmupThemeId: f.id });
       expect(w.warmupThemeId).toBe(f.id);
-      expect(w.segments[0].exercise?.category).toBe('warmup');
+      expect(w.segments[1].exercise?.category).toBe('warmup');
     }
   });
 
@@ -32,7 +32,7 @@ describe('generateWorkout — forced warm-up theme', () => {
       for (const style of ['circuit', 'stations'] as const) {
         for (const f of WARMUP_FLOWS) {
           const w = generateWorkout({ kind, date: WED, equipment: ALL, seed: 5, style, warmupThemeId: f.id });
-          const got = total(w.segments);
+          const got = trainingSec(w);
           expect(Math.abs(got - target), `${kind}/${style}/${f.id} → ${got}s`).toBeLessThanOrEqual(45);
         }
       }

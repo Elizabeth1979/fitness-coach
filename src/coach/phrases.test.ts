@@ -2,15 +2,20 @@ import { describe, it, expect } from 'vitest';
 import { phrases } from './phrases';
 
 describe('phrases', () => {
-  it('welcomes Elli by name with the focus', () => {
-    const line = phrases.welcome('strength');
-    expect(line).toContain('Elli');
-    expect(line.toLowerCase()).toContain('strength');
+  const overview = (over: Partial<Parameters<typeof phrases.introOverview>[0]> = {}) => phrases.introOverview({
+    minutes: 20, focus: 'strength', warmup: 'Hip Flow', moves: ['Push-up', 'Row', 'Squat'], rounds: 3, style: 'circuit', core: true, ...over,
+  });
+
+  it('the intro welcomes Elli and says what is waiting', () => {
+    expect(overview()).toBe('Welcome back, Elli. Today is 20 minutes of strength and mobility. '
+      + 'Warm-up: Hip Flow. Then 3 rounds of Push-up, Row and Squat. We finish with core.');
+    expect(overview({ style: 'stations', core: false })).toContain('Then 3 sets each of Push-up, Row and Squat.');
+    expect(overview({ style: 'stations', core: false })).not.toContain('core');
   });
 
   it('never uses banned (calorie/weight/guilt) language in core lines', () => {
     const lines = [
-      phrases.welcome('movement'), phrases.rest(), phrases.begin(),
+      overview(), phrases.rest(), phrases.begin(),
       phrases.celebrate(['push', 'pull', 'hinge', 'carry', 'mobility']),
       ...phrases.encouragements,
     ];

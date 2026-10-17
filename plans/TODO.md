@@ -4,7 +4,11 @@
 
 Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md`](sessions/2026-10-16.md).
 **Everything is merged** (#13 bugs, #14 headers, #15 audit/Dependabot/lint gate, #21 Resume/equipment/Y-T-W,
-#23 React lint fixes, Dependabot #16/#19/#20/#22; #18 closed). No open PRs. `gh-pages` is a redirect — keep it.
+#23 React lint fixes, Dependabot #16/#19/#20/#22; #18 closed). Open: draft PR #25 — inline styles → classes
+**+ the spoken intro before the clock and the "time left" clock** (see [`sessions/2026-10-17.md`](sessions/2026-10-17.md)).
+`gh-pages` is a redirect — keep it.
+
+**Ask Elli after #25:** is the intro the right length (~25s), and does she want the warm-up name / core shown on the intro screen too (now: spoken only)?
 
 **Elli only:** (1) on the phone, lock the screen mid-workout → comes back paused, screen stays on after Resume;
 (2) GitHub → Settings → Code security → turn on Dependabot alerts + security updates.
@@ -17,7 +21,9 @@ Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md
 - [x] Bodyweight pull move: Prone Y-T-W Raises (Elli: yes) — in PR #21.
 - [x] Fixed the 11 React lint findings oxlint 1.88 raised (code, not rules) — #23; dev-tools update merged as #22 (replaced #17).
 - [x] Read prefs once in `App` (#21/#23).
-- [ ] Design: move the 79 inline `style={{}}` blocks into `index.css` classes.
+- [x] Design: inline styles → `index.css` classes (only runtime values stay inline; guarded by a test) — PR #25.
+- [x] Intro before the timer (what's waiting + first move + count-in, not counted in the minutes) and a "time left" clock — PR #25.
+- [ ] Optional tidy-up: unify near-duplicate spacings the refactor kept exact (row gaps 8/9/10px, Done streak pill 1px tighter than Home's).
 - [ ] Ask Elli: dark mode? Which Change-sheet options does she use (cut the rest; stations-vs-circuit first)?
 
 **First, check with Elli:** did re-adding the app to her home screen from the Vercel address

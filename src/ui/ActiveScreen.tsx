@@ -1,7 +1,8 @@
+import { useId } from 'react';
 import type { SessionState } from '../engine/session';
 import type { Workout } from '../domain/types';
 import { TimerRing } from './TimerRing';
-import { sessionMoves, currentMoveIndex, roundInfo, stationInfo } from './format';
+import { sessionMoves, currentMoveIndex, circuitMoves, roundInfo, stationInfo, timeLeft, formatClock } from './format';
 import { catColor } from './categoryColor';
 import { phrases } from '../coach/phrases';
 import { Icon } from './Icon';
@@ -13,7 +14,9 @@ interface Props {
 }
 
 export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd, musicOn, onToggleMusic, musicAvailable }: Props) {
+  const listLabel = useId();
   const seg = state.segment;
+  const isIntro = seg?.kind === 'intro'; // the overview before the clock starts
   const isRoundRest = seg?.kind === 'roundrest';
   const isRest = seg?.kind === 'rest' || isRoundRest; // both get the calm background
   const isPrepare = seg?.kind === 'prepare';
@@ -28,13 +31,14 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
   const si = stations ? stationInfo(workout, state.segmentIndex) : null;
   const isCore = seg?.block === 'core';
 
-  const title = isRoundRest ? `Round ${ri.round} complete`
+  const title = isIntro ? "Today's workout"
+    : isRoundRest ? `Round ${ri.round} complete`
     : seg?.kind === 'rest' ? 'Rest'
     : isSwitch ? 'Switch sides'
     : isCelebrate ? 'Well done!'
     : (seg?.exercise?.name ?? 'Get ready');
 
-  const phaseLabel = isCelebrate ? ''
+  const phaseLabel = isCelebrate || isIntro ? ''
     : isCore ? 'Core finisher'
     : stations ? (si!.station > 0 ? `Set ${si!.set} of ${si!.totalSets}` : 'Warm-up')
     : isRoundRest ? `Round ${ri.round} of ${ri.totalRounds}`
@@ -47,7 +51,8 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
     : (ri.round > 0 ? `Round ${ri.round} of ${ri.totalRounds}` : '');
   const showRoundChip = !!chipLabel && !isRoundRest && !isCelebrate;
   const cc = seg?.exercise ? catColor(seg.exercise.category) : catColor('warmup');
-  const subtitle = isSwitch ? `${seg?.exercise?.name ?? ''} · right side next`
+  const subtitle = isIntro ? undefined
+    : isSwitch ? `${seg?.exercise?.name ?? ''} · right side next`
     : seg?.side && move ? `${move.target} · ${seg.side} side`
     : move?.target;
 
@@ -55,9 +60,10 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
     <main className="screen screen-active" data-tone={isRest ? 'rest' : undefined}>
       <p className="sr-only" aria-live="assertive">{isRoundRest ? `Round ${ri.round} of ${ri.totalRounds} complete. Rest.` : `Now: ${title}`}</p>
 
-      <div className="row" style={{ marginBottom: 22 }}>
-        <div className="progress"><div className="progress-fill" style={{ transform: `scaleX(${moves.length > 0 ? (mi + 1) / moves.length : 0})` }} /></div>
-        {phaseLabel && <div className="muted" style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, whiteSpace: 'nowrap' }}>{phaseLabel}</div>}
+      <div className="row active-top">
+        <div className="progress"><div className="progress-fill" style={{ transform: `scaleX(${moves.length > 0 && !isIntro ? (mi + 1) / moves.length : 0})` }} /></div>
+        {phaseLabel && <div className="muted active-phase">{phaseLabel}</div>}
+        <div className="muted active-clock"><Icon name="clock" size={16} />{formatClock(timeLeft(workout, state.segmentIndex, state.segmentRemainingSec))} left</div>
         {musicAvailable && onToggleMusic && (
           <button onClick={onToggleMusic} aria-label={musicOn ? 'Mute background beats' : 'Play background beats'} aria-pressed={musicOn} className="icon-toggle">
             <Icon name={musicOn ? 'music' : 'music-off'} size={18} />
@@ -65,48 +71,59 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
         )}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 7, marginBottom: 7, minHeight: 24 }}>
+      <div className="active-chips">
         {showRoundChip && <span className="pill">{chipLabel}</span>}
         {!isRest && !isCelebrate && seg?.exercise && <span className="pill">{cc.label}</span>}
       </div>
-      <div className="t-display" style={{ textAlign: 'center', marginBottom: 7 }}>{title}</div>
+      <div className="t-display active-title">{title}</div>
       {!isRest && !isCelebrate && subtitle && (
-        <div className="muted" style={{ textAlign: 'center', fontSize: 17, marginBottom: 16 }}>{subtitle}</div>
+        <div className="muted active-subtitle">{subtitle}</div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'center', margin: '6px 0 18px' }}>
-        <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} tone={isRest || isSwitch ? 'rest' : 'work'} />
+      <div className="active-timer">
+        <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} tone={isRest || isSwitch || isIntro ? 'rest' : 'work'} label={isIntro ? 'starting in' : undefined} />
       </div>
 
       {!isRest && !isCelebrate && seg?.exercise && (
-        <div className="cue" style={{ marginBottom: 14 }}>{phrases.form(seg.exercise)}</div>
+        <div className="cue active-cue">{phrases.form(seg.exercise)}</div>
+      )}
+
+      {isIntro && (
+        <div className="card intro-card">
+          <div className="eyebrow" id={listLabel}>{workout.rounds} {stations ? 'sets each' : 'rounds'} of</div>
+          <ol className="intro-list" aria-labelledby={listLabel}>
+            {circuitMoves(workout).map((m) => <li key={m.exercise.id} className="pill">{m.exercise.name}</li>)}
+          </ol>
+        </div>
       )}
 
       {!isCelebrate && !isSwitch && (() => {
         // On the left side of a one-sided move, what comes next is its right side.
         const rightSideNext = seg?.kind === 'work' && seg.side === 'left' && move;
-        const up = rightSideNext
+        // During the intro, what's next is the very first move.
+        const up = isIntro && move ? { name: move.exercise.name, label: catColor(move.category).label, target: move.target }
+          : rightSideNext
           ? { name: 'Right side', label: cc.label, target: move.target }
           : next && { name: next.exercise.name, label: catColor(next.category).label, target: next.target };
         if (!up) return null;
         return (
-          <div className="card row" style={{ gap: 11, padding: '11px 13px', marginBottom: 18 }}>
+          <div className="card row next-card">
             <span className="icon-badge"><Icon name="player-track-next" /></span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="eyebrow" style={{ fontSize: 'var(--fs-2xs)' }}>Next up</div>
+            <div className="row-main">
+              <div className="eyebrow next-eyebrow">{isIntro ? 'First up' : 'Next up'}</div>
               <div className="t-panel">{up.name}</div>
             </div>
-            <div className="muted" style={{ fontSize: 'var(--fs-xs)', textAlign: 'right' }}><span style={{ color: 'var(--text)', fontWeight: 800 }}>{up.label}</span><br />{up.target}</div>
+            <div className="muted next-meta"><span className="next-meta-label">{up.label}</span><br />{up.target}</div>
           </div>
         );
       })()}
 
-      <div style={{ display: 'flex', gap: 9, marginTop: 'auto' }}>
+      <div className="active-controls">
         {state.status === 'paused'
-          ? <button className="btn btn-primary" style={{ flex: 1 }} onClick={onResume}><Icon name="player-play" />Resume</button>
-          : <button className="btn btn-dark" style={{ flex: 1 }} onClick={onPause}><Icon name="player-pause" />Pause</button>}
-        <button className="btn btn-soft" style={{ flex: 1 }} onClick={onSkip}><Icon name="player-skip-forward" />Skip</button>
-        <button className="btn btn-ghost" onClick={onEnd} aria-label="End workout" style={{ minWidth: 56 }}><Icon name="x" size={20} /></button>
+          ? <button className="btn btn-primary" onClick={onResume}><Icon name="player-play" />Resume</button>
+          : <button className="btn btn-dark" onClick={onPause}><Icon name="player-pause" />Pause</button>}
+        <button className="btn btn-soft" onClick={onSkip}><Icon name="player-skip-forward" />Skip</button>
+        <button className="btn btn-ghost active-end" onClick={onEnd} aria-label="End workout"><Icon name="x" size={20} /></button>
       </div>
     </main>
   );

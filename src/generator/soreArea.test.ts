@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { trainingSec } from '../domain/workout';
 import { generateWorkout } from './generateWorkout';
 import { AVOID_FOR_SORE, slotsForSore, SLOTS } from './selectExercises';
 import type { Equipment, SoreArea, Workout } from '../domain/types';
@@ -9,7 +10,6 @@ const TUE = new Date('2026-06-23T08:00:00');
 
 const circuitCats = (w: Workout) =>
   w.segments.filter((s) => s.kind === 'prepare' && s.exercise && s.round === 1).map((s) => s.exercise!.category);
-const total = (w: Workout) => w.segments.reduce((a, s) => a + s.durationSec, 0);
 
 describe('slotsForSore', () => {
   it('keeps the base when nothing is sore', () => {
@@ -49,7 +49,7 @@ describe('generateWorkout — sore area', () => {
         for (const sore of ['none', 'shoulders', 'back', 'legs'] as SoreArea[]) {
           for (const date of [WED, TUE]) {
             for (let seed = 0; seed <= 40; seed++) {
-              const got = total(generateWorkout({ kind, date, equipment: ALL, seed, style, sore }));
+              const got = trainingSec(generateWorkout({ kind, date, equipment: ALL, seed, style, sore }));
               expect(Math.abs(got - T[kind]), `${kind}/${style}/${sore}/seed${seed} → ${got}`).toBeLessThanOrEqual(45);
             }
           }

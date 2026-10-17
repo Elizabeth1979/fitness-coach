@@ -10,7 +10,7 @@ export function VoicePicker({ voices, value, onChange }: Props) {
     (a, b) => Number(b.lang.startsWith('en')) - Number(a.lang.startsWith('en')),
   );
   return (
-    <label className="row muted" style={{ gap: 8, fontSize: 'var(--fs-xs)' }}>
+    <label className="row muted voice-picker">
       Coach voice
       <select
         aria-label="Coach voice"
