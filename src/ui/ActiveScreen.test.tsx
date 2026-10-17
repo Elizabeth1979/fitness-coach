@@ -1,9 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { ActiveScreen } from './ActiveScreen';
 import { generateWorkout } from '../generator/generateWorkout';
 import type { SessionState } from '../engine/session';
 import { EXERCISES } from '../domain/exercises';
+import { trainingSec } from '../domain/workout';
+import { formatClock, timeLeft } from './format';
 
 const w = generateWorkout({ kind: '10min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'], seed: 4 });
 const firstCircuit = w.segments.findIndex((s) => s.kind === 'work' && s.round === 1);
@@ -51,5 +53,24 @@ describe('ActiveScreen', () => {
     render(<ActiveScreen state={state} workout={one} onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
     expect(screen.getByText('Right side')).toBeInTheDocument();
     expect(screen.queryByText(nextExercise)).not.toBeInTheDocument();
+  });
+
+  it('during the intro: lists the moves, counts in to the first one, and holds the workout clock', () => {
+    const intro: SessionState = { status: 'running', segmentIndex: 0, segment: w.segments[0], segmentRemainingSec: 12 };
+    render(<ActiveScreen state={intro} workout={w} onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
+    expect(screen.getByText("Today's workout")).toBeInTheDocument();
+    const list = screen.getByRole('list', { name: /rounds of/ });
+    for (const s of w.segments.filter((x) => x.kind === 'prepare' && x.round === 1)) {
+      expect(within(list).getByText(s.exercise!.name)).toBeInTheDocument();
+    }
+    expect(screen.getByText('First up')).toBeInTheDocument();
+    expect(screen.getByText(w.segments[1].exercise!.name)).toBeInTheDocument();
+    expect(screen.getByText('starting in')).toBeInTheDocument();
+    expect(screen.getByText(`${formatClock(trainingSec(w))} left`)).toBeInTheDocument();
+  });
+
+  it('shows the time left in the whole workout', () => {
+    render(<ActiveScreen state={state} workout={w} onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
+    expect(screen.getByText(`${formatClock(timeLeft(w, firstCircuit, 20))} left`)).toBeInTheDocument();
   });
 });

@@ -3,6 +3,7 @@ import { candidatesFor, maxOneSided } from './selectExercises';
 import { pick } from './rng';
 import { phrases } from '../coach/phrases';
 import { MIN_WORK_SEC } from './generateWorkout';
+import { withIntro } from './intro';
 import { SWITCH_SEC, annotateChangeovers, switchSegment, workCues } from './changeover';
 
 // The circuit repeats every round, so a slot's exercise appears once per round
@@ -13,7 +14,7 @@ import { SWITCH_SEC, annotateChangeovers, switchSegment, workCues } from './chan
 //   one-sided → two-sided: left · switch · right merge into one bout (same total time)
 //   two-sided → one-sided: one bout splits into left · switch · right
 // Same sidedness keeps every duration and cue. Afterwards the rests are
-// re-announced, so "Next up: …" names the new move.
+// re-announced, so "Next up: …" names the new move, and so is the intro.
 export function swapMove(workout: Workout, prepareIndex: number, equipment: Equipment[], rng: () => number): Workout {
   const current = workout.segments[prepareIndex]?.exercise;
   const pool = swapChoices(workout, prepareIndex, equipment);
@@ -36,7 +37,9 @@ export function swapMove(workout: Workout, prepareIndex: number, equipment: Equi
     i = j;
   }
 
-  return { ...workout, segments: annotateChangeovers(out, workout.rounds) };
+  const swapped = { ...workout, segments: annotateChangeovers(out, workout.rounds) };
+  // Same segment count as before (the UI holds indices), so only refresh an intro that's there.
+  return workout.segments[0]?.kind === 'intro' ? withIntro(swapped) : swapped;
 }
 
 /** Whether the move at `prepareIndex` has anything to swap to — so the UI can hide "Swap" when it would do nothing. */

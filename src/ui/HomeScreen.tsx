@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Equipment, SoreArea, Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
 import { ALL_EQUIPMENT } from '../domain/exercises';
+import { trainingSec } from '../domain/workout';
 import { getPrefs, setPrefs } from '../storage/store';
 import { useVoices } from './useVoices';
 import { VoicePicker } from './VoicePicker';
@@ -37,7 +38,7 @@ const EQUIPMENT_CHOICES: { label: string; equipment: Equipment[] }[] = [
   { label: 'Bodyweight only', equipment: ['bodyweight'] },
 ];
 const isBodyweightOnly = (e: readonly Equipment[]) => e.length === 1 && e[0] === 'bodyweight';
-const total = (w: Workout) => Math.round(w.segments.reduce((s, x) => s + x.durationSec, 0) / 60);
+const total = (w: Workout) => Math.round(trainingSec(w) / 60);
 
 // Home is one screen with one job: show today's workout and a big Start.
 // Every option lives behind a single "Change workout" sheet.

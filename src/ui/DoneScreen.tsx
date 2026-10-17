@@ -5,6 +5,7 @@ import { WeekView } from './WeekView';
 import { catColor } from './categoryColor';
 import { Icon } from './Icon';
 import { localDate } from '../domain/date';
+import { trainingSec } from '../domain/workout';
 
 // A fixed confetti burst (no RNG — keeps things deterministic & calm). Its colours
 // come from index.css (--confetti-*): the "done" greens plus near-black, no rainbow.
@@ -28,7 +29,7 @@ export function DoneScreen({ categories, streak, workout, onHome }: Props) {
     }
     return out;
   }, [categories]);
-  const mins = workout ? Math.round(workout.segments.reduce((a, s) => a + s.durationSec, 0) / 60) : 0;
+  const mins = workout ? Math.round(trainingSec(workout) / 60) : 0;
   const dates = useMemo(() => loadStore().completions.map((c) => c.date), []);
   const [today] = useState(() => localDate(new Date())); // read the clock once, not on every render
   return (

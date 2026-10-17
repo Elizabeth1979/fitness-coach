@@ -231,6 +231,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 /* Workout */
 .active-top      { margin-bottom: 22px; }
 .active-phase    { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; }
+.active-clock    { display: flex; align-items: center; gap: 4px; font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .active-chips    { display: flex; justify-content: center; align-items: center; gap: 7px; margin-bottom: 7px; min-height: 24px; }
 .active-title    { text-align: center; margin-bottom: 7px; }
 .active-subtitle { text-align: center; font-size: 17px; margin-bottom: 16px; }
@@ -239,6 +240,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .active-controls { display: flex; gap: 9px; margin-top: auto; }
 .active-controls > .btn { flex: 1; }
 .active-controls > .active-end { flex: 0 1 auto; min-width: 56px; }
+.intro-card      { margin-bottom: 14px; }
+.intro-list      { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
 .next-card       { gap: 11px; padding: 11px 13px; margin-bottom: 18px; }
 .next-eyebrow    { font-size: var(--fs-2xs); }
 .next-meta       { font-size: var(--fs-xs); text-align: right; }

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { trainingSec } from '../domain/workout';
 import { generateWorkout } from './generateWorkout';
-import type { Equipment, Segment, Workout } from '../domain/types';
+import type { Equipment, Workout } from '../domain/types';
 import { EXERCISES } from '../domain/exercises';
 import { SLOTS_SHORT } from './selectExercises';
 import { phrases } from '../coach/phrases';
@@ -9,9 +10,6 @@ const ALL: Equipment[] = ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands']
 const WED = new Date('2026-06-24T08:00:00'); // movement day
 const TUE = new Date('2026-06-23T08:00:00'); // strength day
 
-function total(segs: Segment[]): number {
-  return segs.reduce((s, seg) => s + seg.durationSec, 0);
-}
 
 // The ordered exercise ids of each round's circuit, taken from the round-tagged prepares.
 function circuitByRound(w: Workout): string[][] {
@@ -43,7 +41,7 @@ describe('generateWorkout', () => {
           for (let seed = 0; seed <= 40; seed++) {
             const w = generateWorkout({ kind, date, equipment: ['bodyweight'], seed, style });
             const label = `${kind} ${style} ${date.toISOString()} seed ${seed}`;
-            expect(Math.abs(total(w.segments) - target), label).toBeLessThanOrEqual(45);
+            expect(Math.abs(trainingSec(w) - target), label).toBeLessThanOrEqual(45);
             for (const seg of w.segments) {
               if (seg.exercise) expect(seg.exercise.equipment, `${label}: ${seg.exercise.id}`).toEqual(['bodyweight']);
             }
@@ -60,7 +58,7 @@ describe('generateWorkout', () => {
       for (const date of [WED, TUE]) {
         for (let seed = 0; seed <= maxSeed; seed++) {
           const w = generateWorkout({ kind, date, equipment: ALL, seed });
-          const got = total(w.segments);
+          const got = trainingSec(w);
           expect(Math.abs(got - target), `${kind} ${date.toISOString()} seed ${seed} → ${got}s`).toBeLessThanOrEqual(45);
         }
       }
@@ -119,18 +117,17 @@ describe('generateWorkout', () => {
     }
   });
 
-  it('starts with a themed warm-up flow announced by the coach', () => {
+  it('starts with a themed warm-up flow right after the intro', () => {
     const w = generateWorkout({ kind: '10min', date: WED, equipment: ALL, seed: 4 });
     expect(w.warmupThemeId).toBeTruthy();
-    const first = w.segments[0];
+    const first = w.segments[1];
     expect(first.kind).toBe('work');
     expect(first.exercise?.category).toBe('warmup');
-    expect(first.cues[0].say?.toLowerCase()).toContain("today's warm-up:");
   });
 
-  it('says how to do each warm-up move as it starts', () => {
+  it('says how to do each warm-up move as it starts (the intro already did for the first)', () => {
     const w = generateWorkout({ kind: '20min', date: WED, equipment: ALL, seed: 4 });
-    for (const s of w.segments.filter((x) => x.exercise?.category === 'warmup')) {
+    for (const s of w.segments.filter((x) => x.exercise?.category === 'warmup').slice(1)) {
       expect(s.cues[0].say).toContain(phrases.howTo(s.exercise!));
     }
   });

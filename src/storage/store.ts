@@ -37,7 +37,7 @@ const KEY = 'mwe.store.v1';
 const STYLES: readonly WorkoutStyle[] = ['circuit', 'stations'];
 const SORE_AREAS: readonly SoreArea[] = ['none', 'shoulders', 'back', 'legs'];
 const WORKOUT_KINDS: readonly WorkoutKind[] = ['10min', '20min', '30min', 'free'];
-const SEGMENT_KINDS: readonly SegmentKind[] = ['prepare', 'work', 'switch', 'rest', 'roundrest', 'celebrate'];
+const SEGMENT_KINDS: readonly SegmentKind[] = ['intro', 'prepare', 'work', 'switch', 'rest', 'roundrest', 'celebrate'];
 
 // --- Reading saved data -------------------------------------------------------
 // Whatever is in localStorage may be corrupt, hand-edited, or written by an older

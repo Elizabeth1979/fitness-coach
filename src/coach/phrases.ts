@@ -1,4 +1,4 @@
-import type { Category, Exercise, Focus } from '../domain/types';
+import type { Category, Exercise, Focus, WorkoutStyle } from '../domain/types';
 // The coach's encouragement lines live in their own JSON file so they're easy to
 // add to or edit (keep each one short — it's said mid-exercise).
 import ENCOURAGEMENT_LINES from './encouragements.json';
@@ -36,8 +36,17 @@ const CATEGORY_LABEL: Partial<Record<Category, string>> = {
 };
 
 export const phrases = {
-  welcome: (focus: Focus): string =>
-    `Welcome back, Elli. Today's focus is ${FOCUS_LABEL[focus]}. Let's begin.`,
+  /** The intro, before the clock starts: what's waiting today. */
+  introOverview: (p: { minutes: number; focus: Focus; warmup?: string; moves: string[]; rounds: number; style: WorkoutStyle; core: boolean }): string => {
+    const list = p.moves.length > 1 ? `${p.moves.slice(0, -1).join(', ')} and ${p.moves[p.moves.length - 1]}` : (p.moves[0] ?? '');
+    const main = p.style === 'stations' ? `${p.rounds} sets each of ${list}` : `${p.rounds} rounds of ${list}`;
+    return [
+      `Welcome back, Elli. Today is ${p.minutes} minutes of ${FOCUS_LABEL[p.focus]}.`,
+      p.warmup ? `Warm-up: ${p.warmup}. Then ${main}.` : `${main[0].toUpperCase()}${main.slice(1)}.`,
+      p.core ? 'We finish with core.' : '',
+    ].filter(Boolean).join(' ');
+  },
+  firstUp: (ex: Pick<Exercise, 'name' | 'cue'>): string => `First up: ${phrases.howTo(ex)}`,
   exercise: (name: string): string => `${name}.`,
   form,
   // Name + how to do it.
@@ -47,7 +56,6 @@ export const phrases = {
   nextUp: (ex: Pick<Exercise, 'name' | 'cue'>): string => `Next up: ${phrases.howTo(ex)}`,
   getReady: (): string => 'Get ready.',
   switchSides: (): string => 'Switch sides.',
-  warmupAnnounce: (flowName: string): string => `Today's warm-up: ${flowName}.`,
   coreFinisher: (): string => 'Last bit — core finisher.',
   count: (n: number): string => NUMBER_WORDS[n] ?? String(n),
   encouragements: ENCOURAGEMENTS,

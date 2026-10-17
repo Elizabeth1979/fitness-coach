@@ -1,4 +1,5 @@
 import type { Category, Exercise, Segment, Workout } from '../domain/types';
+import { trainingSec } from '../domain/workout';
 
 export function formatTarget(seg: Segment): string {
   const ex = seg.exercise;
@@ -13,6 +14,17 @@ export function formatTarget(seg: Segment): string {
     return `${Number.isInteger(mins) ? mins : Math.round(mins)} minutes`;
   }
   return `${s} seconds`;
+}
+
+/** Seconds as m:ss. */
+export function formatClock(sec: number): string {
+  return `${Math.floor(sec / 60)}:${Math.floor(sec % 60).toString().padStart(2, '0')}`;
+}
+
+/** Seconds left in the whole workout. Holds at the full length during the intro: the clock starts when it ends. */
+export function timeLeft(workout: Workout, segmentIndex: number, segmentRemainingSec: number): number {
+  if (workout.segments[segmentIndex]?.kind === 'intro') return trainingSec(workout);
+  return workout.segments.slice(segmentIndex + 1).reduce((a, s) => a + s.durationSec, segmentRemainingSec);
 }
 
 export interface SessionMove {
