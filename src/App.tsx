@@ -16,6 +16,7 @@ import { setBusy } from './pwa/update';
 import { useBackButton } from './ui/useBackButton';
 import { localDate, localDayNumber } from './domain/date';
 import { nextLevel, type Feel } from './generator/effort';
+import { sendPendingIdeas } from './ideas/send';
 
 const today = (): string => localDate(new Date());
 
@@ -76,6 +77,14 @@ export default function App() {
     if (phase === 'active') pause();
     goHome();
   });
+
+  // Ideas jotted down offline go as soon as the app is open and online.
+  useEffect(() => {
+    const send = () => { void sendPendingIdeas(); };
+    send();
+    window.addEventListener('online', send);
+    return () => window.removeEventListener('online', send);
+  }, []);
 
   // A new app version can only reload the page while you're on the home screen.
   useEffect(() => { setBusy(phase !== 'home'); }, [phase]);

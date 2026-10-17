@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import vercel from '../vercel.json';
 
 // Guards the security headers Vercel sends with every response (vercel.json).
-// The app loads nothing from other origins, so the policy can stay strict.
+// The app loads nothing from other origins, so the policy can stay strict. The one
+// outside address it talks to is its ideas database (src/ideas/send.ts).
 
 const allRoutes = vercel.headers.find((h) => h.source === '/(.*)');
 const header = (name: string): string | undefined =>
@@ -31,6 +32,10 @@ describe('security headers (vercel.json)', () => {
       expect(csp.get('base-uri')).toEqual(["'none'"]);
       expect(csp.get('form-action')).toEqual(["'none'"]);
       expect(csp.get('frame-ancestors')).toEqual(["'none'"]);
+    });
+
+    it('only talks to this origin and the ideas database', () => {
+      expect(csp.get('connect-src')).toEqual(["'self'", 'https://idaningbbhqjerlfsmuz.supabase.co']);
     });
 
     it('blocks plugins', () => {

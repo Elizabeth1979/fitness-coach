@@ -11,8 +11,9 @@ The 2026-10-17 PRs (details in [`sessions/2026-10-17.md`](sessions/2026-10-17.md
 - #29 tidy-up + offline check
 - #30 README / CLAUDE.md learnings
 
-**Start of next session: ask Elli to open "Your ideas" (💡 / "Note an idea for the app") and tap Share** —
-she pastes the list here and that's the to-do. (Basic ideas notepad shipped 2026-10-17, on the phone only.)
+**Start of next session: read Elli's ideas from Supabase** (project `move-with-elli`, table `ideas` —
+query in CLAUDE.md "Elli's ideas"). Her ideas from her first workout upload by themselves the first
+time she opens the new version. If the table is empty, ask her to open the app once (online).
 
 **Next: no new features until Elli has done 3–4 real workouts on her phone.** Then work from her notes.
 Ask her: is the intro the right length (~25s)?
@@ -48,7 +49,10 @@ forward + clear their cache; new versions now arrive on their own when she retur
 - [x] **Sheet accessibility** — `src/ui/Sheet.tsx`: focus in, Tab trapped, Escape, focus back.
 
 ### Later — "Suggest a feature" for everyone (Elli's idea, 2026-10-17; parked)
-**Done:** the basic version — a notepad on the phone (`src/ui/IdeasSheet.tsx`, `ideas` in the store) with Share/Copy.
+**Done:** ideas are sent to a private Supabase table Claude reads (`src/ideas/send.ts`, `src/ui/IdeasSheet.tsx`).
+- [ ] **Later (Elli, 2026-10-17): move the ideas to GitHub issues** — so "@claude build this" works on them
+  directly. Needs Elli to make a fine-grained GitHub token (Issues: read/write, fitness-coach only) and put
+  it in Vercel as `GITHUB_TOKEN`; then a Vercel function creates the issues. Issues are public (public repo).
 **Still later:** other users should be able to ask for features too, landing somewhere Elli sees them.
 What was settled while brainstorming:
 - **Upvote, don't duplicate (Elli's requirement):** if someone asks for something already

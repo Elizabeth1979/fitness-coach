@@ -1,49 +1,37 @@
-import { useId, useState, type FormEvent } from 'react';
-import { addIdea, getIdeas, ideasText, removeIdea, type Idea } from '../storage/store';
+import { useEffect, useId, useState, type FormEvent } from 'react';
+import { addIdea, getIdeas, removeIdea, type Idea } from '../storage/store';
+import { sendPendingIdeas } from '../ideas/send';
 import { localDate } from '../domain/date';
 import { Icon } from './Icon';
 import { Sheet } from './Sheet';
 
-const TITLE = 'Ideas for Move With Elli';
-
 /**
- * Jot down an idea for the app — mid-workout, on Home or after a workout. Ideas stay
- * on this phone; Share (or Copy, where the phone has no share menu) hands the list on,
- * e.g. into a chat with Claude when planning the next update.
+ * Jot down an idea for the app — mid-workout, on Home or after a workout. It's sent
+ * straight to Claude's ideas list (ideas/send.ts); offline, it waits on the phone
+ * and goes the next time the app is online.
  */
 export function IdeasSheet({ onClose }: { onClose: () => void }) {
   const boxId = useId();
   const [ideas, setIdeas] = useState<Idea[]>(getIdeas);
   const [text, setText] = useState('');
   const [note, setNote] = useState('');
-  const [manual, setManual] = useState<string | null>(null); // copy was blocked: show the text to copy by hand
-  const canShare = typeof navigator.share === 'function';
 
-  function save(e: FormEvent) {
+  // Anything still waiting (saved offline, or before ideas were sent) goes now.
+  useEffect(() => {
+    let open = true;
+    void sendPendingIdeas().then(() => { if (open) setIdeas(getIdeas()); });
+    return () => { open = false; };
+  }, []);
+
+  async function save(e: FormEvent) {
     e.preventDefault();
     if (!text.trim()) return;
     setIdeas(addIdea(text, localDate(new Date())));
-    setManual(null); // the hand-copy text would be out of date
     setText('');
-    setNote('Saved.');
-  }
-
-  async function share() {
-    const all = ideasText(ideas);
-    if (canShare) {
-      try { await navigator.share({ title: TITLE, text: all }); return; }
-      catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') return; // closed the share menu
-        // Share failed for another reason: fall back to copying.
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(all);
-      setNote('Copied — paste them into your chat with Claude.');
-    } catch {
-      setManual(all);
-      setNote("Couldn't copy automatically — select the text below and copy it.");
-    }
+    setNote('Sending…');
+    const waiting = await sendPendingIdeas();
+    setIdeas(getIdeas());
+    setNote(waiting > 0 ? "Saved. It'll send by itself when you're back online." : 'Sent — thank you!');
   }
 
   return (
@@ -59,35 +47,31 @@ export function IdeasSheet({ onClose }: { onClose: () => void }) {
         <label className="eyebrow" htmlFor={boxId}>What would make the app better?</label>
         <textarea id={boxId} data-autofocus className="textarea" rows={3} maxLength={1000}
           value={text} onChange={(e) => setText(e.target.value)} />
-        <button type="submit" className="btn btn-primary btn-block idea-save" disabled={!text.trim()}>Save idea</button>
+        <button type="submit" className="btn btn-primary btn-block idea-save" disabled={!text.trim()}>Send idea</button>
         <p className="hint field-note" role="status">{note}</p>
       </form>
 
       {ideas.length > 0 && (
-        <>
-          <ul className="idea-list" aria-label="Saved ideas">
-            {ideas.map((idea, i) => ({ idea, i })).reverse().map(({ idea, i }) => (
-              <li key={`${i}-${idea.date}-${idea.text}`} className="idea-row">
-                <div className="row-main">
-                  <div className="idea-text">{idea.text}</div>
-                  <div className="hint">{idea.date}</div>
-                </div>
-                <button className="btn btn-soft btn-close" onClick={() => { setIdeas(removeIdea(i)); setManual(null); }} aria-label={`Delete idea: ${idea.text}`}>
-                  <Icon name="trash" size={18} />
-                </button>
-              </li>
-            ))}
-          </ul>
-          <button className="btn btn-soft btn-block" onClick={share}>
-            <Icon name={canShare ? 'share' : 'copy'} />{canShare ? 'Share ideas' : 'Copy ideas'}
-          </button>
-          {manual !== null && (
-            <textarea className="textarea idea-manual" readOnly rows={5} value={manual} aria-label="Your ideas as text"
-              onFocus={(e) => e.currentTarget.select()} />
-          )}
-        </>
+        <ul className="idea-list" aria-label="Your ideas so far">
+          {ideas.map((idea, i) => ({ idea, i })).reverse().map(({ idea, i }) => (
+            <li key={idea.id ?? `${i}-${idea.text}`} className="idea-row">
+              <div className="row-main">
+                <div className="idea-text">{idea.text}</div>
+                <div className="hint">{idea.date} · {idea.sent ? 'Sent' : 'Waiting to send'}</div>
+              </div>
+              {idea.sent
+                ? <Icon name="check" size={20} className="icon-brand" />
+                : (
+                  // Only an idea that hasn't gone yet can be taken back.
+                  <button className="btn btn-soft btn-close" onClick={() => setIdeas(removeIdea(i))} aria-label={`Delete idea: ${idea.text}`}>
+                    <Icon name="trash" size={18} />
+                  </button>
+                )}
+            </li>
+          ))}
+        </ul>
       )}
-      <p className="hint field-note">Kept on this phone only. Share them with Claude when you plan the next update.</p>
+      <p className="hint field-note">Ideas go straight to Claude, privately, for the next update.</p>
     </Sheet>
   );
 }

@@ -94,7 +94,8 @@ shows the capability checklist.
 `coach` (SpeechSynthesis adapter) · `feedback/` vibrate + Web-Audio earcon fallback · `storage/`
 `store` (localStorage repo), `streak`, `week` (pure) · `generator/swapMove` (swap one move) · `ui/`
 hook + warm card-based screens + `VoicePicker`/`MoveDetail`/`TimerRing`/`WeekView` + `format`
-(pure: `formatTarget`/`sessionMoves`) · `pwa/` wakeLock + update. The design system (tokens +
+(pure: `formatTarget`/`sessionMoves`) · `pwa/` wakeLock + update · `ideas/send` (sends "Your ideas"
+to Supabase; see below). The design system (tokens +
 reusable classes `.card`/`.btn`/`.pill`/…, plus per-screen classes `home-*`/`detail-*`/`active-*`/`done-*`/
 `week-*` and helpers like `.btn-block`/`.row-main`/`.choices`) lives in `src/index.css`; components hold
 **no inline styles** except values computed at runtime (progress bar, confetti positions) — guarded by
@@ -201,6 +202,17 @@ its map; never re-add the 5,000-icon webfont).
 - **Themed warm-ups:** `warmupFlows.ts` `pickWarmupFlow` is the "Mobility Lottery" — avoids recently
   used themes (persisted via `pushRecentTheme`), prefers a flow that preps the day's work, weights
   "fun" flows up. The generator renders the chosen flow right after the intro (segment 1).
+
+## Elli's ideas (Supabase)
+
+The 💡 / "Note an idea" sheet sends ideas to the Supabase project **move-with-elli**
+(`idaningbbhqjerlfsmuz`, org `rirktxpvdgwkigmqevzd`), table `public.ideas`
+(`body`, `noted_on`, `status`: new/planned/done/declined). **Read them at the start of a session**
+with the Supabase MCP: `select id, body, noted_on, status from public.ideas order by id;` — mark
+handled ones `planned`/`done`. The app uses the *publishable* key (fine in code) and may only
+INSERT those three columns (column grant + RLS insert policy); it can't read anything back, so a
+re-send is made harmless by the phone-made `client_id` (unique; a 23505 counts as sent). The CSP
+`connect-src` in `vercel.json` allows exactly that one Supabase origin — keep the test in step.
 
 ## Workflow
 

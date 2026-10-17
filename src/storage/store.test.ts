@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { generateWorkout } from '../generator/generateWorkout';
-import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore, saveCheckpoint, getCheckpoint, clearCheckpoint, getRecentThemes, pushRecentTheme, suggestedSore, getIdeas, addIdea, removeIdea, ideasText } from './store';
+import { recordCompletion, getPrefs, setPrefs, currentStreak, loadStore, saveCheckpoint, getCheckpoint, clearCheckpoint, getRecentThemes, pushRecentTheme, suggestedSore, getIdeas, addIdea, removeIdea } from './store';
 
 const makeMemStorage = (): Storage => {
   const store: Record<string, string> = {};
@@ -88,10 +88,11 @@ describe('store — ideas for the app', () => {
     addIdea('  A 45-minute option  ', '2026-10-17');
     addIdea('   ', '2026-10-17');
     addIdea('Music I can pick', '2026-10-18');
-    expect(getIdeas()).toEqual([
+    expect(getIdeas()).toMatchObject([
       { text: 'A 45-minute option', date: '2026-10-17' },
       { text: 'Music I can pick', date: '2026-10-18' },
     ]);
+    expect(new Set(getIdeas().map((i) => i.id)).size).toBe(2); // each gets its own id
   });
 
   it('removes one idea and keeps the rest', () => {
@@ -104,17 +105,13 @@ describe('store — ideas for the app', () => {
     addIdea('one', TODAY);
     recordCompletion(completion);
     setPrefs({ equipment: ['bodyweight'] });
-    expect(getIdeas()).toEqual([{ text: 'one', date: TODAY }]);
+    expect(getIdeas()).toMatchObject([{ text: 'one', date: TODAY }]);
   });
 
   it('drops broken saved ideas', () => {
-    saveRaw({ ideas: [{ text: 'ok', date: TODAY }, { text: 5, date: TODAY }, 'loose', { text: 'no date' }] });
+    saveRaw({ ideas: [{ text: 'ok', date: TODAY }, { text: 5, date: TODAY }, 'loose', { text: 'no date' },
+      { text: 'bad id', date: TODAY, id: 3 }, { text: 'bad sent', date: TODAY, sent: 'yes' }] });
     expect(getIdeas()).toEqual([{ text: 'ok', date: TODAY }]);
-  });
-
-  it('turns the list into text to paste into a chat', () => {
-    expect(ideasText([{ text: 'A 45-minute option', date: '2026-10-17' }, { text: 'Two lines\nhere', date: '2026-10-18' }]))
-      .toBe('Ideas for Move With Elli:\n- A 45-minute option (2026-10-17)\n- Two lines here (2026-10-18)');
   });
 });
 

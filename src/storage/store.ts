@@ -27,10 +27,12 @@ export interface Checkpoint {
   date: string;        // YYYY-MM-DD it was saved: only a same-day workout is offered for resume
 }
 
-/** An idea for the app, jotted down on the phone (kept here only — Share sends it on). */
+/** An idea for the app. Kept here until it's sent (ideas/send.ts), and afterwards as a list. */
 export interface Idea {
+  id?: string;         // made on the phone, so sending twice can't make two copies (older saves have none yet)
   text: string;
   date: string;        // YYYY-MM-DD
+  sent?: boolean;
 }
 
 export interface Store {
@@ -68,7 +70,8 @@ function isCompletion(v: unknown): v is Completion {
     && (v.sore === undefined || isOneOf(SORE_AREAS, v.sore));
 }
 
-const isIdea = (v: unknown): v is Idea => isRecord(v) && isString(v.text) && isDate(v.date);
+const isIdea = (v: unknown): v is Idea => isRecord(v) && isString(v.text) && isDate(v.date)
+  && (v.id === undefined || isString(v.id)) && (v.sent === undefined || typeof v.sent === 'boolean');
 
 function readPrefs(v: unknown): Prefs {
   const p = isRecord(v) ? v : {};
@@ -201,7 +204,7 @@ export function addIdea(text: string, date: string): Idea[] {
   const s = loadStore();
   const ideas = s.ideas ?? [];
   const trimmed = text.trim();
-  if (trimmed) ideas.push({ text: trimmed, date });
+  if (trimmed) ideas.push({ id: crypto.randomUUID(), text: trimmed, date });
   s.ideas = ideas;
   saveStore(s);
   return ideas;
@@ -216,8 +219,19 @@ export function removeIdea(index: number): Idea[] {
   return ideas;
 }
 
-/** The ideas as one plain-text list, ready to paste into a chat. */
-export function ideasText(ideas: readonly Idea[]): string {
-  const lines = ideas.map((i) => `- ${i.text.replace(/\s*\n\s*/g, ' ')} (${i.date})`);
-  return ['Ideas for Move With Elli:', ...lines].join('\n');
+/** Ideas not sent yet, each with an id (one saved by an older version gets one now, and keeps it). */
+export function unsentIdeas(): Required<Pick<Idea, 'id' | 'text' | 'date'>>[] {
+  const s = loadStore();
+  const ideas = s.ideas ?? [];
+  if (ideas.some((i) => !i.id)) {
+    s.ideas = ideas.map((i) => (i.id ? i : { ...i, id: crypto.randomUUID() }));
+    saveStore(s);
+  }
+  return (s.ideas ?? []).filter((i) => !i.sent).map((i) => ({ id: i.id ?? '', text: i.text, date: i.date }));
+}
+
+export function markIdeaSent(id: string): void {
+  const s = loadStore();
+  s.ideas = (s.ideas ?? []).map((i) => (i.id === id ? { ...i, sent: true } : i));
+  saveStore(s);
 }

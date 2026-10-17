@@ -295,7 +295,6 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .done-idea     { margin-bottom: 10px; }
 /* Ideas sheet */
 .idea-save     { margin-top: 10px; }
-.idea-manual   { margin-top: 12px; font-size: var(--fs-sm); }
 .idea-list     { list-style: none; margin: 0 0 14px; padding: 0; }
 .idea-row      { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
 .idea-row:not(:first-child) { border-top: 1px solid var(--surface-border); }
