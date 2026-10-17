@@ -15,9 +15,10 @@ The 2026-10-17 PRs (details in [`sessions/2026-10-17.md`](sessions/2026-10-17.md
 start of each session for new ones (query in CLAUDE.md "Elli's ideas"); set `status` planned/done as we go.
 
 ### From Elli's first workout (Supabase `ideas`, 2026-10-17)
-- **Bugs (fix first):** timer ring stuck as a green dot (#12) · next move not announced during a move (#13)
-  · Deep Squat Hold got 37s (#15) · page behind a bottom sheet still scrolls (#25) · hip circles / leg swings
-  have no switch sides (#11)
+- [x] **Bugs — fixed 2026-10-17 (evening):** timer ring stuck as a green dot (#12) · next move not announced
+  during a move (#13) · Deep Squat Hold got 37s (#15) · page behind a bottom sheet still scrolls (#25) · hip
+  circles / leg swings have no switch sides (#11). **Ask Elli** after her next workout: is "Next up" at 10s left
+  the right moment, and does the halfway "Switch sides." in the warm-up feel right?
 - **Understanding moves:** images (#9, #14) · clearer how-to for shoulder rotation, arm swings, leopard crawl,
   flutter kicks (#14, #17, #21)
 - **Workout flow:** rep-counted moves you can't finish in the time → "as many as you can" (#16) · merge
