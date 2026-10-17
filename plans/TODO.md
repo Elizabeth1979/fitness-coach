@@ -1,21 +1,24 @@
 # TODO — Move With Elli (workspace memory)
 
-## ▶ RESUME HERE (last session: 2026-10-16)
+## ▶ RESUME HERE (last session: 2026-10-16 → 17)
 
 Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md`](sessions/2026-10-16.md).
-**Merged:** PR #13 — four bug fixes (leave-the-app pause + Pause/Resume, wake lock, local dates, storage
-safety). Check on Elli's phone: lock the screen mid-workout → comes back paused, screen stays on after.
-**Merged:** PR #14 (security headers), #15 (audit 0, Dependabot, lint gate), #21 (exact-second Resume, equipment toggle, Y-T-W), Dependabot #16/#19/#20. **Open:** draft PR — React lint fixes (unblocks Dependabot #17).
-`gh-pages` is a redirect — keep it.
+**Everything is merged** (#13 bugs, #14 headers, #15 audit/Dependabot/lint gate, #21 Resume/equipment/Y-T-W,
+#23 React lint fixes, Dependabot #16/#19/#20/#22; #18 closed). No open PRs. `gh-pages` is a redirect — keep it.
+
+**Elli only:** (1) on the phone, lock the screen mid-workout → comes back paused, screen stays on after Resume;
+(2) GitHub → Settings → Code security → turn on Dependabot alerts + security updates.
 
 ### Next — from the 2026-10-16 review plan (see the session log's "Evening" section)
 - [x] Security headers in `vercel.json` (CSP, nosniff, Referrer-Policy, COOP, Permissions-Policy) — merged, PR #14.
 - [x] `npm audit fix` (0 vulnerabilities), Dependabot (monthly, grouped), `lint` (warnings fail) in the Vercel build — merged, PR #15.
 - [ ] Elli: turn on **Dependabot alerts + security updates** in GitHub → Settings → Code security (a repo setting, not a file).
-- [x] Resume: same day only, from the exact second. Equipment toggle (Everything / Bodyweight only) — PR open.
+- [x] Resume: same day only, from the exact second. Equipment toggle (Everything / Bodyweight only) — merged, #21.
 - [x] Bodyweight pull move: Prone Y-T-W Raises (Elli: yes) — in PR #21.
-- [x] Fixed the 11 React lint findings oxlint 1.88 raised (code, not rules) — PR open; then Dependabot rebases #17 and it can merge.
-- [ ] Read prefs once in `App`; inline styles → `index.css` classes; ask Elli which Change-sheet options she uses.
+- [x] Fixed the 11 React lint findings oxlint 1.88 raised (code, not rules) — #23; dev-tools update merged as #22 (replaced #17).
+- [x] Read prefs once in `App` (#21/#23).
+- [ ] Design: move the 79 inline `style={{}}` blocks into `index.css` classes.
+- [ ] Ask Elli: dark mode? Which Change-sheet options does she use (cut the rest; stations-vs-circuit first)?
 
 **First, check with Elli:** did re-adding the app to her home screen from the Vercel address
 show the new design **and the new green play-button icon**? (Old installs from `github.io` now
