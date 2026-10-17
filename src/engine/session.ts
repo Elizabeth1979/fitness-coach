@@ -71,6 +71,13 @@ export class WorkoutSession {
     if (this.status === 'running' || this.status === 'paused') this.advance();
   }
 
+  /** Go to the start of another segment (the Back button), playing it from its first cue. */
+  jumpTo(index: number): void {
+    if (this.status !== 'running' && this.status !== 'paused') return;
+    if (index < 0 || index >= this.workout.segments.length) return;
+    this.enterSegment(index);
+  }
+
   end(): void { this.finish(false); }
 
   private finish(completed: boolean): void {

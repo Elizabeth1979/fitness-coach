@@ -1,6 +1,6 @@
 import {
   IconAdjustmentsHorizontal, IconArrowsExchange, IconBulb, IconCheck, IconClock, IconFlame, IconHome,
-  IconListCheck, IconMusic, IconMusicOff, IconPlayerPause, IconPlayerPlay, IconPlayerSkipForward,
+  IconListCheck, IconMusic, IconMusicOff, IconPlayerPause, IconPlayerPlay, IconPlayerSkipBack, IconPlayerSkipForward,
   IconPlayerTrackNext, IconRefresh, IconRepeat, IconStretching, IconTrash, IconX,
 } from '@tabler/icons-react';
 
@@ -20,6 +20,7 @@ const ICONS = {
   'music-off': IconMusicOff,
   'player-pause': IconPlayerPause,
   'player-play': IconPlayerPlay,
+  'player-skip-back': IconPlayerSkipBack,
   'player-skip-forward': IconPlayerSkipForward,
   'player-track-next': IconPlayerTrackNext,
   refresh: IconRefresh,

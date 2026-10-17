@@ -24,7 +24,8 @@ start of each session for new ones (query in CLAUDE.md "Elli's ideas"); set `sta
   dot, debug on her phone over USB (chrome://inspect) — `status` stays `planned` until then.
 - **Understanding moves:** images (#9, #14) · clearer how-to for shoulder rotation, arm swings, leopard crawl,
   flutter kicks (#14, #17, #21)
-- **Workout flow — agreed with Elli 2026-10-17, build AFTER the bug-fix session merges (same files):**
+- [x] **Workout flow — DONE 2026-10-17** (one 15s changeover, core finisher announced first, End keeps the
+  spot, Back button, "Up to N" rep goals; controls are now Back · Pause · Skip · End). Was:
   1. One screen between moves: merge Rest + Get ready into a single **15 s** gap (research in README
      "The research behind it"; Elli first suggested ~10 s, 15 s recommended so speech doesn't pile into the
      count). "Next up: X + how-to" at the start, "three, two, one, Go!" at the end. Workout length unchanged.
@@ -33,6 +34,7 @@ start of each session for new ones (query in CLAUDE.md "Elli's ideas"); set `sta
      (today `finished` → `clearCheckpoint()` wipes it; that's what bit her).
   4. A Back button next to Skip → start of the previous move.
   5. Rep moves: keep the number as a goal — screen "Up to 8", coach "as many as you can, up to eight".
+- **Workout flow — still open:** "all sets of one move" = Stations, make it findable (#20).
 - **Workout flow (Elli's original notes):** rep-counted moves you can't finish in the time → "as many as you can" (#16) · merge
   Rest/Next-up with Get ready (#18) · announce the core finisher before it, not after (#21) · go back to a
   missed move, not only Skip; resume after leaving by mistake (#10) · "all sets of one move" = Stations, make

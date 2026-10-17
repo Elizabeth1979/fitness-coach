@@ -8,16 +8,23 @@ import { secsToSay } from '../coach/secsToSay';
 // Plank."), then ends with a spoken "three… two… one…" so you know it's almost
 // done.
 //
-// A changeover is a rest (CHANGE_REST_SEC) that names what's coming the moment
-// it starts — so the whole rest is time to walk over and get into position —
-// followed, before a new exercise, by a short "get ready" (PREPARE_SEC) that
-// ends in a real one-per-second "three… two… one…", then "Go!".
+// Between two moves there is ONE screen, the move's 'prepare' segment
+// (CHANGEOVER_SEC): it names what's coming the moment it starts — so the whole
+// of it is time to breathe, walk over and get into position — and ends in a
+// real one-per-second "three… two… one…", then "Go!". (Elli #18: a rest and then
+// a separate "get ready" was one screen too many. 15s is the low end of the
+// 15–30s circuit guidance — README "The research behind it".) Between rounds, a
+// round break comes first; in the core finisher, a plain rest leads each move.
 //
 // Counting matters: speech can't overlap, so any cue spoken while a longer line
 // is still playing queues up and fires late. Every count therefore sits in a
 // quiet window — nothing long is ever scheduled less than 2s before it.
 
+/** The intro's closing "Get ready… three, two, one". */
 export const PREPARE_SEC = 5;
+/** The one screen between two moves: "Rest… Next up: X" … three, two, one. */
+export const CHANGEOVER_SEC = 15;
+/** The rest before each core-finisher move (it has no changeover of its own). */
 export const CHANGE_REST_SEC = 15;
 /** Between the left and right side of a one-sided move: "Switch sides." … three, two, one. */
 export const SWITCH_SEC = 10;
@@ -57,7 +64,7 @@ export function switchSegment(ex: Exercise, round?: number): Segment {
   return { kind: 'switch', exercise: ex, durationSec: SWITCH_SEC, round, cues: [{ atSec: 0, say: phrases.switchSides(), haptic: 'next' }] };
 }
 
-/** The "get ready" beat right before an exercise: a short heads-up, then a clean count. */
+/** The intro's "get ready" beat: a short heads-up, then a clean count. */
 export function prepareCues(): Cue[] {
   return [{ atSec: 0, say: phrases.getReady(), haptic: 'next' }, ...countdownCues(PREPARE_SEC)];
 }
@@ -116,25 +123,36 @@ function withClosingCount(seg: Segment): Cue[] {
     .sort((a, b) => a.atSec - b.atSec);
 }
 
+/** The changeover into a move: "Rest… Next up: X" (or "Round 2… Next up: X" after a round break), then the count. */
+function changeoverCues(seg: Segment, before: Segment | undefined, after: Segment | undefined): Cue[] {
+  if (!seg.exercise) return withClosingCount(seg);
+  const lead = before?.kind === 'roundrest' ? phrases.roundStart(seg.round ?? 1) : phrases.changeover();
+  return [{ atSec: 0, say: `${lead} ${phrases.nextUp(seg.exercise, after?.reps)}`, haptic: 'next' }, ...countdownCues(seg.durationSec)];
+}
+
 /**
  * Pure post-pass over a finished segment list (idempotent, so it can be re-run
  * after a swap): every exercise names the next move ~10s before it ends; one
  * that goes two ways (and isn't split into sides) says so halfway; every
- * exercise and switch-sides gap ends with the countdown; every rest names the
- * exercise that follows it; and a rest that leads straight into a move — with
- * no "get ready" in between — also ends with the countdown.
+ * exercise and switch-sides gap ends with the countdown; every changeover names
+ * its move and counts in; a rest that leads straight into a move names it and
+ * counts in too (the first one of the core finisher says the finisher is next);
+ * a round break leaves "next up" to the changeover after it.
  */
 export function annotateChangeovers(segments: Segment[], rounds: number): Segment[] {
   return segments.map((seg, i) => {
     if (seg.kind === 'work') return { ...seg, cues: exerciseCues(seg, nextMoveAfter(segments, i)) };
     if (seg.kind === 'switch') return { ...seg, cues: withClosingCount(seg) };
+    if (seg.kind === 'prepare') return { ...seg, cues: changeoverCues(seg, segments[i - 1], segments[i + 1]) };
     if (seg.kind !== 'rest' && seg.kind !== 'roundrest') return seg;
     const next = segments[i + 1];
-    const upNext = next && (next.kind === 'prepare' || next.kind === 'work') ? next.exercise : undefined;
-    const base = seg.kind === 'roundrest' ? phrases.roundComplete(seg.round ?? 1, rounds) : phrases.rest();
+    const upNext = next?.kind === 'work' ? next.exercise : undefined;
+    const coreStarts = seg.block === 'core' && segments[i - 1]?.block !== 'core';
+    const base = seg.kind === 'roundrest' ? phrases.roundComplete(seg.round ?? 1, rounds)
+      : coreStarts ? phrases.coreAhead() : phrases.rest();
     const opening: Cue = {
       atSec: 0,
-      say: upNext ? `${base} ${phrases.nextUp(upNext)}` : base,
+      say: upNext ? `${base} ${phrases.nextUp(upNext, next?.reps)}` : base,
       haptic: seg.cues.find((c) => c.atSec === 0)?.haptic ?? 'rest',
     };
     const kept = seg.cues.filter((c) => c.atSec !== 0 && !isCount(c));

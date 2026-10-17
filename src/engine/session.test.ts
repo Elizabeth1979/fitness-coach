@@ -84,6 +84,27 @@ describe('WorkoutSession', () => {
     expect(events).toEqual([]);
   });
 
+  it('jumpTo goes back to an earlier segment and plays its start again', () => {
+    const { clock, events, session } = run();
+    session.start();
+    clock.tick(11); // into the rest
+    expect(session.getState().segmentIndex).toBe(1);
+    session.jumpTo(0);
+    expect(session.getState()).toMatchObject({ segmentIndex: 0, segmentRemainingSec: 10 });
+    const begins = events.filter((e) => e.type === 'cue' && e.cue.say === 'Begin.');
+    expect(begins).toHaveLength(2);
+  });
+
+  it('jumpTo ignores a segment that does not exist, and does nothing once finished', () => {
+    const { session } = run();
+    session.start();
+    session.jumpTo(9);
+    expect(session.getState().segmentIndex).toBe(0);
+    session.end();
+    session.jumpTo(1);
+    expect(session.getState().status).toBe('done');
+  });
+
   it('skip jumps to the next segment', () => {
     const { clock, events, session } = run();
     session.start();

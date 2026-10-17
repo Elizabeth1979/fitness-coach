@@ -123,6 +123,35 @@ describe('useWorkoutSession', () => {
     expect(onFinished).toHaveBeenCalledExactlyOnceWith(false);
   });
 
+  // Elli (#10): she tapped ✕ by mistake and lost her workout. Ending early keeps the spot.
+  it('keeps the saved spot when ended early, so Home can offer Resume', () => {
+    const advance = driveFrames();
+    const { result } = renderHook(() => useWorkoutSession(w, vi.fn()));
+    act(() => result.current.start());
+    act(() => result.current.skip());
+    advance(1);
+    act(() => result.current.end());
+    expect(getCheckpoint(localDate(new Date()))?.segmentIndex).toBe(1);
+  });
+
+  it('clears the saved spot after a real finish', () => {
+    const advance = driveFrames();
+    const { result } = renderHook(() => useWorkoutSession(tiny, vi.fn()));
+    act(() => result.current.start());
+    advance(3);
+    expect(getCheckpoint(localDate(new Date()))).toBeNull();
+  });
+
+  it('Back goes to the start of the move before', () => {
+    const { result } = renderHook(() => useWorkoutSession(w, vi.fn()));
+    act(() => result.current.start());
+    const prepares = w.segments.map((s, i) => (s.kind === 'prepare' ? i : -1)).filter((i) => i >= 0);
+    for (let i = 0; i < prepares[1]; i++) act(() => result.current.skip());
+    expect(result.current.state.segmentIndex).toBe(prepares[1]);
+    act(() => result.current.back());
+    expect(result.current.state.segmentIndex).toBe(prepares[0]);
+  });
+
   it('does not report a finish when the workout is simply put away', () => {
     const onFinished = vi.fn();
     const { result, rerender } = renderHook(({ wk }) => useWorkoutSession(wk, onFinished), { initialProps: { wk: w as Workout | null } });

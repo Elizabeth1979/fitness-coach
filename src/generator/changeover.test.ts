@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateWorkout } from './generateWorkout';
 import { swapMove } from './swapMove';
-import { NEXT_UP_LEAD_SEC } from './changeover';
+import { NEXT_UP_LEAD_SEC, CHANGEOVER_SEC } from './changeover';
 import { createRng } from './rng';
 import { phrases } from '../coach/phrases';
 import { secsToSay } from '../coach/secsToSay';
@@ -41,13 +41,13 @@ describe('changeovers between exercises', () => {
     }
   });
 
-  it('every rest that leads into an exercise names it as the rest starts', () => {
+  it('every rest that leads straight into a move names it as the rest starts', () => {
     for (const [kind, style] of variants) {
       const segs = build(kind, style, 4).segments;
       segs.forEach((s, i) => {
         const next = segs[i + 1];
-        if (!isRest(s) || !next?.exercise) return;
-        expect(firstSay(s), `${kind}/${style} #${i}`).toContain(phrases.nextUp(next.exercise));
+        if (!isRest(s) || next?.kind !== 'work' || !next.exercise) return;
+        expect(firstSay(s), `${kind}/${style} #${i}`).toContain(phrases.nextUp(next.exercise, next.reps));
       });
     }
   });
@@ -112,16 +112,46 @@ describe('changeovers between exercises', () => {
     expect(switches).toBeGreaterThan(0); // the library has one-sided moves, so some workouts use them
   });
 
-  it('gives about 20 seconds to get from one main exercise to the next', () => {
+  // Elli (#18): "Rest, Next up" and then a separate "Get ready" screen was one screen too many.
+  // Research (README "The research behind it"): 15–30s between circuit moves; she chose 15s.
+  it('between moves there is ONE 15-second screen: it names the move, then three-two-one', () => {
+    let changeovers = 0;
+    for (const [kind, style] of variants) {
+      for (const seed of [1, 2, 3, 4]) {
+        const segs = build(kind, style, seed).segments;
+        segs.forEach((s, i) => {
+          if (s.kind !== 'prepare') return;
+          const where = `${kind}/${style}/seed${seed} prepare #${i}`;
+          expect(s.durationSec, where).toBe(CHANGEOVER_SEC);
+          expect(segs[i - 1]?.kind, where).not.toBe('rest'); // no second rest screen in front of it
+          expect(firstSay(s), where).toContain(phrases.nextUp(s.exercise!, segs[i + 1]?.reps));
+          changeovers++;
+        });
+      }
+    }
+    expect(changeovers).toBeGreaterThan(0);
+    expect(CHANGEOVER_SEC).toBe(15);
+  });
+
+  it('a round break leaves "next up" to the changeover after it, which opens with the new round', () => {
+    const segs = build('20min', 'circuit', 4).segments;
+    const rr = segs.findIndex((s) => s.kind === 'roundrest');
+    expect(firstSay(segs[rr])).not.toContain('Next up');
+    expect(segs[rr + 1].kind).toBe('prepare');
+    expect(firstSay(segs[rr + 1])).toMatch(/^Round 2\./);
+  });
+
+  // Elli (#21): "it says next flutter kicks, but it's not clear we move to the core section.
+  // Only when it starts does it say core finisher — a backward announcement."
+  it('the core finisher is announced in the rest before it, not once it has started', () => {
     for (const [kind, style] of variants) {
       const segs = build(kind, style, 4).segments;
-      segs.forEach((s, i) => {
-        if (s.kind !== 'prepare' || i === 0) return;
-        // The time between the previous move ending and this one starting.
-        let gap = s.durationSec;
-        for (let j = i - 1; j >= 0 && segs[j].kind !== 'work'; j--) gap += segs[j].durationSec;
-        expect(gap, `${kind}/${style} prepare #${i}`).toBeGreaterThanOrEqual(20);
-      });
+      const first = segs.findIndex((s) => s.block === 'core');
+      if (first < 0) continue;
+      expect(segs[first].kind, `${kind}/${style}`).toBe('rest');
+      expect(firstSay(segs[first]), `${kind}/${style}`).toContain(phrases.coreAhead());
+      expect(firstSay(segs[first + 1]), `${kind}/${style}`).toBe(phrases.begin());
+      expect(segs.filter((s) => s.block === 'core' && firstSay(s).includes(phrases.coreAhead())), `${kind}/${style}`).toHaveLength(1);
     }
   });
 
@@ -134,16 +164,14 @@ describe('changeovers between exercises', () => {
     }
   });
 
-  it('after a swap, the rest before the swapped move announces the NEW move', () => {
+  it('after a swap, the changeover before the swapped move announces the NEW move', () => {
     const w = build('20min', 'circuit', 4);
     const prepIdx = w.segments.findIndex((s) => s.kind === 'prepare' && s.round === 1);
     const w2 = swapMove(w, prepIdx, ALL, createRng(1));
     const newEx = w2.segments[prepIdx].exercise!;
     const oldName = w.segments[prepIdx].exercise!.name;
-    const restBefore = w2.segments[prepIdx - 1];
-    expect(isRest(restBefore)).toBe(true);
-    expect(firstSay(restBefore)).toContain(phrases.nextUp(newEx));
-    expect(firstSay(restBefore)).not.toContain(oldName);
+    expect(firstSay(w2.segments[prepIdx])).toContain(phrases.nextUp(newEx, w2.segments[prepIdx + 1].reps));
+    expect(firstSay(w2.segments[prepIdx])).not.toContain(oldName);
   });
 
   // Elli (#13): "the next exercise was not announced" — she wants to hear it during the move,
@@ -171,9 +199,9 @@ describe('changeovers between exercises', () => {
 
   it('after a swap, the move before the swapped one names the NEW move', () => {
     const w = build('20min', 'circuit', 4);
-    const prepIdx = w.segments.findIndex((s, i) => i > 0 && s.kind === 'prepare' && s.round === 1 && w.segments[i - 2]?.kind === 'work');
+    const prepIdx = w.segments.findIndex((s, i) => i > 0 && s.kind === 'prepare' && s.round === 1 && w.segments[i - 1]?.kind === 'work');
     const w2 = swapMove(w, prepIdx, ALL, createRng(1));
-    const before = w2.segments[prepIdx - 2];
+    const before = w2.segments[prepIdx - 1];
     expect(before.cues.find((c) => c.say?.startsWith('Next up'))?.say).toBe(phrases.comingUp(w2.segments[prepIdx].exercise!));
     // Re-annotating never stacks a second heads-up.
     expect(before.cues.filter((c) => c.say?.startsWith('Next up'))).toHaveLength(1);
@@ -197,5 +225,18 @@ describe('changeovers between exercises', () => {
       }
     }
   });
-});
 
+  it('a counted move is announced as "as many as you can, up to N" — a goal, not a test (Elli #16)', () => {
+    let counted = 0;
+    for (const [kind, style] of variants) {
+      const segs = build(kind, style, 4).segments;
+      segs.forEach((s, i) => {
+        const next = segs[i + 1];
+        if (s.kind !== 'prepare' || next?.kind !== 'work') return;
+        expect(firstSay(s), `${kind}/${style} ${s.exercise?.name}`).toContain(phrases.nextUp(s.exercise!, next.reps));
+        if (next.reps) { expect(firstSay(s)).toContain(`as many as you can, up to ${next.reps}`); counted++; }
+      });
+    }
+    expect(counted).toBeGreaterThan(0);
+  });
+});

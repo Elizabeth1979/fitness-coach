@@ -25,9 +25,13 @@ balance, skill — not calories or body weight.
 - **A voice coach guides every second:**
   - **A short spoken intro** before the clock starts — what's waiting today and what comes
     first — then *"Get ready… three, two, one"*. The screen shows the time left.
-  - **Time to get there** — about 20 seconds between exercises. The rest starts with
-    *"Rest. Take a deep breath. Next up: Bulgarian Split Squat. Back foot elevated, sink straight down."*, then
-    *"Get ready."* and a real one-per-second *"three… two… one… Go!"*
+  - **One 15-second screen between moves** ("Rest · Next up") — it starts with
+    *"Rest. Next up: Bulgarian Split Squat. Back foot elevated, sink straight down."* and ends with a
+    real one-per-second *"three… two… one… Go!"* (why 15 s: see "The research behind it").
+  - **Counted moves are a goal, not a test** — the screen says *"Up to 8 reps"* and the coach
+    *"as many as you can, up to 8"*. The numbers grow as you level up.
+  - **The core finisher is announced before it starts** — *"Circuit done! Now a short core finisher.
+    Next up: Plank…"*.
   - **"Next up" during every exercise** — about 10 seconds before it ends the coach names the
     next move (*"Next up: Plank."*), so you're never surprised.
   - **"Three, two, one" at the end of every exercise**, so you know it's almost done.
@@ -48,7 +52,10 @@ balance, skill — not calories or body weight.
   next ones: more or fewer reps, and shorter rests as you get stronger. Same length every time.
 - Optional **background beats**, haptic buzzes, and the screen stays awake so you can prop the
   phone up and just move.
-- **Resume where you stopped** — Pause, leaving the app or the phone's Back button all keep your
+- **Back · Pause · Skip · End** — **Back** goes to the start of the move before (missed one? do it
+  again). **End** never loses your workout: Home offers **Resume where you stopped** for the rest of
+  the day.
+- **Resume where you stopped** — Pause, End, leaving the app or the phone's Back button all keep your
   spot, and the coach re-says what you were doing when you carry on. Keep a **streak**, and it works
   **offline** (installable PWA). The installed app picks up new versions by itself when you return
   to it — never mid-workout.
@@ -81,11 +88,12 @@ mobility, repeated for a few rounds. Its rhythm follows published guidance on ci
   ([Brookbush Institute](https://brookbushinstitute.com/courses/acute-variables-circuit-training)),
   which isn't the goal here.
 
-**How the app uses it:** the gap between moves today is about 20 s (a 15 s rest plus a 5 s
-"get ready"). It's moving to a single **15 s** gap, the low end of the circuit range. That still
-leaves time to hear what's next, get to the bar or the weights, and a clean "three, two, one,
-Go!". The workout length stays the same, so shorter rests mean more of it is spent moving. A
-longer breather between rounds stays.
+**How the app uses it:** the gap between moves is a single **15 s** screen, the low end of the
+circuit range (it used to be about 20 s: a 15 s rest plus a 5 s "get ready"). That still leaves
+time to hear what's next, get to the bar or the weights, and a clean "three, two, one, Go!". The
+workout length stays the same, so shorter rests mean more of it is spent moving. Between rounds,
+a short round break comes first (20–25 s, shorter as you level up), so the time between rounds is
+what it was.
 
 ### Add your own encouragement
 

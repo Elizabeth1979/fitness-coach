@@ -6,7 +6,8 @@ export function formatTarget(seg: Segment): string {
   if (!ex) return '';
   if (ex.measure === 'reps') {
     const n = seg.reps ?? ex.defaultReps ?? 0;
-    return ex.unilateral ? `${n} reps each side` : `${n} reps`;
+    // A goal to grow into, not a test you fail when the time runs out (Elli #16).
+    return ex.unilateral ? `Up to ${n} reps each side` : `Up to ${n} reps`;
   }
   const s = seg.durationSec;
   if (s >= 90) {
@@ -127,4 +128,25 @@ export function roundInfo(workout: Workout, segmentIndex: number): RoundInfo {
     }
   }
   return { round, totalRounds, moveInRound, movesPerRound };
+}
+
+/**
+ * Where the Back button goes: the start of the move before the one you're on (or
+ * about to do) — its changeover, so it's named and counted in again; a core move's
+ * lead-in rest; or, in the warm-up, the move itself. Undefined when there's none.
+ */
+export function previousMoveStart(workout: Workout, segmentIndex: number): number | undefined {
+  const segs = workout.segments;
+  const seg = segs[segmentIndex];
+  if (!seg || seg.kind === 'intro') return undefined;
+  const moves = sessionMoves(workout);
+  // A changeover belongs to the move after it; a break sits after the move just done.
+  const inMove = seg.kind === 'prepare' || seg.kind === 'work' || seg.kind === 'switch';
+  const here = currentMoveIndex(moves, seg.kind === 'prepare' ? segmentIndex + 1 : segmentIndex);
+  const target = moves[inMove ? here - 1 : here];
+  if (!target) return undefined;
+  const first = target.firstSegment;
+  const before = segs[first - 1];
+  const start = before && (before.kind === 'prepare' || (before.kind === 'rest' && before.block === 'core')) ? first - 1 : first;
+  return start < segmentIndex ? start : undefined;
 }

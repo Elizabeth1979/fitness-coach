@@ -23,9 +23,11 @@ function shuffled<T>(items: readonly T[], rng: () => number): T[] {
 
 // The how-to part of an exercise cue. Most cues open by repeating the move's
 // name ("Hip circles. Hands on hips…"); drop that so the name isn't said twice.
+// Also when it's a short form of the name ("Y-T-W raises" for "Prone Y-T-W Raises").
 function form(ex: Pick<Exercise, 'name' | 'cue'>): string {
   const [first, ...rest] = ex.cue.split('. ');
-  const isName = rest.length > 0 && first.toLowerCase().replace(/s$/, '') === ex.name.toLowerCase().replace(/s$/, '');
+  const bare = (t: string) => t.toLowerCase().replace(/s$/, '');
+  const isName = rest.length > 0 && bare(ex.name).endsWith(bare(first));
   return isName ? rest.join('. ') : ex.cue;
 }
 
@@ -53,7 +55,11 @@ export const phrases = {
   howTo: (ex: Pick<Exercise, 'name' | 'cue'>): string => `${phrases.exercise(ex.name)} ${form(ex)}`,
   begin: (): string => 'Go!',
   rest: (): string => 'Rest. Take a deep breath.',
-  nextUp: (ex: Pick<Exercise, 'name' | 'cue'>): string => `Next up: ${phrases.howTo(ex)}`,
+  // Opens the 15s changeover: short, so "next up" and the count fit (README "The research behind it").
+  changeover: (): string => 'Rest.',
+  // A counted move's number is a goal, not a test (Elli #16): "as many as you can, up to 8".
+  nextUp: (ex: Pick<Exercise, 'name' | 'cue'>, reps?: number): string =>
+    reps ? `Next up: ${ex.name}, as many as you can, up to ${reps}. ${form(ex)}` : `Next up: ${phrases.howTo(ex)}`,
   // Said during a move, ~10s before it ends: just the name (the rest after it adds the how-to).
   comingUp: (ex: Pick<Exercise, 'name'>): string => `Next up: ${ex.name}.`,
   // Said on Resume: what you're doing, since Pause cut the coach off.
@@ -61,7 +67,8 @@ export const phrases = {
   getReady: (): string => 'Get ready.',
   switchSides: (): string => 'Switch sides.',
   otherDirection: (): string => 'Now the other way.',
-  coreFinisher: (): string => 'Last bit — core finisher.',
+  // Said in the rest before the core finisher, so you know a new part is coming (Elli #21).
+  coreAhead: (): string => 'Circuit done! Now a short core finisher.',
   count: (n: number): string => NUMBER_WORDS[n] ?? String(n),
   encouragements: ENCOURAGEMENTS,
   /**

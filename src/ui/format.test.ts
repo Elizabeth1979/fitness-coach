@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatTarget, sessionMoves, currentMoveIndex, circuitMoves, roundInfo, timeLeft, formatClock } from './format';
+import { formatTarget, sessionMoves, currentMoveIndex, circuitMoves, roundInfo, timeLeft, formatClock, previousMoveStart } from './format';
 import { trainingSec } from '../domain/workout';
 import { generateWorkout } from '../generator/generateWorkout';
 import { SLOTS_SHORT } from '../generator/selectExercises';
@@ -12,8 +12,9 @@ const ex = (m: 'reps' | 'time', extra: Record<string, unknown>) =>
   ({ id: 'x', name: 'X', category: 'push', equipment: ['bodyweight'], goals: ['strength'], unilateral: false, measure: m, cue: '', ...extra }) as Segment['exercise'];
 
 describe('formatTarget', () => {
-  it('reps', () => expect(formatTarget(seg({ exercise: ex('reps', { defaultReps: 8 }) }))).toBe('8 reps'));
-  it('reps each side', () => expect(formatTarget(seg({ exercise: ex('reps', { defaultReps: 6, unilateral: true }) }))).toBe('6 reps each side'));
+  // Elli (#16): a rep count is a goal to grow into, not a test you fail when time runs out.
+  it('reps', () => expect(formatTarget(seg({ exercise: ex('reps', { defaultReps: 8 }) }))).toBe('Up to 8 reps'));
+  it('reps each side', () => expect(formatTarget(seg({ exercise: ex('reps', { defaultReps: 6, unilateral: true }) }))).toBe('Up to 6 reps each side'));
   it('seconds', () => expect(formatTarget(seg({ durationSec: 40, exercise: ex('time', { defaultDurationSec: 40 }) }))).toBe('40 seconds'));
   it('minutes', () => expect(formatTarget(seg({ durationSec: 120, exercise: ex('time', { defaultDurationSec: 120 }) }))).toBe('2 minutes'));
   it('rounds non-integer minutes', () => expect(formatTarget(seg({ durationSec: 90, exercise: ex('time', { defaultDurationSec: 90 }) }))).toBe('2 minutes'));
@@ -35,7 +36,7 @@ describe('sessionMoves', () => {
     ] } as unknown as import('../domain/types').Workout;
     const moves = sessionMoves(synthetic);
     expect(moves.length).toBe(1);
-    expect(moves[0].target).toBe('6 reps each side');
+    expect(moves[0].target).toBe('Up to 6 reps each side');
   });
   it('firstSegment is strictly increasing', () => {
     const f = sessionMoves(w).map((m) => m.firstSegment);
@@ -93,7 +94,7 @@ describe('roundInfo', () => {
 
 describe('formatTarget with an effort level', () => {
   it('shows the rep target the workout set, not the default', () => {
-    expect(formatTarget(seg({ exercise: ex('reps', { defaultReps: 8 }), reps: 11 }))).toBe('11 reps');
+    expect(formatTarget(seg({ exercise: ex('reps', { defaultReps: 8 }), reps: 11 }))).toBe('Up to 11 reps');
   });
 });
 
@@ -111,5 +112,37 @@ describe('workout clock', () => {
     expect(formatClock(1200)).toBe('20:00');
     expect(formatClock(65.7)).toBe('1:05');
     expect(formatClock(0)).toBe('0:00');
+  });
+});
+
+describe('previousMoveStart (the Back button)', () => {
+  const wk = generateWorkout({ kind: '20min', date: new Date('2026-06-24T08:00:00'), equipment: ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'], seed: 4 });
+  const segs = wk.segments;
+  const prepares = segs.map((s, i) => (s.kind === 'prepare' ? i : -1)).filter((i) => i >= 0);
+
+  it('from a move, or its own changeover, goes to the changeover of the move before', () => {
+    const [p1, p2] = prepares;
+    expect(previousMoveStart(wk, p2)).toBe(p1);
+    expect(previousMoveStart(wk, p2 + 1)).toBe(p1); // during the move's work
+  });
+
+  it('from a round break goes back to the move just done', () => {
+    const rr = segs.findIndex((s) => s.kind === 'roundrest');
+    const lastPrep = prepares.filter((i) => i < rr).at(-1);
+    expect(previousMoveStart(wk, rr)).toBe(lastPrep);
+  });
+
+  it('the first main move goes back to the last warm-up move; the intro has nowhere to go', () => {
+    const lastWarmup = segs.findLastIndex((s, i) => i < prepares[0] && s.kind === 'work');
+    expect(previousMoveStart(wk, prepares[0])).toBe(lastWarmup);
+    expect(previousMoveStart(wk, 0)).toBeUndefined();
+    const firstWarmup = segs.findIndex((s) => s.kind === 'work');
+    expect(previousMoveStart(wk, firstWarmup)).toBeUndefined();
+  });
+
+  it('in the core finisher, lands on the rest that leads into a core move', () => {
+    const coreWorks = segs.map((s, i) => (s.kind === 'work' && s.block === 'core' ? i : -1)).filter((i) => i >= 0);
+    expect(previousMoveStart(wk, coreWorks[1])).toBe(coreWorks[0] - 1);
+    expect(segs[coreWorks[0] - 1]).toMatchObject({ kind: 'rest', block: 'core' });
   });
 });

@@ -12,6 +12,28 @@ const firstCircuit = w.segments.findIndex((s) => s.kind === 'work' && s.round ==
 const state: SessionState = { status: 'running', segmentIndex: firstCircuit, segment: w.segments[firstCircuit], segmentRemainingSec: 20 };
 
 describe('ActiveScreen', () => {
+  it('has a Back button, greyed out when there is no move before', () => {
+    const onBack = vi.fn();
+    const { unmount } = render(<ActiveScreen state={state} workout={w} onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onBack={onBack} onEnd={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(onBack).toHaveBeenCalledOnce();
+    unmount();
+    const first = w.segments.findIndex((s) => s.kind === 'work');
+    render(<ActiveScreen state={{ ...state, segmentIndex: first, segment: w.segments[first] }} workout={w} onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onBack={onBack} onEnd={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Back' })).toBeDisabled();
+  });
+
+  it('between moves shows one calm "Rest · Next up" screen for the coming move', () => {
+    const i = w.segments.findIndex((s) => s.kind === 'prepare' && s.round === 2);
+    const prep = w.segments[i];
+    const { container } = render(<ActiveScreen state={{ status: 'running', segmentIndex: i, segment: prep, segmentRemainingSec: 10 }} workout={w}
+      onPause={vi.fn()} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);
+    expect(screen.getByText('Rest · Next up')).toBeInTheDocument();
+    expect(screen.getByText(prep.exercise!.name)).toBeInTheDocument();
+    expect(container.querySelector('main')).toHaveAttribute('data-tone', 'rest');
+    expect(screen.queryByText('Next up', { selector: '.next-eyebrow' })).not.toBeInTheDocument();
+  });
+
   it('pauses the workout and opens the ideas sheet to note an idea', () => {
     const onPause = vi.fn();
     render(<ActiveScreen state={state} workout={w} onPause={onPause} onResume={vi.fn()} onSkip={vi.fn()} onEnd={vi.fn()} />);

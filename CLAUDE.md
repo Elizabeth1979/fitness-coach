@@ -151,14 +151,19 @@ its map; never re-add the 5,000-icon webfont).
   A test audits the library: a how-to that says "circle", "each way", "one leg, then the other"… must be flagged.
 - **Move times are multiples of 5s** (`roundToStep`, after `spreadDrift`): both sides equal, and the
   celebration (12–30s) takes the leftover so 10/20-min land exactly, 30-min within ~2s.
-- **Changeovers (`generator/changeover.ts`):** getting from one move to the next is a 15s rest that
-  says "Rest… Next up: X." the moment it starts, then a 5s "Get ready" that ends in a real
-  one-per-second "three, two, one" → "Go!" (~20s total; a changeover rest also follows the warm-up
-  and sits between stations; the round-rest is the changeover between rounds). Speech can't overlap,
+- **Changeovers (`generator/changeover.ts`):** getting from one move to the next is ONE screen —
+  the move's own 15s `prepare` segment (`CHANGEOVER_SEC`, Elli #18; research in README) — that says
+  "Rest. Next up: X." the moment it starts and ends in a real one-per-second "three, two, one" →
+  "Go!". There is no separate rest before it (also after the warm-up and between stations). Between
+  rounds a round break ("Round N complete") comes first and the changeover after it opens "Round
+  N+1."; the core finisher keeps plain 15s rests before each move, the first one saying "Circuit
+  done! Now a short core finisher." `prepare` segments stay the move anchor (Swap, MoveDetail,
+  round/station counts, Back). A counted move's "Next up" says "as many as you can, up to N" and the
+  screen "Up to N reps" (Elli #16: a goal, not a test). Speech can't overlap,
   so never schedule a long line less than ~2s before a count — it queues and the counts come out in
   a rushed burst (the original bug). Every exercise (work segment) also ends with "three, two,
   one" so you know it's almost done. `annotateChangeovers` is an idempotent post-pass that writes
-  each rest's "Next up" (name + how-to, from the exercise `cue`) + all closing countdowns from the
+  each changeover's / rest's "Next up" (name + how-to, from the exercise `cue`) + all closing countdowns from the
   final segment order; `swapMove` re-runs it. The "no spoken line runs into the next one" test in
   `changeover.test.ts` (2.5 words/s, `coach/secsToSay.ts` — the intro and Resume use the same estimate) guards every cue schedule — keep new copy short enough to pass.
 - **One-sided moves:** a unilateral exercise is `left work → 'switch' segment (10s, "Switch sides." +
@@ -169,7 +174,9 @@ its map; never re-add the 5,000-icon webfont).
   in when every bout has room (≥ switch + 2 × MIN_WORK_SEC). `canSwap()` uses the same rule
   (`swapChoices`), so the UI hides "Swap" exactly when `swapMove` would change nothing.
 - **Completion semantics:** the engine's `finished` event carries `completed: boolean` (true only on
-  natural finish; the ✕ "end" button → `completed: false`). The hook passes it to
+  natural finish; the End button → `completed: false`). Ending early KEEPS the checkpoint (Elli #10
+  lost a workout to a stray tap), so Home offers Resume; only a real finish, or End on the closing
+  celebration, clears it. **Back** = `previousMoveStart` (pure, `ui/format.ts`) → `session.jumpTo()`. The hook passes it to
   `useWorkoutSession(workout, onFinished)` (via `useEffectEvent`), and `App.handleFinished` records a
   completion ONLY when it's true. Putting a workout away (it changes / unmounts) is not a finish. The hook
   also resets its state to idle when `workout` changes (previous value kept in state, React's "adjust

@@ -2,7 +2,7 @@ import { useId, useState } from 'react';
 import type { SessionState } from '../engine/session';
 import type { Workout } from '../domain/types';
 import { TimerRing } from './TimerRing';
-import { sessionMoves, currentMoveIndex, circuitMoves, roundInfo, stationInfo, timeLeft, formatClock } from './format';
+import { previousMoveStart, sessionMoves, currentMoveIndex, circuitMoves, roundInfo, stationInfo, timeLeft, formatClock } from './format';
 import { catColor } from './categoryColor';
 import { phrases } from '../coach/phrases';
 import { Icon } from './Icon';
@@ -12,10 +12,12 @@ import { IdeasSheet } from './IdeasSheet';
 interface Props {
   state: SessionState; workout: Workout;
   onPause: () => void; onResume: () => void; onSkip: () => void; onEnd: () => void;
+  /** Back to the start of the move before (hidden when there's none). */
+  onBack?: () => void;
   musicOn?: boolean; onToggleMusic?: () => void; musicAvailable?: boolean;
 }
 
-export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd, musicOn, onToggleMusic, musicAvailable }: Props) {
+export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onBack, onEnd, musicOn, onToggleMusic, musicAvailable }: Props) {
   const listLabel = useId();
   const guard = useTapGuard();
   const [noting, setNoting] = useState(false);
@@ -27,8 +29,9 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
   const seg = state.segment;
   const isIntro = seg?.kind === 'intro'; // the overview before the clock starts
   const isRoundRest = seg?.kind === 'roundrest';
-  const isRest = seg?.kind === 'rest' || isRoundRest; // both get the calm background
-  const isPrepare = seg?.kind === 'prepare';
+  const isPrepare = seg?.kind === 'prepare'; // the one screen between moves: "Next up", then three-two-one
+  const isRest = seg?.kind === 'rest' || isRoundRest; // a break
+  const isCalm = isRest || isPrepare; // both get the calm background
   const isCelebrate = seg?.kind === 'celebrate';
   const isSwitch = seg?.kind === 'switch'; // between the two sides of a one-sided move
   const moves = sessionMoves(workout);
@@ -66,8 +69,8 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
     : move?.target;
 
   return (
-    <main className="screen screen-active" data-tone={isRest ? 'rest' : undefined} onClickCapture={guard}>
-      <p className="sr-only" aria-live="assertive">{isRoundRest ? `Round ${ri.round} of ${ri.totalRounds} complete. Rest.` : `Now: ${title}`}</p>
+    <main className="screen screen-active" data-tone={isCalm ? 'rest' : undefined} onClickCapture={guard}>
+      <p className="sr-only" aria-live="assertive">{isRoundRest ? `Round ${ri.round} of ${ri.totalRounds} complete. Rest.` : isPrepare ? `Rest. Next up: ${title}` : `Now: ${title}`}</p>
 
       <div className="row active-top">
         <div className="progress"><div className="progress-fill" style={{ transform: `scaleX(${moves.length > 0 && !isIntro ? (mi + 1) / moves.length : 0})` }} /></div>
@@ -87,13 +90,14 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
         {showRoundChip && <span className="pill">{chipLabel}</span>}
         {!isRest && !isCelebrate && seg?.exercise && <span className="pill">{cc.label}</span>}
       </div>
+      {isPrepare && <div className="eyebrow active-eyebrow">Rest · Next up</div>}
       <div className="t-display active-title">{title}</div>
       {!isRest && !isCelebrate && subtitle && (
         <div className="muted active-subtitle">{subtitle}</div>
       )}
 
       <div className="active-timer">
-        <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} tone={isRest || isSwitch || isIntro ? 'rest' : 'work'} label={isIntro ? 'starting in' : undefined} />
+        <TimerRing remaining={state.segmentRemainingSec} total={seg?.durationSec ?? 1} tone={isCalm || isSwitch || isIntro ? 'rest' : 'work'} label={isIntro ? 'starting in' : undefined} />
       </div>
 
       {!isRest && !isCelebrate && seg?.exercise && (
@@ -109,7 +113,7 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
         </div>
       )}
 
-      {!isCelebrate && !isSwitch && (() => {
+      {!isCelebrate && !isSwitch && !isPrepare && (() => {
         // On the left side of a one-sided move, what comes next is its right side.
         const rightSideNext = seg?.kind === 'work' && seg.side === 'left' && move;
         // During the intro, what's next is the very first move.
@@ -131,11 +135,16 @@ export function ActiveScreen({ state, workout, onPause, onResume, onSkip, onEnd,
       })()}
 
       <div className="active-controls">
+        {onBack && (
+          <button className="btn btn-soft" onClick={onBack} disabled={previousMoveStart(workout, state.segmentIndex) === undefined}>
+            <Icon name="player-skip-back" />Back
+          </button>
+        )}
         {state.status === 'paused'
-          ? <button className="btn btn-primary" onClick={onResume}><Icon name="player-play" />Resume</button>
-          : <button className="btn btn-dark" onClick={onPause}><Icon name="player-pause" />Pause</button>}
+          ? <button className="btn btn-primary active-main" onClick={onResume}><Icon name="player-play" />Resume</button>
+          : <button className="btn btn-dark active-main" onClick={onPause}><Icon name="player-pause" />Pause</button>}
         <button className="btn btn-soft" onClick={onSkip}><Icon name="player-skip-forward" />Skip</button>
-        <button className="btn btn-ghost active-end" onClick={onEnd} aria-label="End workout"><Icon name="x" size={20} /></button>
+        <button className="btn btn-ghost" onClick={onEnd} aria-label="End workout"><Icon name="x" />End</button>
       </div>
       {noting && <IdeasSheet onClose={() => setNoting(false)} />}
     </main>

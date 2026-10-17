@@ -11,9 +11,9 @@ export const MIN_LEVEL = -2;
 export const MAX_LEVEL = 3;
 const REPS_PER_LEVEL = 0.15;  // ±15% of the default rep target per level
 const REST_PER_LEVEL = 5;     // seconds off each round/set rest per level above 0
-// A round rest says "Round N complete… Next up: <move + how-to>" and later
-// "Round N+1. Here we go." — 20s keeps the two from running into each other.
-const MIN_REST_SEC = 20;
+// The shortest a round break or set rest gets. A round break only says "Round N
+// complete", and the 15s changeover after it does the rest, so 10s is plenty.
+const MIN_REST_SEC = 10;
 
 const clampLevel = (n: number): number => Math.max(MIN_LEVEL, Math.min(MAX_LEVEL, n));
 

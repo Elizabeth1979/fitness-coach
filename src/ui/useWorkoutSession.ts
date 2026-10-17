@@ -9,6 +9,7 @@ import { createBeats } from '../feedback/beats';
 import { requestWakeLock, releaseWakeLock } from '../pwa/wakeLock';
 import { getPrefs, setPrefs, saveCheckpoint, clearCheckpoint } from '../storage/store';
 import { localDate } from '../domain/date';
+import { previousMoveStart } from './format';
 
 const IDLE: SessionState = { status: 'idle', segmentIndex: 0, segment: null, segmentRemainingSec: 0 };
 
@@ -57,8 +58,12 @@ export function useWorkoutSession(workout: Workout | null, onFinished: (complete
         if (e.cue.say) { beats.duck(e.cue.say); coach.speak(e.cue.say); }
         if (e.cue.haptic) feedback.fire(e.cue.haptic);
       } else if (e.type === 'finished') {
-        setState(session.getState());
-        clearCheckpoint();
+        const s = session.getState();
+        setState(s);
+        // Ending early (✕) keeps the spot, so Home offers Resume (Elli tapped ✕ by
+        // mistake and lost her workout). A real finish — or ✕ on the closing
+        // "Great job" — is done with it.
+        if (e.completed || s.segment?.kind === 'celebrate') clearCheckpoint();
         beats.stop();
         void releaseWakeLock();
         finished(e.completed);
@@ -103,6 +108,15 @@ export function useWorkoutSession(workout: Workout | null, onFinished: (complete
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, [pause]);
   const skip = useCallback(() => { coach.cancel(); sessionRef.current?.skip(); }, [coach]);
+  // Back to the start of the move before (its changeover names it and counts in again).
+  const back = useCallback(() => {
+    const session = sessionRef.current;
+    if (!session || !workout) return;
+    const to = previousMoveStart(workout, session.getState().segmentIndex);
+    if (to === undefined) return;
+    coach.cancel();
+    session.jumpTo(to);
+  }, [coach, workout]);
   const end = useCallback(() => {
     coach.cancel();
     sessionRef.current?.end();
@@ -120,5 +134,5 @@ export function useWorkoutSession(workout: Workout | null, onFinished: (complete
     setPrefs({ ...getPrefs(), music: next });
   }, [beats, musicOn]);
 
-  return { state, start, pause, resume, skip, end, musicOn, toggleMusic, musicAvailable: beats.available };
+  return { state, start, pause, resume, skip, back, end, musicOn, toggleMusic, musicAvailable: beats.available };
 }
