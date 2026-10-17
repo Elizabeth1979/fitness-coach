@@ -18,29 +18,30 @@ const today = (): string => localDate(new Date());
 
 export default function App() {
   const [phase, setPhase] = useState<'home' | 'active' | 'done'>('home');
-  const initialKind: WorkoutKind = '20min';
-  const initialSeed = localDayNumber(new Date());
-  const [kind, setKind] = useState<WorkoutKind>(initialKind);
-  const [seed, setSeed] = useState<number>(initialSeed);
-  const initialStyle: WorkoutStyle = getPrefs().style ?? 'circuit';
-  const [style, setStyle] = useState<WorkoutStyle>(initialStyle);
+  // Read once when the app opens: the day (seed + focus) and the warm-up history.
+  const [openedAt] = useState(() => new Date());
+  const [recentThemes] = useState(getRecentThemes);
+  const [kind, setKind] = useState<WorkoutKind>('20min');
+  const [seed, setSeed] = useState(() => localDayNumber(openedAt));
+  const [style, setStyle] = useState<WorkoutStyle>(() => getPrefs().style ?? 'circuit');
   const [warmupTheme, setWarmupTheme] = useState<string | undefined>(undefined);
   // Pre-select today's sore area from the last session (recover what you trained).
-  const initialSore: SoreArea = suggestedSore();
-  const [sore, setSore] = useState<SoreArea>(initialSore);
+  const [soreSuggested] = useState(suggestedSore);
+  const [sore, setSore] = useState<SoreArea>(soreSuggested);
   const [equipment, setEquipment] = useState<Equipment[]>(() => getPrefs().equipment);
-  const [preview, setPreview] = useState<Workout>(() =>
-    generateWorkout({ kind: initialKind, date: new Date(), equipment, recentThemeIds: getRecentThemes(), seed: initialSeed, style: initialStyle, sore: initialSore }));
+  // Today's workout follows from the choices above. A swapped move is kept only
+  // while those choices stay the same (it belongs to the workout it was made on).
+  const generated = useMemo(
+    () => generateWorkout({ kind, date: openedAt, equipment, recentThemeIds: recentThemes, seed, style, warmupThemeId: warmupTheme, sore }),
+    [kind, openedAt, equipment, recentThemes, seed, style, warmupTheme, sore]);
+  const [swapped, setSwapped] = useState<{ base: Workout; workout: Workout } | null>(null);
+  const preview = swapped?.base === generated ? swapped.workout : generated;
   const [workout, setWorkout] = useState<Workout | null>(null);
-  const [streak, setStreak] = useState(0);
+  const [streak, setStreak] = useState(() => currentStreak(today()));
   const [resumeFrom, setResumeFrom] = useState<{ index: number; elapsedSec: number } | null>(null);
   const [checkpoint, setCheckpoint] = useState<Checkpoint | null>(() => getCheckpoint(today()));
   const [openPrepare, setOpenPrepare] = useState<number | null>(null);
-  const { state, completed, start, pause, resume, skip, end, musicOn, toggleMusic, musicAvailable } = useWorkoutSession(workout);
-
-  useEffect(() => {
-    setPreview(generateWorkout({ kind, date: new Date(), equipment, recentThemeIds: getRecentThemes(), seed, style, warmupThemeId: warmupTheme, sore }));
-  }, [kind, seed, style, warmupTheme, sore, equipment]);
+  const { state, start, pause, resume, skip, end, musicOn, toggleMusic, musicAvailable } = useWorkoutSession(workout, handleFinished);
 
   function handleSore(s: SoreArea) { setWarmupTheme(undefined); setSore(s); }
 
@@ -67,10 +68,21 @@ export default function App() {
   // A new app version can only reload the page while you're on the home screen.
   useEffect(() => { setBusy(phase !== 'home'); }, [phase]);
 
-  useEffect(() => {
+  function goHome() {
+    setWorkout(null);
+    setPhase('home');
+    setCheckpoint(getCheckpoint(today())); // an unfinished workout can be resumed
+  }
+  // Only a natural finish counts towards the streak; ending early just goes home.
+  function handleFinished(completed: boolean) {
+    if (!workout) return;
+    if (!completed) { goHome(); return; }
+    recordCompletion({ date: today(), kind: workout.kind, focus: workout.focus,
+      exerciseIds: [...new Set(workout.segments.flatMap((s) => (s.exercise ? [s.exercise.id] : [])))],
+      durationSec: workout.segments.reduce((a, s) => a + s.durationSec, 0), sore });
     setStreak(currentStreak(today()));
-    if (phase === 'home') setCheckpoint(getCheckpoint(today()));
-  }, [phase]);
+    setPhase('done');
+  }
 
   const categories = useMemo<Category[]>(
     () => (workout?.segments.map((s) => s.exercise?.category).filter(Boolean) as Category[]) ?? [], [workout]);
@@ -82,7 +94,7 @@ export default function App() {
     setPhase('active');
   }
   function handleSwap(prepareIndex: number) {
-    setPreview((w) => swapMove(w, prepareIndex, equipment, createRng(Math.floor(Math.random() * 1e9))));
+    setSwapped({ base: generated, workout: swapMove(preview, prepareIndex, equipment, createRng(Math.floor(Math.random() * 1e9))) });
   }
   function handleResume() {
     const cp = getCheckpoint(today()); if (!cp) return;
@@ -94,22 +106,11 @@ export default function App() {
     if (phase === 'active' && state.status === 'idle' && workout) start(resumeFrom ?? undefined);
   }, [phase, state.status, workout, start, resumeFrom]);
 
-  useEffect(() => {
-    if (phase === 'active' && state.status === 'done' && workout) {
-      if (completed) {
-        recordCompletion({ date: today(), kind: workout.kind, focus: workout.focus,
-          exerciseIds: [...new Set(workout.segments.flatMap((s) => (s.exercise ? [s.exercise.id] : [])))],
-          durationSec: workout.segments.reduce((a, s) => a + s.durationSec, 0), sore });
-        setPhase('done');
-      } else { setWorkout(null); setPhase('home'); }
-    }
-  }, [phase, state.status, completed, workout, sore]);
-
   if (phase === 'home') return (
     <>
       <HomeScreen workout={preview} kind={kind} onKind={handleKind} streak={streak}
         style={style} onStyle={handleStyle} onSwapWarmup={handleSwapWarmup}
-        sore={sore} onSore={handleSore} soreSuggested={initialSore}
+        sore={sore} onSore={handleSore} soreSuggested={soreSuggested}
         canResume={!!checkpoint} onResume={handleResume} onReroll={handleReroll}
         onStart={handleStart} onOpenMove={setOpenPrepare}
         equipment={equipment} onEquipment={handleEquipment}
@@ -120,7 +121,7 @@ export default function App() {
       )}
     </>
   );
-  if (phase === 'done') return <DoneScreen categories={categories} streak={streak} workout={workout} onHome={() => { setWorkout(null); setPhase('home'); }} />;
+  if (phase === 'done') return <DoneScreen categories={categories} streak={streak} workout={workout} onHome={goHome} />;
   return <ActiveScreen state={state} workout={workout!} onPause={pause} onResume={resume} onSkip={skip} onEnd={end}
     musicOn={musicOn} onToggleMusic={toggleMusic} musicAvailable={musicAvailable} />;
 }

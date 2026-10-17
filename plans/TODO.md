@@ -5,7 +5,7 @@
 Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md`](sessions/2026-10-16.md).
 **Merged:** PR #13 — four bug fixes (leave-the-app pause + Pause/Resume, wake lock, local dates, storage
 safety). Check on Elli's phone: lock the screen mid-workout → comes back paused, screen stays on after.
-**Merged:** PR #14 (security headers), PR #15 (audit 0, Dependabot, lint gate). **Open:** draft PR — exact-second same-day Resume + equipment toggle.
+**Merged:** PR #14 (security headers), #15 (audit 0, Dependabot, lint gate), #21 (exact-second Resume, equipment toggle, Y-T-W), Dependabot #16/#19/#20. **Open:** draft PR — React lint fixes (unblocks Dependabot #17).
 `gh-pages` is a redirect — keep it.
 
 ### Next — from the 2026-10-16 review plan (see the session log's "Evening" section)
@@ -14,7 +14,7 @@ safety). Check on Elli's phone: lock the screen mid-workout → comes back pause
 - [ ] Elli: turn on **Dependabot alerts + security updates** in GitHub → Settings → Code security (a repo setting, not a file).
 - [x] Resume: same day only, from the exact second. Equipment toggle (Everything / Bodyweight only) — PR open.
 - [x] Bodyweight pull move: Prone Y-T-W Raises (Elli: yes) — in PR #21.
-- [ ] Dependabot #17 (dev tools incl. oxlint 1.88) is blocked by 11 new React lint findings — fix the code (not the rules), then it goes green.
+- [x] Fixed the 11 React lint findings oxlint 1.88 raised (code, not rules) — PR open; then Dependabot rebases #17 and it can merge.
 - [ ] Read prefs once in `App`; inline styles → `index.css` classes; ask Elli which Change-sheet options she uses.
 
 **First, check with Elli:** did re-adding the app to her home screen from the Vercel address

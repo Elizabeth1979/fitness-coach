@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { Equipment, SoreArea, Workout, WorkoutKind, WorkoutStyle } from '../domain/types';
 import { ALL_EQUIPMENT } from '../domain/exercises';
-import { focusForDate } from '../generator/schedule';
 import { getPrefs, setPrefs } from '../storage/store';
 import { useVoices } from './useVoices';
 import { VoicePicker } from './VoicePicker';
@@ -44,7 +43,8 @@ const total = (w: Workout) => Math.round(w.segments.reduce((s, x) => s + x.durat
 // Every option lives behind a single "Change workout" sheet.
 export function HomeScreen(p: Props) {
   const [changing, setChanging] = useState(false);
-  const focus = focusForDate(new Date());
+  const [hello] = useState(() => greeting(new Date())); // read the clock once, not on every render
+  const focus = p.workout.focus;
   const warmups = warmupMoves(p.workout);
   const warmName = warmupFlowName(p.workout.warmupThemeId);
   const cores = coreMoves(p.workout);
@@ -56,7 +56,7 @@ export function HomeScreen(p: Props) {
     <main className="screen" style={{ paddingBottom: 0 }}>
       <div className="row-between" style={{ marginBottom: 18 }}>
         <div>
-          <div className="muted" style={{ fontSize: 16 }}>{greeting(new Date())}, Elli <span aria-hidden="true">👋</span></div>
+          <div className="muted" style={{ fontSize: 16 }}>{hello}, Elli <span aria-hidden="true">👋</span></div>
           <h1 className="t-hero">Move With Elli</h1>
         </div>
         {p.streak > 0 && (
