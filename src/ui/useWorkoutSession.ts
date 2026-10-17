@@ -3,6 +3,7 @@ import type { Workout } from '../domain/types';
 import { WorkoutSession, type SessionState } from '../engine/session';
 import { RafClock } from '../engine/clock';
 import { createCoach } from '../coach/coach';
+import { resumeLine } from '../coach/resumeLine';
 import { createFeedback } from '../feedback/feedback';
 import { createBeats } from '../feedback/beats';
 import { requestWakeLock, releaseWakeLock } from '../pwa/wakeLock';
@@ -67,6 +68,14 @@ export function useWorkoutSession(workout: Workout | null, onFinished: (complete
     return () => { disposed = true; session.end(); coach.cancel(); beats.stop(); void releaseWakeLock(); };
   }, [workout, coach, feedback, beats]);
 
+  // After Resume (or picking up a saved workout), say what we're doing: the line
+  // that was cut off. Ducks the beats like any cue.
+  const sayWhereWeAre = useCallback(() => {
+    const s = sessionRef.current?.getState();
+    const line = s ? resumeLine(s.segment, (s.segment?.durationSec ?? 0) - s.segmentRemainingSec) : null;
+    if (line) { beats.duck(line); coach.speak(line); }
+  }, [coach, beats]);
+
   const start = useCallback((from?: { index: number; elapsedSec: number }) => {
     const v = getPrefs().voiceURI;
     if (v) coach.setVoiceURI(v);
@@ -74,9 +83,9 @@ export function useWorkoutSession(workout: Workout | null, onFinished: (complete
     void requestWakeLock();
     beats.start();
     beats.setMuted(!musicOn);
-    if (from) sessionRef.current?.startAt(from.index, from.elapsedSec);
+    if (from) { sessionRef.current?.startAt(from.index, from.elapsedSec); sayWhereWeAre(); }
     else sessionRef.current?.start();
-  }, [coach, beats, musicOn]);
+  }, [coach, beats, musicOn, sayWhereWeAre]);
   // Pause, Skip and End also stop the coach mid-sentence: speech is queued, so
   // otherwise it talks on after Pause, and a skipped move's line delays the next one.
   const pause = useCallback(() => { sessionRef.current?.pause(); coach.cancel(); beats.stop(); }, [coach, beats]);
@@ -84,7 +93,8 @@ export function useWorkoutSession(workout: Workout | null, onFinished: (complete
     sessionRef.current?.resume();
     beats.start();
     beats.setMuted(!musicOn);
-  }, [beats, musicOn]);
+    sayWhereWeAre();
+  }, [beats, musicOn, sayWhereWeAre]);
   // Leaving the app (screen locked, another app in front) pauses the workout, so
   // you come back to a Resume button instead of a coach who carried on without you.
   useEffect(() => {

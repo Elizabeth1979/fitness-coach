@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import type { Category, Workout } from '../domain/types';
 import { loadStore } from '../storage/store';
 import { WeekView } from './WeekView';
@@ -7,6 +7,14 @@ import { Icon } from './Icon';
 import { useTapGuard } from './useTapGuard';
 import { localDate } from '../domain/date';
 import { trainingSec } from '../domain/workout';
+import type { Feel } from '../generator/effort';
+
+// "How did that feel?" — one tap nudges the next workouts (generator/effort.ts).
+const FEELS: { id: Feel; label: string; reply: string }[] = [
+  { id: 'easy', label: 'Too easy', reply: 'Got it — next time a little harder.' },
+  { id: 'right', label: 'Just right', reply: "Great — we'll keep it like this." },
+  { id: 'hard', label: 'Too hard', reply: 'Got it — next time a little easier.' },
+];
 
 // A fixed confetti burst (no RNG — keeps things deterministic & calm). Its colours
 // come from index.css (--confetti-*): the "done" greens plus near-black, no rainbow.
@@ -17,9 +25,11 @@ const CONFETTI = [
   { left: '88%', delay: '150ms' }, { left: '13%', delay: '300ms' }, { left: '92%', delay: '230ms' },
 ];
 
-interface Props { categories: Category[]; streak: number; workout: Workout | null; onHome: () => void }
+interface Props { categories: Category[]; streak: number; workout: Workout | null; onHome: () => void; onFeel?: (f: Feel) => void }
 
-export function DoneScreen({ categories, streak, workout, onHome }: Props) {
+export function DoneScreen({ categories, streak, workout, onHome, onFeel }: Props) {
+  const [feel, setFeel] = useState<Feel | null>(null);
+  const feelLabel = useId();
   const practiced = useMemo(() => {
     const seen = new Set<string>();
     const out: { key: string; label: string }[] = [];
@@ -58,6 +68,19 @@ export function DoneScreen({ categories, streak, workout, onHome }: Props) {
           {practiced.map((p) => <span key={p.key} className="pill done-chip"><Icon name="check" size={16} className="icon-brand" />{p.label}</span>)}
         </div>
       </div>
+
+      {onFeel && (
+        <section className="card done-feel">
+          <h2 className="t-panel done-feel-title" id={feelLabel}>How did that feel?</h2>
+          <div role="radiogroup" aria-labelledby={feelLabel} className="choices">
+            {FEELS.map((f) => (
+              <button key={f.id} role="radio" aria-checked={feel === f.id} className="choice choice--block"
+                onClick={() => { setFeel(f.id); onFeel(f.id); }}>{f.label}</button>
+            ))}
+          </div>
+          <p className="hint field-note" role="status">{FEELS.find((f) => f.id === feel)?.reply}</p>
+        </section>
+      )}
 
       <WeekView dates={dates} today={today} />
 

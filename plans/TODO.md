@@ -15,6 +15,10 @@ All fixed + tests (see the session log).
 **Then:** the phone's Back button steps back inside the app (sheet → closed, workout → paused + Home with
 Resume, Done → Home) instead of quitting it; fixed a negative first-frame time that dropped the Resume point.
 
+**Then:** "How did that feel?" on Done → next workouts adjust (reps/rests); Resume re-says what was cut off;
+dark mode (follows the phone); Change sheet: sore + circuit/stations folded under "More options" (Elli wanted
+them kept, just out of the way).
+
 **Ask Elli after #25:** is the intro the right length (~25s), and does she want the warm-up name / core shown on the intro screen too (now: spoken only)?
 
 **Elli only:** (1) on the phone, lock the screen mid-workout → comes back paused, screen stays on after Resume;
@@ -31,7 +35,7 @@ Resume, Done → Home) instead of quitting it; fixed a negative first-frame time
 - [x] Design: inline styles → `index.css` classes (only runtime values stay inline; guarded by a test) — PR #25.
 - [x] Intro before the timer (what's waiting + first move + count-in, not counted in the minutes) and a "time left" clock — PR #25.
 - [ ] Optional tidy-up: unify near-duplicate spacings the refactor kept exact (row gaps 8/9/10px, Done streak pill 1px tighter than Home's).
-- [ ] Ask Elli: dark mode? Which Change-sheet options does she use (cut the rest; stations-vs-circuit first)?
+- [x] Dark mode (follows the phone) + Change sheet trimmed to 3 up front, the rest under "More options".
 
 **First, check with Elli:** did re-adding the app to her home screen from the Vercel address
 show the new design **and the new green play-button icon**? (Old installs from `github.io` now

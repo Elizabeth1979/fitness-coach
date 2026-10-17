@@ -91,7 +91,9 @@ reusable classes `.card`/`.btn`/`.pill`/…, plus per-screen classes `home-*`/`d
 **no inline styles** except values computed at runtime (progress bar, confetti positions) — guarded by
 `src/ui/inlineStyles.test.ts`. Add a `:root` token or a class, and switch states with `data-*`/`aria-*`
 selectors (e.g. the timer and rest screen use `data-tone="rest"`, the week strip `data-today`). Icon
-colours: `<Icon className="icon-warm" />`. Every bottom sheet uses `src/ui/Sheet.tsx` (focus in, Tab
+colours: `<Icon className="icon-warm" />`. **Dark mode** follows the phone (`prefers-color-scheme`, no toggle):
+the `@media` block re-defines the same tokens, so never hard-code a colour; text on `--accent` uses
+`--on-accent`, green text uses `--brand-text` (all text pairs ≥ 4.5:1). Every bottom sheet uses `src/ui/Sheet.tsx` (focus in, Tab
 trapped, Escape closes, focus returns). Tailwind is imported, so **don't name a class after a
 Tailwind utility** (`ring`, `shadow`, `block`, …) — it silently inherits that utility's styles. Icons are inline SVGs from
 `@tabler/icons-react`, all listed in `src/ui/Icon.tsx` (`<Icon name="clock" />` — add new ones to
@@ -155,6 +157,17 @@ its map; never re-add the 5,000-icon webfont).
   `fireEvent.click` in tests is unaffected; pass `{ detail: 1 }` to test as a tap. Nothing in a sheet may
   appear late and push the buttons around (the voice picker is there, disabled, before the voices load).
   Pause/Skip/End also `coach.cancel()` — speech is queued, so the coach otherwise talks on after Pause.
+- **Effort level (`generator/effort.ts`):** Done asks "How did that feel?" (Too easy / Just right / Too hard);
+  `nextLevel` moves `Prefs.level` one step (−2…+3, relative to the level the workout was made at, so changing
+  the answer doesn't add up). The length is fixed, so a higher level = more reps (`Segment.reps`, ±15%/level,
+  shown by `formatTarget`) + shorter round/set rests (−5s/level, ≥20s); lower = fewer reps only (longer rests
+  would overflow a 30-min stations budget). `Workout.level` lets `swapMove` give a swapped-in move its reps.
+- **Resume says where you are (`coach/resumeLine.ts`):** Pause cuts the coach off, so Resume (and picking up a
+  saved workout) re-says the move's name + how-to ("Back to it: …") or what the rest/intro announced — only if
+  it ends before the segment's next cue.
+- **Change sheet:** How long · Equipment · Coach voice up front; "Anything sore?" and "How to repeat" fold
+  under a native `<details>` "More options", which opens by itself when one of them is in use (never hidden
+  while it shapes the workout).
 - **Back button (`ui/useBackButton.ts`):** while a sheet is open or you're off Home, one extra history entry
   catches the phone's Back: a sheet closes; mid-workout it pauses (saving the spot) and goes Home with Resume;
   Done goes Home. Closing a layer with its own button pops the entry, so Back on Home still leaves the app.

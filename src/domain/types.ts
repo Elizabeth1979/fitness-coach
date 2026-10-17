@@ -42,6 +42,8 @@ export interface Segment {
   // 'core' = the abs finisher at the very end (before celebrate).
   block?: 'core';
   durationSec: number;
+  // The rep target of a rep-counted move at the workout's effort level.
+  reps?: number;
   cues: Cue[];
 }
 
@@ -62,5 +64,7 @@ export interface Workout {
   rounds: number;
   style: WorkoutStyle;
   warmupThemeId?: string;
+  // Effort level from "How did that feel?" (0 = default; see generator/effort.ts).
+  level?: number;
   segments: Segment[];
 }

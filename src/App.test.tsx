@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import App from './App';
+import { recordCompletion } from './storage/store';
+
+const recordCompletionWithSore = (sore: 'shoulders' | 'legs') =>
+  recordCompletion({ date: '2026-06-24', kind: '20min', focus: 'movement', exerciseIds: ['x'], durationSec: 1200, sore });
 
 const todaysList = () => within(screen.getByRole('region', { name: "Today's workout" }));
 const firstMove = () => todaysList().getAllByRole('button', { name: /Tap to (swap this move|see how to do it)/ })[0];
@@ -61,9 +65,26 @@ describe('App — every button does its one job', () => {
     expect(moveNames()).not.toEqual(moves);
   });
 
+  it('the less-used settings fold away under More options', () => {
+    render(<App />);
+    openChange();
+    const more = screen.getByText('More options').closest('details')!;
+    expect(more.open).toBe(false);
+    fireEvent.click(screen.getByText('More options'));
+    expect(more.open).toBe(true);
+  });
+
+  it('More options opens by itself when one of its settings is in use', () => {
+    recordCompletionWithSore('shoulders'); // last time: shoulders → today suggests resting legs
+    render(<App />);
+    openChange();
+    expect(screen.getByText('More options').closest('details')!.open).toBe(true);
+  });
+
   it('each Change-sheet choice selects only itself', () => {
     render(<App />);
     openChange();
+    fireEvent.click(screen.getByText('More options'));
     for (const [group, label] of [['Workout length', '30 min'], ['Sore area', 'Back'], ['Workout style', 'Stations'], ['Equipment', 'Bodyweight only']]) {
       const radio = pick(group, label);
       expect(radio).toHaveAttribute('aria-checked', 'true');
@@ -141,5 +162,22 @@ describe('App — the phone\'s Back button steps back inside the app', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Done' }));
     await waitFor(() => expect(history.state).toBeNull()); // our extra entry is gone again
     expect(history.length).toBeGreaterThanOrEqual(before);
+  });
+});
+
+describe('App — "How did that feel?" changes the next workout', () => {
+  const totalReps = () => moveLabels().reduce((a, l) => a + Number(/(\d+) reps/.exec(l)?.[1] ?? 0), 0);
+  const moveLabels = () => todaysList().getAllByRole('button', { name: /Tap to/ }).map((b) => b.getAttribute('aria-label') ?? '');
+
+  it('"Too easy" after finishing → more reps on Home', () => {
+    render(<App />);
+    const before = totalReps();
+    fireEvent.click(screen.getByRole('button', { name: 'Start workout' }));
+    for (let i = 0; i < 300 && !screen.queryByText('How did that feel?'); i++) {
+      fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
+    }
+    fireEvent.click(screen.getByRole('radio', { name: 'Too easy' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    expect(totalReps()).toBeGreaterThan(before);
   });
 });

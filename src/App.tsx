@@ -15,6 +15,7 @@ import type { Checkpoint } from './storage/store';
 import { setBusy } from './pwa/update';
 import { useBackButton } from './ui/useBackButton';
 import { localDate, localDayNumber } from './domain/date';
+import { nextLevel, type Feel } from './generator/effort';
 
 const today = (): string => localDate(new Date());
 
@@ -31,11 +32,13 @@ export default function App() {
   const [soreSuggested] = useState(suggestedSore);
   const [sore, setSore] = useState<SoreArea>(soreSuggested);
   const [equipment, setEquipment] = useState<Equipment[]>(() => getPrefs().equipment);
+  // Effort level, nudged by "How did that feel?" after each workout.
+  const [level, setLevel] = useState(() => getPrefs().level ?? 0);
   // Today's workout follows from the choices above. A swapped move is kept only
   // while those choices stay the same (it belongs to the workout it was made on).
   const generated = useMemo(
-    () => generateWorkout({ kind, date: openedAt, equipment, recentThemeIds: recentThemes, seed, style, warmupThemeId: warmupTheme, sore }),
-    [kind, openedAt, equipment, recentThemes, seed, style, warmupTheme, sore]);
+    () => generateWorkout({ kind, date: openedAt, equipment, recentThemeIds: recentThemes, seed, style, warmupThemeId: warmupTheme, sore, level }),
+    [kind, openedAt, equipment, recentThemes, seed, style, warmupTheme, sore, level]);
   const [swapped, setSwapped] = useState<{ base: Workout; workout: Workout } | null>(null);
   const preview = swapped?.base === generated ? swapped.workout : generated;
   const [workout, setWorkout] = useState<Workout | null>(null);
@@ -93,6 +96,13 @@ export default function App() {
     setPhase('done');
   }
 
+  // Relative to the level this workout was made at, so changing your answer doesn't add up.
+  function handleFeel(f: Feel) {
+    const next = nextLevel(workout?.level ?? 0, f);
+    setLevel(next);
+    setPrefs({ ...getPrefs(), level: next });
+  }
+
   const categories = useMemo<Category[]>(
     () => (workout?.segments.map((s) => s.exercise?.category).filter(Boolean) as Category[]) ?? [], [workout]);
 
@@ -130,7 +140,7 @@ export default function App() {
       )}
     </>
   );
-  if (phase === 'done') return <DoneScreen categories={categories} streak={streak} workout={workout} onHome={goHome} />;
+  if (phase === 'done') return <DoneScreen categories={categories} streak={streak} workout={workout} onHome={goHome} onFeel={handleFeel} />;
   return <ActiveScreen state={state} workout={workout!} onPause={pause} onResume={resume} onSkip={skip} onEnd={end}
     musicOn={musicOn} onToggleMusic={toggleMusic} musicAvailable={musicAvailable} />;
 }

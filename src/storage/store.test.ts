@@ -98,12 +98,12 @@ describe('store — damaged or outdated saved data', () => {
   });
 
   it('replaces prefs it does not recognise with defaults', () => {
-    saveRaw({ prefs: { equipment: ['kettlebell'], style: 'tabata', music: 'yes', voiceURI: 7 } });
+    saveRaw({ prefs: { equipment: ['kettlebell'], style: 'tabata', music: 'yes', voiceURI: 7, level: 9 } });
     expect(getPrefs()).toEqual({ equipment: ['bodyweight', 'pullup_bar', 'weights', 'blocks_bands'] });
   });
 
   it('keeps valid prefs', () => {
-    const prefs = { equipment: ['bodyweight' as const], style: 'stations' as const, music: false, voiceURI: 'v1' };
+    const prefs = { equipment: ['bodyweight' as const], style: 'stations' as const, music: false, voiceURI: 'v1', level: 2 };
     saveRaw({ prefs });
     expect(getPrefs()).toEqual(prefs);
   });
