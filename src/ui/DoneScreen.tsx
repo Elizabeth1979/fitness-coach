@@ -4,6 +4,7 @@ import { loadStore } from '../storage/store';
 import { WeekView } from './WeekView';
 import { catColor } from './categoryColor';
 import { Icon } from './Icon';
+import { useTapGuard } from './useTapGuard';
 import { localDate } from '../domain/date';
 import { trainingSec } from '../domain/workout';
 
@@ -32,8 +33,9 @@ export function DoneScreen({ categories, streak, workout, onHome }: Props) {
   const mins = workout ? Math.round(trainingSec(workout) / 60) : 0;
   const dates = useMemo(() => loadStore().completions.map((c) => c.date), []);
   const [today] = useState(() => localDate(new Date())); // read the clock once, not on every render
+  const guard = useTapGuard();
   return (
-    <main className="screen">
+    <main className="screen" onClickCapture={guard}>
       <div className="done-hero">
         <div aria-hidden="true" className="confetti-layer">
           {CONFETTI.map((p, i) => (

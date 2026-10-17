@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { useTapGuard } from './useTapGuard';
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -11,6 +12,7 @@ interface Props { label: string; onClose: () => void; children: ReactNode }
  */
 export function Sheet({ label, onClose, children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const guard = useTapGuard(); // the tap that opened it can't also hit what's inside
   // Read the latest onClose from the key handler without re-running the effect (and re-focusing) on every render.
   const closeRef = useRef(onClose);
   useEffect(() => { closeRef.current = onClose; }, [onClose]);
@@ -40,7 +42,7 @@ export function Sheet({ label, onClose, children }: Props) {
   }, []);
 
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
+    <div className="sheet-backdrop" onClick={onClose} onClickCapture={guard}>
       <div ref={ref} className="sheet" role="dialog" aria-modal="true" aria-label={label} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>

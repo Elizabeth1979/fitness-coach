@@ -4,8 +4,10 @@ interface Props {
   onChange: (voiceURI: string) => void;
 }
 
+// Phones list their voices a moment after the page opens. The picker is there
+// (disabled) from the start, so the sheet doesn't grow and shift every button
+// up just as you tap.
 export function VoicePicker({ voices, value, onChange }: Props) {
-  if (voices.length === 0) return null;
   const sorted = [...voices].sort(
     (a, b) => Number(b.lang.startsWith('en')) - Number(a.lang.startsWith('en')),
   );
@@ -17,6 +19,7 @@ export function VoicePicker({ voices, value, onChange }: Props) {
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
         className="select"
+        disabled={voices.length === 0}
       >
         <option value="">Default</option>
         {sorted.map((v) => (

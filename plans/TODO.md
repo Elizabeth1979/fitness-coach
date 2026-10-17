@@ -8,6 +8,10 @@ Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md
 **+ the spoken intro before the clock and the "time left" clock** (see [`sessions/2026-10-17.md`](sessions/2026-10-17.md)).
 `gh-pages` is a redirect — keep it.
 
+**Next PR (2026-10-17, later):** buttons — a quick double-tap hit the next screen (double-tap Start skipped the
+intro; double-tap ✕ started a NEW workout); Pause didn't stop the voice; "New warm-up" happened behind the sheet.
+All fixed + tests (see the session log).
+
 **Ask Elli after #25:** is the intro the right length (~25s), and does she want the warm-up name / core shown on the intro screen too (now: spoken only)?
 
 **Elli only:** (1) on the phone, lock the screen mid-workout → comes back paused, screen stays on after Resume;

@@ -64,7 +64,7 @@ export function useWorkoutSession(workout: Workout | null, onFinished: (complete
       }
     });
     sessionRef.current = session;
-    return () => { disposed = true; session.end(); beats.stop(); void releaseWakeLock(); };
+    return () => { disposed = true; session.end(); coach.cancel(); beats.stop(); void releaseWakeLock(); };
   }, [workout, coach, feedback, beats]);
 
   const start = useCallback((from?: { index: number; elapsedSec: number }) => {
@@ -77,7 +77,9 @@ export function useWorkoutSession(workout: Workout | null, onFinished: (complete
     if (from) sessionRef.current?.startAt(from.index, from.elapsedSec);
     else sessionRef.current?.start();
   }, [coach, beats, musicOn]);
-  const pause = useCallback(() => { sessionRef.current?.pause(); beats.stop(); }, [beats]);
+  // Pause, Skip and End also stop the coach mid-sentence: speech is queued, so
+  // otherwise it talks on after Pause, and a skipped move's line delays the next one.
+  const pause = useCallback(() => { sessionRef.current?.pause(); coach.cancel(); beats.stop(); }, [coach, beats]);
   const resume = useCallback(() => {
     sessionRef.current?.resume();
     beats.start();
@@ -90,12 +92,13 @@ export function useWorkoutSession(workout: Workout | null, onFinished: (complete
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, [pause]);
-  const skip = useCallback(() => sessionRef.current?.skip(), []);
+  const skip = useCallback(() => { coach.cancel(); sessionRef.current?.skip(); }, [coach]);
   const end = useCallback(() => {
+    coach.cancel();
     sessionRef.current?.end();
     beats.stop();
     void releaseWakeLock();
-  }, [beats]);
+  }, [coach, beats]);
 
   // Toggle the background beats live (and remember the choice). The side effects
   // stay out of the state updater, which React may run twice.

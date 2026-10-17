@@ -22,8 +22,10 @@ describe('VoicePicker', () => {
     expect(onChange).toHaveBeenCalledWith('uri-fr');
   });
 
-  it('returns null when voices list is empty', () => {
-    const { container } = render(<VoicePicker voices={[]} value={undefined} onChange={() => {}} />);
-    expect(container.firstChild).toBeNull();
+  it('holds its place while the voices load: disabled, with just Default', () => {
+    render(<VoicePicker voices={[]} value={undefined} onChange={() => {}} />);
+    const select = screen.getByRole('combobox', { name: /coach voice/i });
+    expect(select).toBeDisabled();
+    expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(['Default']);
   });
 });
