@@ -229,3 +229,8 @@ backlog are in `docs/NEXT-STEPS.md`.
 
 **Session rhythm:** start by reading `plans/TODO.md` (the "resume here" entry); end by writing a
 session log in `plans/sessions/YYYY-MM-DD.md` and refreshing `plans/TODO.md`.
+**Keep the docs current in the same PR as the change:**
+- anything a user would notice → `README.md` "What it does";
+- a new rule, gotcha or lesson learned → `CLAUDE.md`;
+- what happened → the session log + `plans/TODO.md`.
+Don't put counts that go stale (tests, files) in the docs.

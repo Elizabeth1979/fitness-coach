@@ -1,32 +1,23 @@
 # TODO — Move With Elli (workspace memory)
 
-## ▶ RESUME HERE (last session: 2026-10-16 → 17)
+## ▶ RESUME HERE (last session: 2026-10-17)
 
-Live on https://fitness-coach-peach.vercel.app/ — see [`sessions/2026-10-16.md`](sessions/2026-10-16.md).
-**Everything is merged** (#13 bugs, #14 headers, #15 audit/Dependabot/lint gate, #21 Resume/equipment/Y-T-W,
-#23 React lint fixes, Dependabot #16/#19/#20/#22; #18 closed). Open: draft PR #25 — inline styles → classes
-**+ the spoken intro before the clock and the "time left" clock** (see [`sessions/2026-10-17.md`](sessions/2026-10-17.md)).
-`gh-pages` is a redirect — keep it.
+Live on https://fitness-coach-peach.vercel.app/. **Everything is merged; no open PRs.** `gh-pages` is a redirect, so keep it.
+The 2026-10-17 PRs (details in [`sessions/2026-10-17.md`](sessions/2026-10-17.md)):
+- #25 spoken intro + the time-left clock
+- #26 double-taps / Pause silences the coach / warm-up behind the sheet
+- #27 phone Back button stays in the app
+- #28 "How did that feel?" levels, Resume re-says, dark mode, "More options"
+- #29 tidy-up + offline check
+- #30 README / CLAUDE.md learnings
 
-**Next PR (2026-10-17, later):** buttons — a quick double-tap hit the next screen (double-tap Start skipped the
-intro; double-tap ✕ started a NEW workout); Pause didn't stop the voice; "New warm-up" happened behind the sheet.
-All fixed + tests (see the session log).
+**Next: no new features until Elli has done 3–4 real workouts on her phone.** Then work from her notes.
+Ask her: is the intro the right length (~25s)?
 
-**Then:** the phone's Back button steps back inside the app (sheet → closed, workout → paused + Home with
-Resume, Done → Home) instead of quitting it; fixed a negative first-frame time that dropped the Resume point.
-
-**Then:** "How did that feel?" on Done → next workouts adjust (reps/rests); Resume re-says what was cut off;
-dark mode (follows the phone); Change sheet: sore + circuit/stations folded under "More options" (Elli wanted
-them kept, just out of the way).
-
-**Then:** offline checked in a browser (server off + network off → Home + a full workout run, no errors);
-tidy-up of today's leftovers: one `secsToSay` (was 3 copies), one `trainingMin` (was 3), dead `.btn-sm`, stale docs.
-
-**Ask Elli after #25:** is the intro the right length (~25s), and does she want the warm-up name / core shown on the intro screen too (now: spoken only)?
-
-**Elli only:** (1) on the phone, lock the screen mid-workout → comes back paused, screen stays on after Resume;
-(2) turn on Dependabot alerts + security updates at https://github.com/elizabeth1979/fitness-coach/settings/security_analysis;
-(3) airplane mode on the phone → open the installed app → run a workout (browser check passed; a phone is the real test).
+**Elli only:**
+1. On the phone, lock the screen mid-workout. It should come back paused, and the screen should stay on after Resume.
+2. Turn on Dependabot alerts + security updates at https://github.com/elizabeth1979/fitness-coach/settings/security_analysis
+3. Airplane mode → open the installed app → run a workout (the browser check passed).
 
 ### Next — from the 2026-10-16 review plan (see the session log's "Evening" section)
 - [x] Security headers in `vercel.json` (CSP, nosniff, Referrer-Policy, COOP, Permissions-Policy) — merged, PR #14.
