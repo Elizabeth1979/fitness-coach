@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import type { Workout } from '../domain/types';
 import { WorkoutSession, type SessionState } from '../engine/session';
 import { RafClock } from '../engine/clock';
@@ -11,31 +11,29 @@ import { localDate } from '../domain/date';
 
 const IDLE: SessionState = { status: 'idle', segmentIndex: 0, segment: null, segmentRemainingSec: 0 };
 
-export function useWorkoutSession(workout: Workout | null) {
+/** Plays `workout`; `onFinished(completed)` runs once when it ends (true only for a natural finish). */
+export function useWorkoutSession(workout: Workout | null, onFinished: (completed: boolean) => void) {
   const coach = useMemo(() => createCoach(), []);
   const feedback = useMemo(() => createFeedback(), []);
   const beats = useMemo(() => createBeats(), []);
   const sessionRef = useRef<WorkoutSession | null>(null);
   const [state, setState] = useState<SessionState>(IDLE);
-  const [completed, setCompleted] = useState(false);
   // Background beats: on by default; mutable mid-workout and persisted.
   const [musicOn, setMusicOn] = useState<boolean>(() => getPrefs().music !== false);
-  const musicOnRef = useRef(musicOn);
-  musicOnRef.current = musicOn;
+  const finished = useEffectEvent(onFinished);
 
-  // Reset synchronously when the workout changes, so a finished workout never
-  // leaks its 'done'/'completed' state into the next one (the finish effect in
-  // App keys on state.status === 'done').
-  const prevWorkout = useRef<Workout | null>(workout);
-  if (prevWorkout.current !== workout) {
-    prevWorkout.current = workout;
+  // Reset while rendering when the workout changes, so a finished workout never
+  // leaks its 'done' state into the next one (React's "adjust state when a prop
+  // changes" pattern: remember the previous value in state, not a ref).
+  const [shownWorkout, setShownWorkout] = useState(workout);
+  if (shownWorkout !== workout) {
+    setShownWorkout(workout);
     setState(IDLE);
-    setCompleted(false);
   }
 
   useEffect(() => {
     if (!workout) return;
-    setCompleted(false);
+    let disposed = false; // put away (workout changed / unmounted): not a finish
     const clock = new RafClock();
     // Where to pick up after leaving: saved when each segment starts, and to the
     // second on pause (leaving the app pauses too). Not during the celebration.
@@ -44,6 +42,7 @@ export function useWorkoutSession(workout: Workout | null) {
       saveCheckpoint({ workout, segmentIndex: s.segmentIndex, elapsedSec: s.segment.durationSec - s.segmentRemainingSec, date: localDate(new Date()) });
     };
     const session = new WorkoutSession(workout, clock, (e) => {
+      if (disposed) return;
       if (e.type === 'tick') {
         setState(e.state);
       } else if (e.type === 'statusChanged') {
@@ -58,15 +57,14 @@ export function useWorkoutSession(workout: Workout | null) {
         if (e.cue.haptic) feedback.fire(e.cue.haptic);
       } else if (e.type === 'finished') {
         setState(session.getState());
-        setCompleted(e.completed);
         clearCheckpoint();
         beats.stop();
         void releaseWakeLock();
+        finished(e.completed);
       }
     });
     sessionRef.current = session;
-    setState(session.getState());
-    return () => { session.end(); beats.stop(); void releaseWakeLock(); };
+    return () => { disposed = true; session.end(); beats.stop(); void releaseWakeLock(); };
   }, [workout, coach, feedback, beats]);
 
   const start = useCallback((from?: { index: number; elapsedSec: number }) => {
@@ -75,16 +73,16 @@ export function useWorkoutSession(workout: Workout | null) {
     coach.prime();
     void requestWakeLock();
     beats.start();
-    beats.setMuted(!musicOnRef.current);
+    beats.setMuted(!musicOn);
     if (from) sessionRef.current?.startAt(from.index, from.elapsedSec);
     else sessionRef.current?.start();
-  }, [coach, beats]);
+  }, [coach, beats, musicOn]);
   const pause = useCallback(() => { sessionRef.current?.pause(); beats.stop(); }, [beats]);
   const resume = useCallback(() => {
     sessionRef.current?.resume();
     beats.start();
-    beats.setMuted(!musicOnRef.current);
-  }, [beats]);
+    beats.setMuted(!musicOn);
+  }, [beats, musicOn]);
   // Leaving the app (screen locked, another app in front) pauses the workout, so
   // you come back to a Resume button instead of a coach who carried on without you.
   useEffect(() => {
@@ -99,16 +97,15 @@ export function useWorkoutSession(workout: Workout | null) {
     void releaseWakeLock();
   }, [beats]);
 
-  // Toggle the background beats live (and remember the choice).
+  // Toggle the background beats live (and remember the choice). The side effects
+  // stay out of the state updater, which React may run twice.
   const toggleMusic = useCallback(() => {
-    setMusicOn((on) => {
-      const next = !on;
-      beats.setMuted(!next);
-      if (next) beats.start(); // resume the scheduler if it was stopped
-      setPrefs({ ...getPrefs(), music: next });
-      return next;
-    });
-  }, [beats]);
+    const next = !musicOn;
+    setMusicOn(next);
+    beats.setMuted(!next);
+    if (next) beats.start(); // resume the scheduler if it was stopped
+    setPrefs({ ...getPrefs(), music: next });
+  }, [beats, musicOn]);
 
-  return { state, completed, start, pause, resume, skip, end, musicOn, toggleMusic, musicAvailable: beats.available };
+  return { state, start, pause, resume, skip, end, musicOn, toggleMusic, musicAvailable: beats.available };
 }
