@@ -60,6 +60,7 @@ export const phrases = {
   backTo: (ex: Pick<Exercise, 'name' | 'cue'>): string => `Back to it: ${phrases.howTo(ex)}`,
   getReady: (): string => 'Get ready.',
   switchSides: (): string => 'Switch sides.',
+  otherDirection: (): string => 'Now the other way.',
   coreFinisher: (): string => 'Last bit — core finisher.',
   count: (n: number): string => NUMBER_WORDS[n] ?? String(n),
   encouragements: ENCOURAGEMENTS,
