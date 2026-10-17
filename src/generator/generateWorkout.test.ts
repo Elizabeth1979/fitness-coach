@@ -130,6 +130,27 @@ describe('generateWorkout', () => {
     }
   });
 
+  // Rounding every move to 5s leaves seconds over or short; the closing "Great job" takes them, so
+  // the clock reads 10:00 / 20:00 left when the workout starts (30-min: five rounds make every 5s
+  // step count 25s, so it can end up 2s long — as close as it was before the rounding).
+  it('lands on the length (the closing celebration takes the leftover seconds)', () => {
+    for (const [kind, target] of [['10min', 600], ['20min', 1200], ['30min', 1800]] as const) {
+      for (const style of ['circuit', 'stations'] as const) {
+        for (const date of [WED, TUE]) {
+          for (let seed = 0; seed < 40; seed++) {
+            for (const equipment of [ALL, ['bodyweight'] as Equipment[]]) {
+              const w = generateWorkout({ kind, date, equipment, seed, style });
+              const end = w.segments[w.segments.length - 1];
+              const off = Math.abs(trainingSec(w) - target);
+              expect(off, `${kind}/${style}/seed${seed}`).toBeLessThanOrEqual(kind === '30min' ? 3 : 0);
+              expect(end.durationSec).toBeGreaterThanOrEqual(12);
+            }
+          }
+        }
+      }
+    }
+  });
+
   it('splits unilateral exercises into left and right work segments', () => {
     const w = generateWorkout({ kind: '30min', date: TUE, equipment: ALL, seed: 4 });
     const sides = w.segments.filter((s) => s.side).map((s) => s.side);
