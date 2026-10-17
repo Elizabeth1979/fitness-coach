@@ -116,6 +116,37 @@ function spreadDrift(units: Unit[], drift: number): void {
   }
 }
 
+// Every move's time is a round number on the clock (Elli: a 37s hold "looks weird").
+export const WORK_STEP_SEC = 5;
+
+// Round each move's time to WORK_STEP_SEC, keeping the round's total as close as
+// possible: everything goes down to the step, then the moves that lost the most
+// get a step back while that brings the total closer. Both sides of a one-sided
+// move move together, so they always match.
+function roundToStep(units: Unit[]): void {
+  const target = units.reduce((s, u) => s + u.dur, 0);
+  const groups: Unit[][] = [];
+  for (const u of units) {
+    const last = groups[groups.length - 1];
+    if (u.side === 'right' && last?.[0].ex.id === u.ex.id) last.push(u);
+    else groups.push([u]);
+  }
+  const down = (v: number) => clamp(Math.floor(v / WORK_STEP_SEC) * WORK_STEP_SEC, MIN_WORK_SEC, MAX_WORK_SEC);
+  const lost = groups.map((g) => {
+    const avg = g.reduce((s, u) => s + u.dur, 0) / g.length;
+    for (const u of g) u.dur = down(avg);
+    return avg - g[0].dur;
+  });
+  let short = target - units.reduce((s, u) => s + u.dur, 0);
+  const order = groups.map((_, i) => i).sort((a, b) => lost[b] - lost[a] || a - b);
+  for (const i of order) {
+    const g = groups[i], step = WORK_STEP_SEC * g.length;
+    if (g[0].dur + WORK_STEP_SEC > MAX_WORK_SEC || Math.abs(short - step) >= Math.abs(short)) continue;
+    for (const u of g) u.dur += WORK_STEP_SEC;
+    short -= step;
+  }
+}
+
 function prepareSegment(ex: Exercise, round: number): Segment {
   return { kind: 'prepare', exercise: ex, durationSec: PREPARE_SEC, cues: prepareCues(), round };
 }
@@ -291,6 +322,7 @@ export function generateWorkout(opts: GenerateOptions): Workout {
 
   // Size the main work to fill what's left after warm-up, rests, abs and celebrate.
   spreadDrift(units, (target - baseFixed - absTotal) / rounds - baseWork());
+  roundToStep(units);
 
   const practiced = absSegs.length > 0
     ? [...circuit.map((e) => e.category), 'core' as const]

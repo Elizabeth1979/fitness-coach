@@ -23,6 +23,21 @@ describe('swapMove', () => {
   it('keeps total duration unchanged (durations reused)', () => {
     expect(trainingSec(swapMove(w, prepIdx, ALL, createRng(2)))).toBe(trainingSec(w));
   });
+  it('keeps every move a round number of seconds (a multiple of 5) after any swap', () => {
+    for (const kind of ['10min', '20min', '30min'] as const) {
+      for (let seed = 0; seed < 12; seed++) {
+        const base = generateWorkout({ kind, date: WED, equipment: ALL, seed });
+        base.segments.forEach((seg, idx) => {
+          if (seg.kind !== 'prepare' || seg.round !== 1) return;
+          for (let r = 0; r < 3; r++) {
+            for (const s of swapMove(base, idx, ALL, createRng(r)).segments) {
+              if (s.kind === 'work') expect(s.durationSec % 5, `${kind}/seed${seed} ${s.exercise?.name} ${s.durationSec}s`).toBe(0);
+            }
+          }
+        });
+      }
+    }
+  });
   it('does not mutate the original workout', () => {
     const before = w.segments[prepIdx].exercise!.id;
     swapMove(w, prepIdx, ALL, createRng(3));

@@ -108,6 +108,28 @@ describe('generateWorkout', () => {
     }
   });
 
+  // Elli (#15): "Deep Squat Hold, 37 seconds — weird". Leftover time is spread over the moves, and it
+  // used to land to the second. Every move now gets a round number (a multiple of 5s); sides match.
+  it('gives every move a round number of seconds (a multiple of 5), the same on both sides', () => {
+    for (const kind of ['10min', '20min', '30min'] as const) {
+      for (const style of ['circuit', 'stations'] as const) {
+        for (const date of [WED, TUE]) {
+          for (const [seed, level] of [[1, 0], [2, 0], [3, 1], [4, -2], [5, 3], [6, 0], [7, 0], [8, 2]]) {
+            for (const equipment of [ALL, ['bodyweight'] as Equipment[]]) {
+              const segs = generateWorkout({ kind, date, equipment, seed, style, level }).segments;
+              segs.forEach((s, i) => {
+                if (s.kind !== 'work') return;
+                const where = `${kind}/${style}/seed${seed} ${s.exercise?.name} ${s.durationSec}s`;
+                expect(s.durationSec % 5, where).toBe(0);
+                if (s.side === 'right') expect(segs[i - 2].durationSec, where).toBe(s.durationSec);
+              });
+            }
+          }
+        }
+      }
+    }
+  });
+
   it('splits unilateral exercises into left and right work segments', () => {
     const w = generateWorkout({ kind: '30min', date: TUE, equipment: ALL, seed: 4 });
     const sides = w.segments.filter((s) => s.side).map((s) => s.side);
