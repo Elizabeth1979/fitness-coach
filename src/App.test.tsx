@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import App from './App';
 
 const todaysList = () => within(screen.getByRole('region', { name: "Today's workout" }));
@@ -109,5 +109,37 @@ describe('App — every button does its one job', () => {
     fireEvent.click(screen.getByRole('button', { name: 'End workout' }), { detail: 1 });
     fireEvent.click(screen.getByRole('button', { name: 'Start workout' }), { detail: 1 });
     expect(screen.getByRole('button', { name: 'Start workout' })).toBeInTheDocument(); // still home
+  });
+});
+
+describe('App — the phone\'s Back button steps back inside the app', () => {
+  const pressBack = () => history.back();
+
+  it('closes an open sheet instead of leaving the app', async () => {
+    render(<App />);
+    openChange();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    pressBack();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Start workout' })).toBeInTheDocument();
+  });
+
+  it('mid-workout: pauses and goes home, where Resume picks up the same spot', async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Start workout' }));
+    expect(screen.getByText("Today's workout")).toBeInTheDocument();
+    pressBack();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Start workout' })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /Resume where you stopped/ }));
+    expect(screen.getByText("Today's workout")).toBeInTheDocument();
+  });
+
+  it('closing a sheet with its own button gives the Back press back', async () => {
+    render(<App />);
+    const before = history.length;
+    openChange();
+    fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+    await waitFor(() => expect(history.state).toBeNull()); // our extra entry is gone again
+    expect(history.length).toBeGreaterThanOrEqual(before);
   });
 });

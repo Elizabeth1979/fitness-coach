@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { useTapGuard } from './useTapGuard';
+import { useBackButton } from './useBackButton';
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -7,12 +8,13 @@ interface Props { label: string; onClose: () => void; children: ReactNode }
 
 /**
  * A bottom sheet that behaves like a real dialog: focus moves into it when it opens,
- * Tab / Shift+Tab stay inside it, Escape or a tap on the backdrop closes it,
+ * Tab / Shift+Tab stay inside it, Escape, Back or a tap on the backdrop closes it,
  * and focus goes back to whatever opened it.
  */
 export function Sheet({ label, onClose, children }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const guard = useTapGuard(); // the tap that opened it can't also hit what's inside
+  useBackButton(true, onClose); // the phone's Back closes the sheet
   // Read the latest onClose from the key handler without re-running the effect (and re-focusing) on every render.
   const closeRef = useRef(onClose);
   useEffect(() => { closeRef.current = onClose; }, [onClose]);

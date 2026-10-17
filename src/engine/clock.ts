@@ -27,7 +27,8 @@ export class RafClock implements Clock {
   start(): void {
     this.last = performance.now();
     const loop = (now: number) => {
-      const dt = Math.min((now - this.last) / 1000, MAX_FRAME_SEC);
+      // ≥ 0: the first frame's timestamp can be just before start() (it marks when the frame began).
+      const dt = Math.max(0, Math.min((now - this.last) / 1000, MAX_FRAME_SEC));
       this.last = now;
       this.cb?.(dt);
       this.raf = requestAnimationFrame(loop);
