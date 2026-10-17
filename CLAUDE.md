@@ -30,12 +30,15 @@ npm run lint         # oxlint --deny-warnings (config in .oxlintrc.json) — war
   build break once hid behind a green test run for several tasks.
 - **`console.log` in a passing test prints nothing** with the default reporter — add `--reporter=verbose`
   (or write to a file) when a throwaway test is meant to print numbers.
-- **iPhone bugs need WebKit, not Chromium.** Elli's phone runs WebKit; the timer ring froze there
-  (a CSS transition on a value redrawn every frame restarts forever in WebKit) while Chromium looked
-  fine. Check with Playwright's `webkit` + `devices['iPhone 13']` (`npx playwright install webkit`; if
-  the install stalls after downloading, unzip the downloaded zip into `~/Library/Caches/ms-playwright/webkit-<rev>`
-  and touch `INSTALLATION_COMPLETE`). Mobile WebKit can't fake a mouse wheel — use a desktop WebKit
-  context at phone width for scroll checks. **Don't put a CSS `transition` on anything updated every frame.**
+- **Elli's phone is Android + Chrome** (installed PWA). Check phone bugs in Chromium with
+  `devices['Pixel 7']` — Playwright's bundled Chromium works via `executablePath` from
+  `~/Library/Caches/ms-playwright/chromium-*`; CPU throttling via CDP `Emulation.setCPUThrottlingRate`.
+  Emulation isn't a real phone: the frozen-ring bug (#12) did NOT reproduce in emulated Android Chrome,
+  only in WebKit (iPhone), so ask Elli to re-check on her phone. WebKit: `webkit` + `devices['iPhone 13']`
+  (`npx playwright install webkit`; if it stalls after downloading, unzip the zip into
+  `~/Library/Caches/ms-playwright/webkit-<rev>` and touch `INSTALLATION_COMPLETE`); mobile WebKit can't
+  fake a mouse wheel — use a desktop context at phone width for scroll checks. **Don't put a CSS
+  `transition` on anything updated every frame** (WebKit restarts it forever and the ring froze).
 - **Vitest blanks CSS** unless the file is in `test.css.include` (`vite.config.ts`); `index.css` is, so
   a test can `import css from '../index.css?raw'` to guard a rule (sheet scroll lock, timer ring).
 - **Browser checks (Playwright, Chromium is preinstalled):** `npm run build`, serve `dist/` with the headers from
