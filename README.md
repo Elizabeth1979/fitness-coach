@@ -55,6 +55,33 @@ balance, skill — not calories or body weight.
 The coach is calm and encouraging — never military, never shaming, and there's not a
 calorie count in sight.
 
+## The research behind it
+
+Move With Elli is a **circuit**: one move each for push, pull, legs, hinge, carry/crawl and
+mobility, repeated for a few rounds. Its rhythm follows published guidance on circuit training:
+
+- **Short rests work because the muscles take turns.** Each move uses different muscles, so the
+  next ones are already rested. The break between moves is mainly for catching your breath and
+  getting into position, not for muscle recovery.
+- **15–30 seconds between moves is the usual circuit guidance.** A review of circuit weight
+  training gives moderate loads and 15–30 s between stations, with the circuit repeated one to
+  three times ([Kravitz, UNM](https://www.unm.edu/~lkravitz/Article%20folder/circuits.html)). The
+  NSCA calls rests of about 30 s typical for circuit-style training for people newer to strength
+  work, and longer rests (2–5 min) a later step for heavy strength training
+  ([NSCA](https://www.nsca.com/contentassets/fb8a7be6eb174934bb8844703c4de4cc/ptq-10.1.3-how-to-manipulate-rest-intervals-to-maixmize-strength-training-effectiveness.pdf)).
+- **10 seconds is the high-intensity (HIIT) end.** ACSM's 7-Minute Workout uses 30 s of hard
+  bodyweight work with 10 s of rest ([ACSM](https://www.acsm.org/blog-detail/acsm-certified-blog/2019/09/19/7-minute-workout-download)).
+  That suits all-bodyweight moves with nothing to pick up.
+- **Longer rests (30–60 s or more) are for heavier strength sets**
+  ([Brookbush Institute](https://brookbushinstitute.com/courses/acute-variables-circuit-training)),
+  which isn't the goal here.
+
+**How the app uses it:** the gap between moves today is about 20 s (a 15 s rest plus a 5 s
+"get ready"). It's moving to a single **15 s** gap, the low end of the circuit range. That still
+leaves time to hear what's next, get to the bar or the weights, and a clean "three, two, one,
+Go!". The workout length stays the same, so shorter rests mean more of it is spent moving. A
+longer breather between rounds stays.
+
 ### Add your own encouragement
 
 The coach's encouragement lines live in [`src/coach/encouragements.json`](src/coach/encouragements.json).
